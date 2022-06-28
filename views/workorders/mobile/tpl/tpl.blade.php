@@ -4,8 +4,8 @@
         {expire}
     </div>
     <div class="title">{site_name}</div>
-    <div style="font-size: 12px; line-height: 25px">WO {no_wo}</div>
-    {activity} {service}
+    <div style="font-size: 12px; line-height: 25px">WO {id}</div>
+    {activity}
     <div class="small-box bright-text" style="background: #666">{client_name}</div>
     <div class="content">{description}</div>
     <div class="footer">
