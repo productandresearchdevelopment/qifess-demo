@@ -1,0 +1,76 @@
+/* CUSTOM SCROLLBAR */
+* {scrollbar-width: thin; scrollbar-color: #EEE transparent;}
+::-webkit-scrollbar {width: 5px; height: 4px;}
+::-webkit-scrollbar-track {background: transparent;}
+::-webkit-scrollbar-thumb {background-color: #EEE;}
+
+.x-body, .x-form-textarea, .x-form-text {font-family: Quicksand,helvetica,tahoma,verdana,sans-serif; font-size:13px;}
+
+
+/* TAB STYLE */
+.x-tab-bar-default{background-color: #F9F9F9; border-bottom: 1px solid #DDD !important;}
+.x-tab-default-active {border-bottom: 3px solid #04adff !important;}
+.x-tab-default-top{padding: 9px 10px;}
+.x-tab-default-active .x-tab-inner {color: #51a3fb;}
+
+/* TOLLBAR STYLE */
+.win-toolbar-hide-header.x-toolbar-default{border-bottom: 1px solid #DDD !important; }
+.win-toolbar-hide-header .x-btn-inner{font-size: 15px !important; color: #999 !important;}
+
+.action-bar.x-toolbar-default{border-bottom: 1px solid #DDD !important; padding: 10px 5px; background-color: #f9f9f9}
+.action-bar .x-toolbar-text{font-size: 15px}
+
+/* HTML EDITOR STYLE */
+.x-html-editor-input.x-box-item { border-top: 1px solid #d9d9d9; padding: 5px 7px;}
+.x-html-editor-wrap textarea{border: 0px;}
+
+.disabled .x-grid-cell{opacity: 0.5}
+.disabled .x-form-field, .disabled .x-trigger-cell{color: #999999; background: #F6F6F6; font-style: italic;}
+.input-readonly .x-form-text{background: #fffde8; color: #333333; font-size: 12px}
+
+.box-color{ color: #FFFFFF; border-radius: 5px; font-size: 10px; text-align: center; margin: 5px 0px; line-height: 20px; padding: 2px}
+
+.bright-icon.x-btn-icon-text-left .x-btn-icon-el{filter: brightness(0) invert(1);}
+
+/* CUSTOM BUTTON */
+.btn-blue.x-btn-default-toolbar-small .x-btn-inner,
+.btn-red.x-btn-default-toolbar-small .x-btn-inner,
+.btn-green.x-btn-default-toolbar-small .x-btn-inner,
+.btn-orange.x-btn-default-toolbar-small .x-btn-inner,
+.btn-gray.x-btn-default-toolbar-small .x-btn-inner,
+.btn-transparent.x-btn-default-toolbar-small .x-btn-inner{color: #FFFFFF; font-weight: 400; font-size: 13px;  margin-left: 3px}
+
+.btn-transparent.x-btn-default-toolbar-small .x-btn-inner{color: #666666;  font-weight: 600; margin-left: 10px}
+.btn-transparent.x-btn-default-toolbar-small-over .x-btn-inner{color: #333333;  font-weight: 600; margin-left: 10px}
+
+.btn-transparent.x-btn-default-toolbar-small{background: none; border: none; }
+.btn-transparent.x-btn-default-toolbar-small-over{background: none; border: none;}
+
+.btn-blue.x-btn-default-toolbar-small{background: #3892d3; border: none; border-radius: 0px; padding-top: 6px; padding-bottom: 6px; }
+.btn-blue.x-btn-default-toolbar-small-over{background: #0179d0; border: none;}
+
+.btn-red.x-btn-default-toolbar-small{background: #DD1818; border: none; border-radius: 0px; padding-top: 6px; padding-bottom: 6px; }
+.btn-red.x-btn-default-toolbar-small-over{background: #AD0101; border: none;}
+
+.btn-green.x-btn-default-toolbar-small{background: #05B005; border: none; border-radius: 0px; padding-top: 6px; padding-bottom: 6px; }
+.btn-green.x-btn-default-toolbar-small-over{background: #369402; border: none;}
+
+.btn-orange.x-btn-default-toolbar-small{background: #FF9C01; border: none; border-radius: 0px; padding-top: 6px; padding-bottom: 6px; }
+.btn-orange.x-btn-default-toolbar-small-over{background: #FF8A00; border: none;}
+
+.btn-gray.x-btn-default-toolbar-small{background: #999999; border: none; border-radius: 0px; padding-top: 6px; padding-bottom: 6px; }
+.btn-gray.x-btn-default-toolbar-small-over{background: #888888; border: none;}
+
+.btn-blue.x-btn-default-small{background: #3892d3;}
+.btn-blue.x-btn-default-small-over{background: #0179d0;}
+.btn-red.x-btn-default-small{background: #DD1818;}
+.btn-red.x-btn-default-small-over{background: #AD0101;}
+.btn-green.x-btn-default-small{background: #05B005;}
+.btn-green.x-btn-default-small-over{background: #369402;}
+.btn-orange.x-btn-default-small{background: #FF9C01;}
+.btn-orange.x-btn-default-small-over{background: #FF8A00;}
+.btn-gray.x-btn-default-small{background: #999999;}
+.btn-gray.x-btn-default-small-over{background: #888888;}
+
+.large-grid .x-grid-cell-inner{padding: 10px;}
+.large-grid .x-grid-cell-row-checker .x-grid-cell-inner{padding: 10px 4px;}

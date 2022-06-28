@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models\Sites;
+
+use App\Models\Clients\Client;
+use App\Models\WorkOrders\WorkOrder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\SystemModels\BaseModel;
+
+class Site extends Model
+{
+    use SoftDeletes;
+    use BaseModel;
+
+    protected $table   = 'po_m_site';
+    protected $guarded = ['id'];
+
+    public function client(){
+        return $this->hasOne(Client::class, 'id', 'client_id')->withTrashed();
+    }
+
+    public function workorders(){
+        return $this->hasMany(WorkOrder::class, 'site_id', 'id');
+    }
+}
