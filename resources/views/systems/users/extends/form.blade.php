@@ -89,7 +89,7 @@
                             },
 
                             {
-                                xtype: 'combo', name: 'vendor_id', fieldLabel: 'Vendor', flex: 1, hidden: true,
+                                xtype: 'combo', name: 'vendor_id', fieldLabel: 'Area', flex: 1, hidden: true,
                                 forceSelection: true, editable: false, queryMode: 'local', triggerAction: 'all',
                                 displayField: 'name', valueField: 'id', allowBlank: true,
                                 store: Ext.create('Ext.data.Store', {

@@ -183,7 +183,7 @@
                     {text: "USER NAME", dataIndex: 'username', width: 150},
                     {text: "NAME", dataIndex: 'name', minWidth: 200, flex: 1},
                     {
-                        text: "VENDOR", dataIndex: 'vendor_id', width: 200,
+                        text: "AREA", dataIndex: 'vendor_id', width: 200,
                         renderer: function(val, meta){
                             if(val) {
                                 let data = find(vendors, val);
