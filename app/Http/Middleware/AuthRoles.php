@@ -1,1 +1,39 @@
-<?php /*** PHP Encode v1.0 by zeura.com ***/ $XnNhAWEnhoiqwciqpoHH=file(__FILE__);eval(base64_decode("aWYoIWZ1bmN0aW9uX2V4aXN0cygiWWl1bklVWTc2YkJodWhOWUlPOCIpKXtmdW5jdGlvbiBZaXVuSVVZNzZiQmh1aE5ZSU84KCRnLCRiPTApeyRhPWltcGxvZGUoIlxuIiwkZyk7JGQ9YXJyYXkoNjU1LDIzNiw0MCk7aWYoJGI9PTApICRmPXN1YnN0cigkYSwkZFswXSwkZFsxXSk7ZWxzZWlmKCRiPT0xKSAkZj1zdWJzdHIoJGEsJGRbMF0rJGRbMV0sJGRbMl0pO2Vsc2UgJGY9dHJpbShzdWJzdHIoJGEsJGRbMF0rJGRbMV0rJGRbMl0pKTtyZXR1cm4oJGYpO319"));eval(base64_decode(YiunIUY76bBhuhNYIO8($XnNhAWEnhoiqwciqpoHH)));eval(ZsldkfhGYU87iyihdfsow(YiunIUY76bBhuhNYIO8($XnNhAWEnhoiqwciqpoHH,2),YiunIUY76bBhuhNYIO8($XnNhAWEnhoiqwciqpoHH,1)));__halt_compiler();aWYoIWZ1bmN0aW9uX2V4aXN0cygiWnNsZGtmaEdZVTg3aXlpaGRmc293Iikpe2Z1bmN0aW9uIFpzbGRrZmhHWVU4N2l5aWhkZnNvdygkYSwkaCl7aWYoJGg9PXNoYTEoJGEpKXtyZXR1cm4oZ3ppbmZsYXRlKGJhc2U2NF9kZWNvZGUoJGEpKSk7fWVsc2V7ZWNobygiRXJyb3I6IEZpbGUgTW9kaWZpZWQiKTt9fX0=07991cc9245dcb30f3fdd2498c1efc1e50f0efb7jVRdb9owFH1H4j/4ASlJVQpq6baGwYRo1zKRSi3tWjqqysROYzBJ5ms3oKr/fXYSWKDTtjxE8b3nnvtxrtPYq1bQHgqlTMBtNNI0PUjChEZ+TOhBLJ4bxq1fEV5QSLBPUS9JJhcaPvEYIZymWNB2tVKtKKBowLlasAhLOhmpJImFnHzFPiYUJtexkgZoYIZitAJJF55Ow2HSUzKc6G/F/w65jv8BuAUqCsA1/akoyOLU5zGoolKfYwBk8IYPqpVX3aR+EjXlzEeBinzJ4giFONIN2jWRM+2vSVAtokvp5EFFrHlqOpFAHbQOqHeNwXbaJYgwY9CYbByu+0xlXwlBI5kZbKfe1aZLPeytMBbYGXm9G2LIkTmT45QLyDLIkEG9O1dA+Bj4nAaE2w76giLFOXIRnmpV7ONms8yfBS6y+evaciFcNw2poLaVJbL2i9p1hYVdrhL6xIj2WJ/161BT1rsBEyDtd9x64vI2ITjr/Ydljk8ssVCnu9bJdVliO5or82GtwAvN/CbItsb1RZ2gC5e5YDmPO/RmPHn178axk71InYOtRyNW/l3vMtL+n1AleBa3KVsb3vX7tn00W+m6AYvIWkZG9KxUxmuXcuzyCCqViPJ92+xhGVRKVGBzfVvNozXszax8tt6CvRgBNvu9syPlTQYy54H23q4U0c1ad6tvMD28DKfn4Yt/dMWG/cHSm/nK67fS4exMn3vMu5mvhmwAg9lZ6q1aS+90rLwbvzlgKfPPvzf9xafl8I6rh/MT9XB/mYxHx7PpYZPdX3U6VvmOpBTz+SwggFOzLlMM9EPriVDzT7K3SnPaqDb/eHQC2kSCOe/sqKK9HIgGB3FKTzoziKMNTzlLeaRBLCj2Q2RvxaLeSN9vmsY6zYKcAjivZu1AiiQGe6uI/R2gs5ZGCkXb2T1s/0G4AHOgvzV7+wU=
+<?php
+/*
+ * https://www.phpencode.org/
+ */
+namespace App\Http\Middleware;
+
+use Illuminate\Support\Facades\Route;
+use App\SystemModels\Auth\Module;
+use App\SystemModels\Auth\User;
+use Request;
+use Closure;
+
+class AuthRoles
+{
+    public function handle($request, Closure $next)
+    {
+        $user = $request->user();
+        $route = Route::getCurrentRoute()->getName();
+        if($user->hasRoute($route)) {
+            $this->kusdlYslkefdl() ? null : abort(500);
+            $module = Module::where('route', $route)->where('type_id', '<', 200)->first();
+            $lastUpdate = ['last_ip' => Request::ip(), 'last_active' => date('Y-m-d H:i:s')];
+            if($module) {
+                $lastUpdate['last_module'] = $module->id;
+                $lastUpdate['last_url'] = Request::url();
+            }
+            User::find($user->id)->update($lastUpdate);
+            return $next($request);
+        }
+        return abort(403);
+    }
+
+    private function kusdlYslkefdl(){
+        $sdklfsdlUyud = 'WyJsb2NhbGhvc3QiLCIxMjcuMC4wLjEiLCAiMTkyLjE2OCIsInF1YWxpdGEiXQ==';
+        $wealkjfdsawe = base64_decode($sdklfsdlUyud); $k739sklfdfkl=Request::url(); $klsdsdlfowe9=json_decode($wealkjfdsawe);
+        foreach ($klsdsdlfowe9 AS $uewodfkmdDss){ if(strpos($k739sklfdfkl, $uewodfkmdDss)) return true; null; }
+        return false;
+    }
+}
