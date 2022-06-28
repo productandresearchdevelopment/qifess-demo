@@ -58,7 +58,7 @@
                                     data: vendor,
                                     fields : [
                                         {name: 'id', type: 'int'},
-                                        {name: 'alias', type: 'string'}
+                                        {name: 'name', type: 'string'}
                                     ]
                                 }),
                             },
