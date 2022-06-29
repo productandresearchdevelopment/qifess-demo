@@ -148,6 +148,7 @@
                                                         {name: 'id', type: 'int'},
                                                         {name: 'client_id', type: 'int'},
                                                         {name: 'link_id', type: 'string'},
+                                                        {name: 'service_id', type: 'int'},
                                                         {name: 'name', type: 'string'},
                                                         {name: 'address', type: 'string'},
                                                         {name: 'pic', type: 'string'},
@@ -163,8 +164,10 @@
                                                         if (rec && rec.length) {
                                                             rec = rec[0];
                                                             let client = find(clients, rec.client_id);
+                                                            let service = find(services, rec.service_id);
                                                             me.setField('client_id', rec.client_id);
                                                             me.setField('form-site-client', client ? client.name : '-');
+                                                            me.setField('form-site-service', service ? service.name : '-');
                                                             me.setField('form-site-linkid', rec.link_id ? rec.link_id : '-');
                                                             me.setField('form-site-address', rec.address);
                                                             me.setField('form-site-pic', rec.pic + ' (' + rec.pic_phone + ')');
@@ -183,6 +186,7 @@
                                                 items: [
                                                     { xtype: 'displayfield', name: 'form-site-client', fieldLabel: 'Client' },
                                                     { xtype: 'displayfield', name: 'form-site-linkid', fieldLabel: 'Link ID' },
+                                                    { xtype: 'displayfield', name: 'form-site-service', fieldLabel: 'Service ID' },
                                                     { xtype: 'displayfield', name: 'form-site-pic', fieldLabel: 'PIC' },
                                                     { xtype: 'displayfield', name: 'form-site-address', fieldLabel: 'Address' },
                                                 ]
