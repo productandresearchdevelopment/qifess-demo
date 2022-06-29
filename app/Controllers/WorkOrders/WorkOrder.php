@@ -323,7 +323,7 @@ class WorkOrder extends Controller
                         });
 
                     })->whereNotNull('email')->where('email', '<>', '')->pluck('email');
-                    Mail::to($sendTo)->send(new UpdateWoMail($wo, $action));
+                    //Mail::to($sendTo)->send(new UpdateWoMail($wo, $action));
                 }
 
                 return $action;
