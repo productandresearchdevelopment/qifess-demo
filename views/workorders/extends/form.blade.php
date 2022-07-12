@@ -358,8 +358,8 @@
                             {
                                 xtype: 'combo',
                                 name: 'fieldtech_id',
-                                fieldLabel: 'Fieldtech',
-                                emptyText: 'Select Fieldtech',
+                                fieldLabel: 'Team',
+                                emptyText: 'Select Team',
                                 margin: '5 0 5 0',
                                 allowBlank: true,
                                 forceSelection: true, typeAhead: true, hideTrigger:true,
