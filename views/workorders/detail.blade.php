@@ -21,8 +21,6 @@
     var slots = @json($slots);
     var statusAction = @json($status);
 
-    console.log(slots);
-
     let detailWo = new DetailWo('#main-container');
     detailWo.load(@json($data));
 </script>
