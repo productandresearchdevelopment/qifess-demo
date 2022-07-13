@@ -26,6 +26,7 @@
         var owners = @json($owners);
         var vendors = @json($vendors);
         var statusAction = @json($status);
+        var slots = @json($slots);
 
         var detailWo = null;
 
