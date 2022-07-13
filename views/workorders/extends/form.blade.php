@@ -575,6 +575,8 @@
                     me.setField('fieldtech_id', rec.fieldtech_id);
                 });
 
+                me.getField('fieldtech_id').store.load();
+
                 return true;
             }
             return false;
