@@ -175,7 +175,7 @@
                                                             me.setField('form-site-address', rec.address);
                                                             me.setField('form-site-pic', rec.pic + ' (' + rec.pic_phone + ')');
                                                             me.setField('vendor_id', rec.vendor_id);
-
+                                                            me.getField('fieldtech_id').store.load();
                                                         }
                                                     }
                                                 }
