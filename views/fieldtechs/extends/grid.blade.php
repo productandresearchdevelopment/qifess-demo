@@ -67,7 +67,18 @@
                         }
                     },
                     //{text: "NIK", dataIndex: 'nik', width: 100},
-                    {text: "NAME", dataIndex: 'name', minWidth: 200, flex: 1},
+                    {text: "NAME", dataIndex: 'name', width: 300},
+                    {
+                        text: "USER", dataIndex: 'users', minWidth: 200, flex: 1,
+                        renderer: function(val){
+                            let result = [];
+                            val.forEach(function (e){
+                                result.push(e.name)
+                            });
+
+                            return result.join('<br>')
+                        }
+                    },
                     // {text: "USER NAME", dataIndex: 'user', width: 150,hidden:true,
                     //     renderer: function (val) {
                     //         return val ? val.username : '';
