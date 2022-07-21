@@ -18,8 +18,8 @@ class Fieldtech extends Model
     protected $table   = 'po_m_fieldtech';
     protected $guarded = ['id'];
 
-    public function user(){
-        return $this->hasOne(User::class, 'fieldtech_id', 'id');
+    public function users(){
+        return $this->hasMany(User::class, 'fieldtech_id', 'id');
     }
 
     public function vendor(){
@@ -37,5 +37,5 @@ class Fieldtech extends Model
             'employ_id',
             'file_id'
         );
-    }  
+    }
 }

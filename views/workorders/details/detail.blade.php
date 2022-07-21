@@ -120,13 +120,19 @@
             dataTpl.fieldtechTpl = '';
             if (dataTpl.fieldtech) {
                 dataTpl.fieldtech.photo = (dataTpl.fieldtech && dataTpl.fieldtech.photo) ? '{{ route('upload.file') }}/' + dataTpl.fieldtech.photo : '{{asset('images/nouser.png')}}';
+
+                dataTpl.fieldtech.user = [];
+                dataTpl.fieldtech.users.forEach(function(e){
+                    dataTpl.fieldtech.user.push(e.name)
+                });
+                dataTpl.fieldtech.user.join('<br>');
+
                 dataTpl.fieldtechTpl = String.format(`
                     <div class="container info-container">
-                        <span>Fieldtech</span>
+                        <span>Team & Fieldtech</span>
                         <div style="display: flex">
-                            <img class="circle-photo" src="{photo}">
                             <div style="flex: 1; text-align: left; display: inline-block; padding-top: 4px">
-                                {name} <div class="info"> Phone: {phone} <br> Email: {email} </div>
+                                {name} <div class="info">{user}</div>
                             </div>
                         </div>
                     </div>`, dataTpl.fieldtech);
@@ -190,14 +196,18 @@
                         if (detail.type == 'hide') {
                             if (detail.property == 'fieldtech') {
                                 if (val.fieldtech) {
+                                    val.fieldtech.user = [];
+                                    val.fieldtech.users.forEach(function(e){
+                                        val.fieldtech.user.push(e.name)
+                                    });
+                                    val.fieldtech.user.join('<br>');
+
                                     let tpl = `<div style="display: flex">
-                                                    <img class="circle-photo" src="{photoUrl}">
                                                     <div style="flex: 1; text-align: left; display: inline-block; padding-top: 4px">
                                                         {name}
-                                                        <div class="info">Phone: {phone} <br> Email: {email}</div>
+                                                        <div class="info">{user}</div>
                                                     </div>
                                                </div>`;
-                                    val.fieldtech.photoUrl = val.fieldtech.photo ? '{{ route("upload.file") }}/' + val.fieldtech.photo : '{{asset("images/nouser.png")}}';
                                     detailValue = String.format(tpl, val.fieldtech);
                                 }
                             }

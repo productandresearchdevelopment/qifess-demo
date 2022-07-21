@@ -14,7 +14,7 @@
                 {name: 'photo', type: 'string'},
                 {name: 'vendor_id', type: 'int'},
                 {name: 'files', type: 'auto'},
-                {name: 'user', type: 'auto'},
+                {name: 'users', type: 'auto'},
                 {name: 'workorders', type: 'auto'},
                 {name: 'workorders_count', type: 'int'},
             ]);
@@ -60,22 +60,22 @@
                 columns: [
                     {text: "ID", dataIndex: 'id', width: 80, hidden:true},
                     {
-                        text: "AREA", dataIndex: 'vendor_id', minWidth: 80,
+                        text: "AREA", dataIndex: 'vendor_id', minWidth: 200,
                         renderer: function(val, meta, rec){
                             let data = find(vendor, val);
                             return data ? me.renderText(data.name, data.name, meta) : '';
                         }
                     },
                     //{text: "NIK", dataIndex: 'nik', width: 100},
-                    {text: "TEAM", dataIndex: 'name', minWidth: 200},
-                    {text: "USER NAME", dataIndex: 'user', width: 150,hidden:true,
-                        renderer: function (val) {
-                            return val ? val.username : '';
-                        }
-                    },
-                    {text: "PHONE", dataIndex: 'phone', width: 150},
-                    {text: "EMAIL", dataIndex: 'email', minWidth: 200},
-                    {text: "ADDRESS", dataIndex: 'address', minWidth: 250, flex: 1},
+                    {text: "NAME", dataIndex: 'name', minWidth: 200, flex: 1},
+                    // {text: "USER NAME", dataIndex: 'user', width: 150,hidden:true,
+                    //     renderer: function (val) {
+                    //         return val ? val.username : '';
+                    //     }
+                    // },
+                    // {text: "PHONE", dataIndex: 'phone', width: 150},
+                    // {text: "EMAIL", dataIndex: 'email', minWidth: 200},
+                    // {text: "ADDRESS", dataIndex: 'address', minWidth: 250, flex: 1},
                 ],
                 @if(!$user->vendor_id)
                 bbar: me.bbar([

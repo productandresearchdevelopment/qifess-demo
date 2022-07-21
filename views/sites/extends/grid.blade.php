@@ -174,7 +174,7 @@
                                 $('#list-wo').show();
                                 },10);
                             if ($('#maploc').length > 0) {
-                               map.remove();
+                               if(map)map.remove();
                                setTimeout(function () {
                                  map = L.map('maploc').setView([data.lat, data.long], 8);
                                 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {

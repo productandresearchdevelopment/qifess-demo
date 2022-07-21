@@ -11,7 +11,7 @@
                 flex: 1,
                 autoHeight: true,
                 maxHeight: 500,
-                width: 700,
+                width: 500,
                 border: false,
                 autoScroll: true,
                 defaultType: 'textfield',
@@ -25,6 +25,7 @@
                         fieldDefaults:{margin: '5 5'},
                         defaultType: 'textfield',
                         layout: {type: 'vbox', align: 'stretch'},
+                        hidden: true,
                         items: [
                                 {
                                     xtype: 'panel',
@@ -65,11 +66,11 @@
                             {name: 'nik', fieldLabel: 'NIK', allowBlank: true, hidden: true,},
                             {name: 'name', fieldLabel: 'Team Name',},
                             {xtype:'hiddenfield',name: 'attach', fieldLabel: 'Name',},
-                            {name: 'fieldtech1', fieldLabel: 'Fieldtech 1', allowBlank: true},
-                            {name: 'fieldtech2', fieldLabel: 'Fieldtech 2', allowBlank: true},
-                            {name: 'phone', fieldLabel: 'Phone', allowBlank: true},
-                            {name: 'email', fieldLabel: 'Email', allowBlank: true},
-                            {xtype: 'textareafield', name: 'address', fieldLabel: 'Address',allowBlank:true, flex: 1, height: 30,},
+                            {name: 'fieldtech1', fieldLabel: 'Fieldtech 1', hidden: true, allowBlank: true},
+                            {name: 'fieldtech2', fieldLabel: 'Fieldtech 2', hidden: true, allowBlank: true},
+                            {name: 'phone', fieldLabel: 'Phone', hidden: true, allowBlank: true},
+                            {name: 'email', fieldLabel: 'Email', hidden: true, allowBlank: true},
+                            {xtype: 'textareafield', name: 'address', hidden: true, fieldLabel: 'Address',allowBlank:true, flex: 1, height: 30,},
                             {
                                 xtype: 'panel',name: 'file_id',title: 'Attachment File', hidden: true,
                                 html: '<div id="attachment"></div>',

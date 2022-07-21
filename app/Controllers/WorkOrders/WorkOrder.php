@@ -71,13 +71,13 @@ class WorkOrder extends Controller
             'site',
             'client',
             'removeSite',
-            'fieldtech',
+            'fieldtech.users',
             'lastAction.details.files',
             'lastAction.createdBy',
             'lastAction.updatedBy',
             'lastAction.deletedBy',
             'actions.details.files',
-            'actions.details.fieldtech',
+            'actions.details.fieldtech.users',
             'actions.createdBy',
             'actions.updatedBy',
             'actions.deletedBy',
@@ -92,7 +92,7 @@ class WorkOrder extends Controller
         else {
             $query->where(function ($query) {
                 $query->whereNull('close_date');
-                $query->orWhere('close_date', '>=', date('Y-m-d', strtotime('-7 days')));
+                $query->orWhere('close_date', '>=', date('Y-m-d', strtotime('-1 days')));
             });
         }
 
@@ -141,13 +141,13 @@ class WorkOrder extends Controller
         return Wo::with([
             'site',
             'removeSite',
-            'fieldtech',
+            'fieldtech.users',
             'lastAction.details.files',
             'lastAction.createdBy',
             'lastAction.updatedBy',
             'lastAction.deletedBy',
             'actions.details.files',
-            'actions.details.fieldtech',// => function($query){ $query->where('id', 1); },
+            'actions.details.fieldtech.users',// => function($query){ $query->where('id', 1); },
             'actions.createdBy',
             'actions.updatedBy',
             'actions.deletedBy',

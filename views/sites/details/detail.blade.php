@@ -20,7 +20,7 @@
         dataTpl.active = dataTpl.is_active ? 'active' : 'inactive';
         dataTpl.active_color = dataTpl.is_active ? 'green' : 'red';
         dataTpl.inactive_date = dataTpl.inactive_date ? dates.format(dataTpl.inactive_date, 'd M Y') : '';
-        console.log(dataTpl.inactive_date);
+
         dataTpl.active_date = dataTpl.active_date ? dates.format(dataTpl.active_date, 'd M Y') : dataTpl.inactive_date;
         dataTpl.service = find(service, dataTpl.service_id);
         dataTpl.workorders.forEach(function (wo) {
@@ -33,7 +33,7 @@
         wo.close_date = wo.close_date ? dates.format(wo.close_date, 'd/m/Y') : 'On Progress';
 
         wo.start_date = dates.format(wo.start_date);
-        wo.expire_date = dates.format(wo.expire_date);
+        // wo.expire_date = dates.format(wo.expire_date);
         wo.created_at = dates.format(wo.created_at);
         woTpl.push(String.format(`@require('tpl/list_wo')`,wo));
         })

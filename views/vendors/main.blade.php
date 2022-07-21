@@ -26,6 +26,7 @@
                     border: false,
                     items: [
                         grids.grid,
+                        /*
                         {
                             xtype: 'panel',
                             id: 'panel-detail',
@@ -44,6 +45,7 @@
                                         </div>
                                    </div>`
                         }
+                        */
                     ]
                 });
             });

@@ -2,20 +2,15 @@
 
 namespace App\Controllers\Fieldtechs;
 
-use App\Mail\ActiveUser;
 use App\Http\Controllers\Controller;
 use App\Libraries\FileUpload;
-use App\Models\Sites\Site;
 use App\Models\WorkOrders\Masters AS Master;
 use App\Libraries\Query;
-use App\Models\Clients\Client;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use App\SystemModels\Auth;
 use App\Models\Fieldteches\Fieldtech as Mod;
 use App\Models\Vendors\Vendor;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 
 class Fieldtech extends Controller
@@ -26,6 +21,8 @@ class Fieldtech extends Controller
         $params = [
             'user' => $user,
             'vendors' => Vendor::all(),
+            'activity' => Master\Activity::all(),
+            'service' => Master\Service::all(),
             'title' => 'Fieldtech Data'
         ];
         return view('fieldtechs.main', $params);
@@ -34,7 +31,7 @@ class Fieldtech extends Controller
     public function data(Request $request){
         $user = $request->user();
         $search = ['nik', 'name'];
-        $query = Mod::with(['user','files','workorders']);
+        $query = Mod::with(['users','files','workorders']);
         $query ->withCount(['workorders']);
         if($user->vendor_id) $query = $query->where('vendor_id', $user->vendor_id);
         if($filter = $request->input('filter-vendor')) $query = $query->where('vendor_id', $filter);
@@ -50,13 +47,11 @@ class Fieldtech extends Controller
                 'nik' => $request->input('nik'),
                 'name' => $request->input('name'),
                 'phone' => $request->input('phone'),
-                'fieldtech1' => $request->input('fieldtech1'),
-                'fieldtech2' => $request->input('fieldtech2'),
                 'address' => $request->input('address'),
                 'email' => $request->input('email'),
                 'vendor_id' => $request->input('vendor_id'),
             ];
-            if($photo)$input['photo']=$photo;
+
             if($id) {
                 $data = Mod::find($id);
                 $data->update($input);
@@ -65,52 +60,7 @@ class Fieldtech extends Controller
                 $data = Mod::create($input);
                 $id = $data->id;
             }
-            $input_user = [
-                'username' => $request->input('username'),
-                'name' => $request->input('name'),
-                'phone' => $request->input('phone'),
-                'email' => $request->input('email'),
-                'fieldtech_id' => $id,
-                'role_id' => 1110,
-                'photo' => $photo,
-                'vendor_id' => $request->input('vendor_id'),
-            ];
-            if($password = $request->input('password'))$input_user['password'] = Hash::make($password);
-            if($user= Auth\User::where('fieldtech_id', $id)->first()){
-                if(Auth\User::where('email', $input_user['email'])->where('id','<>',$user->id)->withTrashed()->first()){
-                    return ['success' => false, 'message' => 'Email Duplicate'];
-                }
-                else if(Auth\User::where('username', $input_user['username'])->where('id','<>',$user->id)->withTrashed()->first()){
-                    return ['success' => false, 'message' => 'Username Duplicate'];
-                }
-                $user->update($input_user);
 
-            }
-            else {
-                if(Auth\User::where('email', $input_user['email'])->withTrashed()->first()){
-                    return ['success' => false, 'message' => 'Email Duplicate'];
-                }
-                else if(Auth\User::where('username', $input_user['username'])->withTrashed()->first()){
-                    return ['success' => false, 'message' => 'Username Duplicate'];
-                }
-                $user = Auth\User::create($input_user);
-
-            }
-            if($files = $request->input('attachment')){
-                $data->files()->detach();
-                    $files = json_decode($files);
-                    foreach ($files AS $file) {
-                        if (is_object($file)) $data->files()->attach($file->id);
-                        else if($fid = FileUpload::push($file, 'fieldtech-attachment')){
-                            $data->files()->attach($fid);
-                        }
-                    }
-
-            }
-
-            if($password){
-                Mail::to($user->email)->send(new ActiveUser($user, $password));
-            }
             DB::commit();
             return ['success' => true, 'message' => 'Success...'];
         }

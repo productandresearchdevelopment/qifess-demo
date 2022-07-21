@@ -102,6 +102,7 @@
                                 listeners: {
                                     change: function () {
                                         me.setField('fieldtech_id', null);
+                                        me.getField('fieldtech_id').store.load();
                                     }
                                 }
                             },
@@ -109,15 +110,15 @@
                             {
                                 xtype: 'combo',
                                 name: 'fieldtech_id',
-                                fieldLabel: 'Fieldtech',
-                                emptyText: 'Select Fieldtech',
+                                fieldLabel: 'Team',
+                                emptyText: 'Select Team',
                                 forceSelection: true,
                                 typeAhead: true,
-                                hideTrigger: true,
+                                hideTrigger: false,
                                 allowBlank: true,
                                 queryMode: 'remote',
                                 minChars: 1,
-                                triggerAction: 'query',
+                                triggerAction: 'all',
                                 displayField: 'name',
                                 valueField: 'id',
                                 flex: 1,

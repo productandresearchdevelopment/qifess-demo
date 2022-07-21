@@ -11,6 +11,8 @@
     <script>
         Ext.require(['Ext.ux.form.SearchField']);
         var vendor = @json($vendors);
+        var activity = @json($activity);
+        var service = @json($service);
         var grids = new Grids();
         var forms = new Forms();
         var formdetail = new FormDetail();

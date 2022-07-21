@@ -74,6 +74,7 @@
                             me.menus.showAt(e.getXY());
                         },
                         itemclick: function(obj, rec){
+                            /*
                             data = rec.data;
                             if(data){
                                detailClient(data, '#view-detail');
@@ -81,11 +82,11 @@
                                 if(data.workorders_count<=0)
                                     setTimeout(function () {
                                     $('#list-wo').hide();
-                                    },10); 
-                                else 
+                                    },10);
+                                else
                                     setTimeout(function () {
                                     $('#list-wo').show();
-                                    },10);                                                               
+                                    },10);
                             }else {
 
                                 Ext.getCmp('panel-detail').update(`<div id="view-detail" style="position: absolute; top: 0; left:0; right:0; background: #FAFAFA">
@@ -95,12 +96,12 @@
                                    </div>`);
                                 Ext.getCmp('panel-detail').setTitle('View (No Data)');
                             }
-                             
+                            */
                         },
                         itemdblclick : function(obj, rec){
-                            Ext.getCmp('panel-detail').expand();                           
+                            //Ext.getCmp('panel-detail').expand();
 
-                        }                          
+                        }
 
                     }
                 }

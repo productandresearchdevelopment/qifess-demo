@@ -16,7 +16,7 @@
         </div>
         <div style="flex: 1; border-right: 1px; margin-top: 5px; solid #eee; text-align: left">
             <span>Area</span>
-            ({vendor.alias}) {vendor.name}
+            <div style="font-size: 11px;">({vendor.alias}) {vendor.name}</div>
         </div>
         <div style="font-size: 12px; padding: 2px 0px; color: #999">
             {description}

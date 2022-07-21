@@ -2,21 +2,21 @@
 
 @section('script')
     <script src="{{ asset('plugins/gum/uwa/uwa.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ asset('plugins/gum/uwa/uwa.css') }}"/> 
+    <link rel="stylesheet" type="text/css" href="{{ asset('plugins/gum/uwa/uwa.css') }}"/>
     @require('details.detail')
     @require('extends.grid')
     @require('extends.form')
-    @require('extends.formDetail')      
-    
+    @require('extends.formDetail')
+
     <script>
         Ext.require(['Ext.ux.form.SearchField']);
         var vendor = @json($vendors);
         var activity = @json($activities);
-        var service = @json($services); 
-        var site = @json($sites);         
+        var service = @json($services);
+        var site = @json($sites);
         var grids = new Grids();
         var forms = new Forms();
-        var formdetail = new FormDetail();        
+        var formdetail = new FormDetail();
 
         Ext.onReady(function(){
             Ext.tip.QuickTipManager.init();
@@ -30,6 +30,7 @@
                     border: false,
                     items: [
                         grids.grid,
+                        /*
                         {
                             xtype: 'panel',
                             id: 'panel-detail',
@@ -48,6 +49,8 @@
                                         </div>
                                    </div>`
                         }
+
+                         */
                     ]
                 });
             });

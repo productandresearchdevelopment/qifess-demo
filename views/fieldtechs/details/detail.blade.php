@@ -7,7 +7,6 @@
     .fieldtech-detail .container .info{color: #666; font-size: 12px;}
     .fieldtech-detail .box-color{font-size: 10px; border-radius: 2px; padding: 0px 5px; color: #fff; background: #333; display: inline-block}
     .fieldtech-detail .container .circle-photo {width: 75px; height: 75px; border: 1px solid #eee; border-radius: 50%; margin: 5px 15px 5px 0px;}
-
 </style>
 
 <script>
@@ -24,25 +23,34 @@
         dataTpl.photo = dataTpl.photo ? '{{ route('upload.file') }}/' + dataTpl.photo : '{{asset('images/nouser.png')}}';
         dataTpl.vendor = find(vendor, dataTpl.vendor_id);
 
-        dataTpl.workorders.forEach(function (wo) {
-        wo.id = wo.id
-        wo.order = order ++;
-        wo.activity = find(activity, wo.activity_id);
-        wo.service = find(service, wo.service_id);
-        wo.site = find(site, wo.site_id);
-        wo.client = find(client, wo.client_id);
-        wo.description = wo.description;
-        wo.close_date = wo.close_date ? dates.format(wo.close_date, 'd/m/Y') : 'On Progress'; 
 
-        wo.start_date = dates.format(wo.start_date);
-        wo.expire_date = dates.format(wo.expire_date);
-        wo.created_at = dates.format(wo.created_at);   
-        
-        woTpl.push(String.format(`@require('tpl/list_wo')`,wo));
-        })          
-        
+        dataTpl.user = [];
+        dataTpl.users.forEach(function (e){
+            dataTpl.user.push(e.name)
+        });
+
+        dataTpl.user.join('<br>')
+
+        /*
+        dataTpl.workorders.forEach(function (wo) {
+            wo.id = wo.id
+            wo.order = order ++;
+            wo.activity = find(activity, wo.activity_id);
+            wo.service = find(service, wo.service_id);
+            wo.site = find(site, wo.site_id);
+            wo.client = find(client, wo.client_id);
+            wo.description = wo.description;
+            wo.close_date = wo.close_date ? dates.format(wo.close_date, 'd/m/Y') : 'On Progress';
+
+            wo.start_date = dates.format(wo.start_date);
+            //wo.expire_date = dates.format(wo.expire_date);
+            wo.created_at = dates.format(wo.created_at);
+
+            woTpl.push(String.format(`@require('tpl/list_wo')`,wo));
+        })
+
         dataTpl.files.forEach(function (val) {
-        if(val && val!="") {
+            if(val && val!="") {
                 val.target = '';
                 switch (val.type) {
                     case 'image':
@@ -60,13 +68,14 @@
                                 <img style="width: 75px; height: 75px" src="{thumbUrl}">
                            </a>`;
                 detailTpl += String.format(tpl, val);
-        }
-  
-        
-        })  
-        dataTpl.woTpl = woTpl.join(' ');    
+            }
+        })
+
+        dataTpl.woTpl = woTpl.join(' ');
+        */
+
         dataTpl.attachment = detailTpl;
-        dataTpl = String.format(`@require('tpl/detail')`, dataTpl);        
+        dataTpl = String.format(`@require('tpl/detail')`, dataTpl);
         if(!isNull(dom)) {
             $(function () {
                 let rotate = function(el, deg){
@@ -85,9 +94,9 @@
                     let id = this.id.substr((this.id.length - 40),40);
                     formdetail.init();
                     $('#iframe-detailWo').attr('src', '{{ route('wo.detail') }}/'+id);
-                });             
+                });
             });
         }
-        return true;  
+        return true;
     }
 </script>
