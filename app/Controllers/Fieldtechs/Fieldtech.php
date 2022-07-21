@@ -74,9 +74,7 @@ class Fieldtech extends Controller
     public function delete(Request $request){
         $user = $request->user();
         if($data = json_decode($request->data)) {
-            $query = Auth\User::where('fieldtech_id', $data)->first();
             Mod::whereIn('id', $data)->update(['deleted_at' => date('Y-m-d H:i:s'), 'deleted_by' => $user->id]);
-            Auth\User::whereIn('id', $query)->update(['deleted_at' => date('Y-m-d H:i:s'), 'deleted_by' => $user->id]);
             return ['success' => true, 'message' => 'Success!'];
         }
         return ['success' => false, 'message' => 'No Data!'];
