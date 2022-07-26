@@ -32,7 +32,11 @@
 
                 <div class="login__form">
 
-                    @yield('content')
+                    Development by Qifess
+
+                    <p style="font-size: 9px; color: #FFF; margin-top: 10px">
+                        © {{config('site.year')}} (version: {{config('site.version')}})<br>
+                    </p>
 
                 </div>
 
