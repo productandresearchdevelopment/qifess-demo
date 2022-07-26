@@ -34,13 +34,22 @@ class NotifJob implements ShouldQueue
                     Mail::to($receiver->emails)->send(new UpdateWoMail($wo, $wo->lastAction));
                 }
                 if ($receiver->tokens && count($receiver->tokens)) {
+                    $action = $wo->lastAction;
+
+                    $title = $action->status->name;
+
+                    $message = [];
+                    $message[] = "ID: ". $action->wo_id;
+                    $message[] = "ACTIVITY: ".$action->wo->activity->name;
+
                     $data = [
                         'registration_ids' => $receiver->tokens,
                         'data' => [
-                            'title' => 'Title Nya',
-                            'message' => 'Message'
+                            'title' => $title,
+                            'message' => implode("\n", $message)
                         ]
                     ];
+
                     Curl::to('https://fcm.googleapis.com/fcm/send')
                         ->withData($data)
                         ->withHeader('Authorization: key=AAAAtwC-0ec:APA91bHxUN6adM1fT6GvD-NXXd95kiX8qpiOlw5Clc9ks0nTiQfbyGjef-HAZd7ds9xBmzLtNjl5dFbdtZ3dppHNxzMUNtrlrds4vJ-teQZIPRSA_wU2J8RKBW3gRZUMuONRgkIPeD0o')
