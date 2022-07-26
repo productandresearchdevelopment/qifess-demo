@@ -16,7 +16,7 @@
                 <table style=" width: 100%; height: 200px">
                     <tr>
                         <td align="center">
-                            <img src="{{ asset('images/logo.png') }}">
+{{--                            <img src="{{ asset('images/logo.png') }}">--}}
                             <br><br><br>
                             <h1 style="color: #FFFFFF; font-size: 18px; font-weight: normal; height: 22px">{{config('site.title')}}</h1>
                             <h2 style="color: #FFFFFF; font-size: 12px; font-weight: normal; height: 16px">{{config('site.description')}}</h2>
