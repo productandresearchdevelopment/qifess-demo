@@ -3,7 +3,9 @@
         let me = Ext.utils.grids(this);
 
         me.init = function(){
-            me.extraParams.filterDate = '{{ date('Y-m-01') }}';
+            @if($archive)
+                me.extraParams.filterDate = '{{ date('Y-m-01') }}';
+            @endif
 
             me.store = me.httpStore('{{ $archive ? route('wo.data.archive') : route('wo.data') }}', [
                 {name: 'id', type: 'int'},
