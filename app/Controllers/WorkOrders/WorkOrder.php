@@ -566,7 +566,7 @@ class WorkOrder extends Controller
         $params = array(
             'title' => $titles,
             'columns' => $columns,
-            'filename' => 'POST - Workorder '.date("YmdHis"),
+            'filename' => 'WO '.date("YmdHis"),
             'data' => $data,
             'footer' => $footers,
         );
