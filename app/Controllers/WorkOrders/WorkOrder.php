@@ -5,11 +5,9 @@ namespace App\Controllers\WorkOrders;
 use App\Jobs\NotifJob;
 use App\Libraries\ExportExcel;
 use App\Libraries\FileUpload;
-use App\Mail\UpdateWoMail;
 use App\Models\Fieldteches\Fieldtech;
 use App\Models\Owners\Owner;
 use App\Models\WorkOrders\Part;
-use App\SystemModels\Auth\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -21,9 +19,6 @@ use App\Models\Sites\Site;
 use App\Models\Clients\Client;
 use App\Models\Vendors\Vendor;
 use App\Models\WorkOrders\Masters AS Master;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Ixudra\Curl\Facades\Curl;
 
 class WorkOrder extends Controller
 {
@@ -115,6 +110,10 @@ class WorkOrder extends Controller
         if($ftr = $request->input('filter-client')) $query->where('client_id', $ftr);
         if($ftr = $request->input('filter-owner')) $query->where('owner_id', $ftr);
         if($ftr = $request->input('filter-vendor')) $query->where('vendor_id', $ftr);
+        if($ftr = $request->input('filterDate')) {
+            $month = date('Y-m', strtotime("$ftr 00:00:00")).'%';
+            $query->where('start_date', 'LIKE', $month);
+        }
 
         // SEARCH ------------------------------------------------------------------------------------------------------
         $search = $request->input('query');
@@ -479,6 +478,13 @@ class WorkOrder extends Controller
         }
 
         // FILTER ------------------------------------------------------------------------------------------------------
+        if($filter = $request->input('filterDate')) {
+            $m = date('Y-m', strtotime("$filter 00:00:00")).'%';
+            $query .= "AND (A.start_date LIKE '$m')";
+
+            $month = date('F Y', strtotime("$filter 00:00:00"));
+            array_push($titles, [$month,'h4']);
+        }
         if($filter = $request->input('filter-status')) $query .= "AND (B.status_id = '$filter')";
         if($filter = $request->input('filter-activity')) $query .= "AND (A.activity_id = '$filter')";
         if($filter = $request->input('filter-service')) $query .= "AND (A.service_id = '$filter')";
@@ -505,8 +511,8 @@ class WorkOrder extends Controller
                        H.`name` vendor_name,
                        I.`name` fieldtech_name,
                        J.`name` created_by_name,
-                       DATEDIFF(DATE(NOW()), A.start_date) sla,
-                       DATEDIFF(A.expire_date, A.start_date) sla_target
+                       K.`name` slot,
+                       DATEDIFF(DATE(NOW()), A.start_date) duration
                 FROM po_wo A
                      LEFT JOIN po_wo_action B ON A.last_action = B.id
                          LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
@@ -519,6 +525,7 @@ class WorkOrder extends Controller
                          LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
                          LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
                          LEFT JOIN auth_user J ON A.created_by = J.id
+                         LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
                 WHERE $query";
 
         $data = DB::select(DB::raw($sql));
@@ -529,19 +536,19 @@ class WorkOrder extends Controller
             ["text"=> "CLIENT", "dataIndex"=> "client_name", "width"=> 150],
             ["text"=> "SITE", "dataIndex"=> "site_name", "width"=> 200],
             ["text"=> "AREA", "dataIndex"=> "vendor_name", "width"=> 200],
-            ["text"=> "FIELDTECH", "dataIndex"=> "fieldtech_name", "width"=> 250],
-            ["text"=> "SLA", "dataIndex"=> "sla", "align"=> "center", "width"=> 100, 'type' => 'int'],
+            ["text"=> "TEAM", "dataIndex"=> "fieldtech_name", "width"=> 250],
+            ["text"=> "DURATION (DAY)", "dataIndex"=> "duration", "align"=> "center", "width"=> 100, 'type' => 'int'],
             [
-                "text"=> "TARGET",
+                "text"=> "BOOKING",
                 "columns"=> [
-                    ["text"=> "START", "dataIndex"=> "start_date", "type"=> "date", "align"=> "center", "width"=> 100],
-                    ["text"=> "TARGET", "dataIndex"=> "expire_date", "type"=> "date", "align"=> "center", "width"=> 100]
+                    ["text"=> "DATE", "dataIndex"=> "start_date", "type"=> "date", "align"=> "center", "width"=> 100],
+                    ["text"=> "SLOT", "dataIndex"=> "slot", "align"=> "center", "width"=> 150],
                 ]
             ],
             [
-                "text"=> "OPEN AT",
+                "text"=> "CREATED",
                 "columns"=> [
-                    ["text"=> "OPEN BY", "dataIndex"=> "created_by_name", "width"=> 200],
+                    ["text"=> "CREATED BY", "dataIndex"=> "created_by_name", "width"=> 200],
                     ["text"=> "DATE", "dataIndex"=> "created_at", "type"=> "date", "align"=> "center", "width"=> 100]
                 ]
             ],

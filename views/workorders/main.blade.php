@@ -14,7 +14,7 @@
     </style>
 
     <script>
-        Ext.require(['Ext.ux.form.SearchField', 'Ext.ux.DateTimeField']);
+        Ext.require(['Ext.ux.form.SearchField', 'Ext.ux.DateTimeField', 'Ext.ux.form.field.MonthField']);
 
         var activities = @json($activities);
         var services = @json($services);

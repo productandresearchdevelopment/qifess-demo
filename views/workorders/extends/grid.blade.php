@@ -3,6 +3,8 @@
         let me = Ext.utils.grids(this);
 
         me.init = function(){
+            me.extraParams.filterDate = '{{ date('Y-m-01') }}';
+
             me.store = me.httpStore('{{ $archive ? route('wo.data.archive') : route('wo.data') }}', [
                 {name: 'id', type: 'int'},
                 {name: 'site_id', type: 'int'},
@@ -93,34 +95,6 @@
                     },
                     @endif
                     @endforeach
-
-                    // '-',
-                    // {
-                    //     text: 'Download BAST (PDF)', iconCls: 'icon-pdf',
-                    //     handler: function(){
-                    //         console.error("ERROR PAGES INCREMENT");
-                    //     }
-                    // },
-
-                    @if($user->hasRoute('wo.export.excel'))
-                    {
-                        text: 'Export Excel',
-                        iconCls: 'icon-excel',
-                        handler: function() {
-                            let filters = me.store.proxy.extraParams;
-                            let query = '';
-                            if (me.store.filters.items.length) query = me.store.filters.items[0].value;
-                            filters.query = query;
-                            filters.archive = '{{ $archive }}';
-                            let params = [];
-                            for(let key in filters) {
-                                var value = filters[key];
-                                params.push(key + '=' + value)
-                            }
-                            window.location = '{{ route('wo.export.excel') }}?' + params.join('&');
-                        }
-                    }
-                    @endif
                 ],
 
                 listeners: {
@@ -186,7 +160,32 @@
                 region: 'center',
                 store: me.store,
                 border: true,
-                tbar: me.tbar(me.menus),
+                dockedItems: [{
+                    dock: 'top',
+                    xtype: 'toolbar',
+                    items: [
+                        {text: 'Menu', iconCls: 'icon-menu', menu: me.menus},
+                        @if($user->hasRoute('wo.export.excel'))
+                        {
+                            text: 'Export Excel',
+                            iconCls: 'icon-excel',
+                            handler: function() {
+                                let filters = me.store.proxy.extraParams;
+                                let query = '';
+                                if (me.store.filters.items.length) query = me.store.filters.items[0].value;
+                                filters.query = query;
+                                filters.archive = '{{ $archive }}';
+                                let params = [];
+                                for(let key in filters) {
+                                    var value = filters[key];
+                                    params.push(key + '=' + value)
+                                }
+                                window.location = '{{ route('wo.export.excel') }}?' + params.join('&');
+                            }
+                        }
+                        @endif
+                    ]
+                }],
                 columns: [
                     {
                         text: "STS", dataIndex: 'last_action', width: 80, align: 'center',
@@ -289,7 +288,21 @@
                     },
 
                 ],
-                bbar: me.bbar(me.bbarFilter),
+                bbar: me.bbar(me.bbarFilter,[
+                    @if($archive)
+                    {
+                        xtype: 'monthfield', id: 'filter-date', format: 'F Y', value: '{{ date('Y-m-01') }}',
+                        listeners: {
+                            change: function(obj, val){
+                                let date= Ext.Date.format(val, "Y-m-01");
+                                me.extraParams.filterDate = date;
+                                me.setExtraParams();
+                                me.storeLoad();
+                            }
+                        }
+                    },
+                    @endif
+                ]),
                 viewConfig: {
                     stripeRows: false,
                     listeners: {
