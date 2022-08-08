@@ -461,7 +461,7 @@ class WorkOrder extends Controller
     public function exportExcel(Request $request){
         $user = $request->user();
 
-        $titles = [ ["WORKORDER", 'h2'], ["DEMO", 'h3'] ];
+        $titles = [ ["WORKORDER", 'h2'], ["Asianet", 'h3'] ];
 
         $query = $request->input('query');
         $query = "(A.id LIKE '%$query%' OR A.no_wo LIKE '%$query%' OR A.description LIKE '%$query%' OR G1.name LIKE '%$query%' OR G2.name LIKE '%$query%' OR I.name LIKE '%$query%')";
@@ -562,7 +562,7 @@ class WorkOrder extends Controller
             ["text"=> "DESCRIPTION", "dataIndex"=> "description", "width"=> 250],
         ];
 
-        $footers = ['Total Count: '.count($data).' Row', ' ', 'DEMO', 'Downloaded at ('.date('d F Y H:i:s').')'];
+        $footers = ['Total Count: '.count($data).' Row', ' ', 'Asianet (QIFESS)', 'Downloaded at ('.date('d F Y H:i:s').')'];
         $params = array(
             'title' => $titles,
             'columns' => $columns,
