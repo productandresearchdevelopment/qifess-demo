@@ -249,7 +249,7 @@
                         }
                     },
                     {
-                        text: "DURATION", dataIndex: 'close_date', align: 'center', width: 80,
+                        text: "DURATION <br> (DAY)", dataIndex: 'close_date', align: 'center', width: 110,
                         renderer: function (val, meta, rec) {
                             let sla = dates.diffServer(rec.get('start_date'));
                             if(val) sla = dates.diff(rec.get('start_date'), val);
