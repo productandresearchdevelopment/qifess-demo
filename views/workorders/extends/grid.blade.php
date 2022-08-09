@@ -248,15 +248,14 @@
                             return data ? data.name : '-';
                         }
                     },
-                    // {
-                    //     text: "SLA", dataIndex: 'close_date', align: 'center', width: 80,
-                    //     renderer: function (val, meta, rec) {
-                    //         let target = dates.diff(rec.get('start_date'), rec.get('expire_date'));
-                    //         let sla = dates.diffServer(rec.get('start_date')); if(val) sla = dates.diff(rec.get('start_date'), val);
-                    //         let color = target.day < sla.day ? 'dd0000' : '3366FF';
-                    //         return me.renderBox(sla.day + ' DAY', color, sla.day+" Day's", meta);
-                    //     }
-                    // },
+                    {
+                        text: "SLA", dataIndex: 'close_date', align: 'center', width: 80,
+                        renderer: function (val, meta, rec) {
+                            let sla = dates.diffServer(rec.get('start_date'));
+                            if(val) sla = dates.diff(rec.get('start_date'), val);
+                            return sla;
+                        }
+                    },
                     {
                         text: "BOOKING",
                         columns: [
