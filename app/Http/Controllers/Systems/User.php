@@ -64,7 +64,7 @@ class User extends Controller
             $input = [
                 'role_id' => $request->input('role_id'),
                 'username' => $request->input('username'),
-                'email' => $request->input('email'),
+                'email' => $request->input('email') ?: null,
                 'name' => $request->input('name'),
                 'phone' => $request->input('phone'),
                 'description' => $request->input('description'),
@@ -86,7 +86,7 @@ class User extends Controller
             }
 
             if($id){
-                if(Auth\User::where('email', $input['email'])->where('id','<>',$id)->withTrashed()->first()){
+                if(!$input['email'] && Auth\User::where('email', $input['email'])->where('id','<>',$id)->withTrashed()->first()){
                     return ['success' => false, 'message' => 'Email Duplicate'];
                 }
                 else if(Auth\User::where('username', $input['username'])->where('id','<>',$id)->withTrashed()->first()){
@@ -97,7 +97,7 @@ class User extends Controller
                 $user->update($input);
             }
             else {
-                if(Auth\User::where('email', $input['email'])->withTrashed()->first()){
+                if($input['email'] && Auth\User::where('email', $input['email'])->withTrashed()->first()){
                     return ['success' => false, 'message' => 'Email Duplicate'];
                 }
                 else if(Auth\User::where('username', $input['username'])->withTrashed()->first()){
