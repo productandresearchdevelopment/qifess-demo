@@ -108,9 +108,9 @@ class User extends Controller
                 $user = Auth\User::create($input);
             }
 
-            
+
             if($password){
-                Mail::to($user->email)->send(new ActiveUser($user, $password));
+                //Mail::to($user->email)->send(new ActiveUser($user, $password));
             }
 
 
