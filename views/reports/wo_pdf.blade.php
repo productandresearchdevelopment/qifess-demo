@@ -61,7 +61,7 @@
                         <tr>
                             <td valign="top">SERVICE</td>
                             <td valign="top">:</td>
-                            <td valign="top" style="font-weight: 600">{{ $data->service->name }}</td>
+                            <td valign="top" style="font-weight: 600">{{ $data->service ? $data->service->name : '-' }}</td>
                         </tr>
                         <tr>
                             <td width="80px" valign="top">SITE</td>
