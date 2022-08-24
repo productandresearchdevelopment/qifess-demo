@@ -145,42 +145,41 @@
                         <div style="font-size: 10px; line-height: 12px; margin-top: 5px; margin-bottom: 10px;">
                             <div style="font-weight: 600;">Notes:</div> {{ $action->note ?: '-' }}
                         </div>
-                        @if(count($action->details))
-                        <div>
-{{--                            <div style="font-weight: 600; font-size: 12px; margin-bottom: 20px">INFORMATION DETAIL</div>--}}
-                            @foreach($action->details AS $detail)
-                                <div style="margin-bottom: 10px;">
-                                    <div style="font-weight: 600; font-size: 10px; line-height: 7px;">{{$detail->detail->name}} : </div>
-                                    @if($detail->detail->triger == 'wo.fieldtech')
-                                        <div style="font-size: 12px; line-height: 10px;">{{$detail->fieldtech->name}}</div>
-                                    @elseif($detail->detail->triger == 'wo.startdate')
-                                        <div style="font-size: 12px; line-height: 10px;">{{ date('d/m/Y', strtotime($detail->value)) }}</div>
-                                    @elseif($detail->detail->triger == 'wo.slot')
-                                        <div style="font-size: 12px; line-height: 10px;">{{ $detail->slot->name }}</div>
-                                    @elseif($detail->detail->type == 'file')
-                                        <div style="font-size: 12px; line-height: 10px;">
-                                            @foreach($detail->files AS $file)
-                                                @if($file->type == 'image')
-                                                    <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ storage_path("app/public/uploads/".$file->filename) }}">
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @elseif($detail->detail->type == 'date')
-                                        <div style="font-size: 12px; line-height: 10px;">{{ date('d/m/Y', strtotime($detail->value)) }}</div>
-                                    @elseif($detail->detail->type == 'datetime')
-                                        <div style="font-size: 12px; line-height: 10px;">{{ date('d/m/Y H:i:s', strtotime($detail->value)) }}</div>
-                                    @elseif($detail->detail->type == 'combo')
-                                        <div style="font-size: 12px; line-height: 10px;">{{ $detail->valueOption ? $detail->valueOption->option : '-' }}</div>
-                                    @else
-                                        <div style="font-size: 12px; line-height: 10px;">{{$detail->value ?: '-'}}</div>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                        @endif
                     </td>
                 </tr>
             </table>
+            @if(count($action->details))
+                <div style="margin-left: 27px">
+                    @foreach($action->details AS $detail)
+                        <div style="margin-bottom: 10px;">
+                            <div style="font-weight: 600; font-size: 10px; line-height: 7px;">{{$detail->detail->name}} : </div>
+                            @if($detail->detail->triger == 'wo.fieldtech')
+                                <div style="font-size: 12px; line-height: 10px;">{{$detail->fieldtech->name}}</div>
+                            @elseif($detail->detail->triger == 'wo.startdate')
+                                <div style="font-size: 12px; line-height: 10px;">{{ date('d/m/Y', strtotime($detail->value)) }}</div>
+                            @elseif($detail->detail->triger == 'wo.slot')
+                                <div style="font-size: 12px; line-height: 10px;">{{ $detail->slot->name }}</div>
+                            @elseif($detail->detail->type == 'file')
+                                <div style="font-size: 12px; line-height: 10px;">
+                                    @foreach($detail->files AS $file)
+                                        @if($file->type == 'image')
+                                            <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ storage_path("app/public/uploads/".$file->filename) }}">
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @elseif($detail->detail->type == 'date')
+                                <div style="font-size: 12px; line-height: 10px;">{{ date('d/m/Y', strtotime($detail->value)) }}</div>
+                            @elseif($detail->detail->type == 'datetime')
+                                <div style="font-size: 12px; line-height: 10px;">{{ date('d/m/Y H:i:s', strtotime($detail->value)) }}</div>
+                            @elseif($detail->detail->type == 'combo')
+                                <div style="font-size: 12px; line-height: 10px;">{{ $detail->valueOption ? $detail->valueOption->option : '-' }}</div>
+                            @else
+                                <div style="font-size: 12px; line-height: 10px;">{{$detail->value ?: '-'}}</div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
         @endforeach
     </div>
