@@ -208,7 +208,7 @@
                     },
 
                     {text: "ID", dataIndex: 'id', width: 115},
-                    {text: "TICKET", dataIndex: 'no_wo', width: 115},
+
                     {
                         text: "CLIENT", dataIndex: 'client_id', width: 150,
                         renderer: function(val, meta, rec){
@@ -249,6 +249,7 @@
                             return data ? data.name : '-';
                         }
                     },
+                    {text: "TICKET", dataIndex: 'no_wo', width: 115},
                     {
                         text: "DURATION <br> (DAY)", dataIndex: 'close_date', align: 'center', width: 110,
                         renderer: function (val, meta, rec) {
