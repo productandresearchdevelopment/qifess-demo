@@ -89,7 +89,7 @@ class WorkOrder extends Controller
         else {
             $query->where(function ($query) {
                 $query->whereNull('close_date');
-                $query->orWhere('close_date', '>=', date('Y-m-d', strtotime('-1 days')));
+                $query->orWhere('close_date', '>', date('Y-m-d', strtotime('-1 days')));
             });
         }
 
