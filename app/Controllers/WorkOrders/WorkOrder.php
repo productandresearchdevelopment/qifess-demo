@@ -450,41 +450,49 @@ class WorkOrder extends Controller
 
         $titles = [ ["WORKORDER", 'h2'], ["Asianet", 'h3'] ];
 
-        $query = $request->input('query');
-        $query = "(A.id LIKE '%$query%' OR A.no_wo LIKE '%$query%' OR A.description LIKE '%$query%' OR G1.name LIKE '%$query%' OR G2.name LIKE '%$query%' OR I.name LIKE '%$query%')";
+        $query = [];
 
+        if($search = $request->input('query')) {
+            $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%' OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
+        }
 
         if($request->input('archive')) {
-            $query .= "AND (A.close_date IS NOT NULL)";
+            $query[] = "(A.close_date IS NOT NULL)";
             array_push($titles, ['Archive Data','h4']);
         }
         else {
             $mindate = date('Y-m-d', strtotime('-7 days'));
-            $query .= "AND (A.close_date IS NULL OR A.close_date >= '$mindate')";
+            $query[] = "(A.close_date IS NULL OR A.close_date >= '$mindate')";
             array_push($titles, ['Data On Going','h4']);
         }
 
         // FILTER ------------------------------------------------------------------------------------------------------
         if($filter = $request->input('filterDate')) {
             $m = date('Y-m', strtotime("$filter 00:00:00")).'%';
-            $query .= "AND (A.start_date LIKE '$m')";
+            $query[] = "(A.start_date LIKE '$m')";
 
             $month = date('F Y', strtotime("$filter 00:00:00"));
             array_push($titles, [$month,'h4']);
         }
-        if($filter = $request->input('filter-status')) $query .= "AND (B.status_id = '$filter')";
-        if($filter = $request->input('filter-activity')) $query .= "AND (A.activity_id = '$filter')";
-        if($filter = $request->input('filter-service')) $query .= "AND (A.service_id = '$filter')";
-        if($filter = $request->input('filter-vendor')) $query .= "AND (A.vendor_id = '$filter')";
-        if($filter = $request->input('filter-client')) $query .= "AND (A.client_id = '$filter')";
-        if($filter = $request->input('filter-owner')) $query .= "AND (A.owner_id = '$filter')";
+        if($filter = $request->input('filter-status')) $query[] = "(B.status_id = '$filter')";
+        if($filter = $request->input('filter-activity')) $query[] = "(A.activity_id = '$filter')";
+        if($filter = $request->input('filter-service')) $query[] = "(A.service_id = '$filter')";
+        if($filter = $request->input('filter-vendor')) $query[] = "(A.vendor_id = '$filter')";
+        if($filter = $request->input('filter-client')) $query[] = "(A.client_id = '$filter')";
+        if($filter = $request->input('filter-owner')) $query[] = "(A.owner_id = '$filter')";
 
         // FILTER BY USER AUTH -----------------------------------------------------------------------------------------
-        if($ftr = $user->owners) $query = "AND (A.owner_id = '$ftr') ";
-        if($ftr = $user->activities) $query = "AND (A.activity_id = '$ftr') ";
-        if($ftr = $user->client_id) $query = "AND (A.client_id = '$ftr') ";
-        if($ftr = $user->vendor_id) $query = "AND (A.vendor_id = '$ftr') ";
-        if($ftr = $user->fieldtech_id) $query = "AND (A.fieldtech_id = '$ftr') ";
+        if($ftr = $user->owners) $query[] = "(A.owner_id = '$ftr') ";
+        if($ftr = $user->activities) $query[] = "(A.activity_id = '$ftr') ";
+        if($ftr = $user->client_id) $query[] = "(A.client_id = '$ftr') ";
+        if($ftr = $user->vendor_id) $query[] = "(A.vendor_id = '$ftr') ";
+        if($ftr = $user->fieldtech_id) $query[] = "(A.fieldtech_id = '$ftr') ";
+
+        $where = '';
+        if(count($query)){
+            $query = implode(" AND ", $query);
+            $where = "WHERE $query";
+        }
 
         $sql = "SELECT A.*, X.ont_serial,
                        B.created_at lastupdate_at,
@@ -519,7 +527,7 @@ class WorkOrder extends Controller
                              WHERE X1.detail_id IN (281010,281011,281166,281167,281168,281169,281272,281273) AND X1.`value` IS NOT NULL
                          GROUP BY X2.wo_id
                      ) X ON A.id = X.wo_id
-                WHERE $query";
+                $where";
 
 
         $data = DB::select(DB::raw($sql));
