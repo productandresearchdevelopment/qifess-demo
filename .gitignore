@@ -25,10 +25,7 @@ app/Http/Controllers/Auth/LoginController (origin).php
 app/Http/Controllers/Main (origin).php
 app/Http/Middleware/AuthRoles (origin).php
 app/Http/Middleware/AuthMobileRoles (origin).php
-storage/fonts/dompdf_font_family_cache.php
-storage/fonts/quicksand-600_3e92dbf8f07948a73286baa2a3683fa5.ttf
-storage/fonts/quicksand-600_3e92dbf8f07948a73286baa2a3683fa5.ufm
-storage/fonts/quicksand-bold_fc5660c06e1809f2b45a2367a5d0cf5f.ttf
-storage/fonts/quicksand-bold_fc5660c06e1809f2b45a2367a5d0cf5f.ufm
-storage/fonts/quicksand-normal_f7b1f457eceb385536c6486712898e81.ttf
-storage/fonts/quicksand-normal_f7b1f457eceb385536c6486712898e81.ufm
+
+/Dockerfile
+/docker-compose.yml
+/dockers/
