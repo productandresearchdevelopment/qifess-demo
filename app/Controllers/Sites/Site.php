@@ -2,9 +2,13 @@
 
 namespace App\Controllers\Sites;
 
+use App\Exports\Sites\ImportFormat\Format;
+use App\Imports\Sites\Import;
 use App\Libraries\ExportExcel;
 use App\Http\Controllers\Controller;
+use App\Libraries\FileUpload;
 use App\Libraries\Query;
+use App\SystemModels\Globals\Upload;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use App\Models\Sites\Site as Mod;
@@ -12,8 +16,8 @@ use Illuminate\Http\Request;
 use App\Models\Clients\Client;
 use App\Models\Vendors\Vendor;
 use App\Models\WorkOrders\Masters AS Master;
-use App\Models AS Model;
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class Site extends Controller
@@ -56,7 +60,6 @@ class Site extends Controller
         return Query::open($query);
     }
 
-
     public function dataPublic(Request $request){
         $search = ['name', 'link_id', 'terminal_name'];
         $query = Mod::query();
@@ -82,6 +85,10 @@ class Site extends Controller
                 "pic" => $request->input("pic"),
                 "pic_phone" => $request->input("pic_phone"),
                 "pic_email" => $request->input("pic_email"),
+                "province" => $request->input("province"),
+                "city" => $request->input("city"),
+                "ward" => $request->input("ward"),
+                "postal_code" => $request->input("postal_code"),
                 "address" => $request->input("address"),
                 "lat" => $request->input("lat"),
                 "long" => $request->input("long"),
@@ -162,6 +169,32 @@ class Site extends Controller
 
         $excel = new ExportExcel($params);
         $excel->run($params);
+    }
+
+    public function importFormat(Request $request){
+        $filename = 'site_format.xlsx';
+        return Excel::download(new Format(), $filename);
+    }
+
+    public function importData(Request $request){
+        if($activity = $request->input('activity_id')){
+            if(!Master\Activity::find($activity)){
+                return ['success' => false, 'message' => 'Undefined Activity Ticket'];
+            }
+        }
+
+        if($upload = FileUpload::upload('file', 'site-import')) {
+            $user = $request->user();
+            $file = Upload::find($upload);
+            $fileexcel = Storage::disk('public_uploads')->path($file->filename);
+            $importExcel = new Import($user, $activity);
+            Excel::import($importExcel, $fileexcel);
+            unlink($fileexcel);
+            Upload::where('id', $upload)->delete();
+
+            return ['success' => true, 'message' => $importExcel->logs()];
+        }
+        return ['success' => false, 'message' => 'The data you uploaded was not found'];
     }
 
     public function delete(Request $request){

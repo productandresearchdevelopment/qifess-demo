@@ -63,7 +63,7 @@ class FileUpload{
             'origin' => $origin,
         ];
         Upload::create($input);
-        Storage::disk('public_uploads')->putFile('.', $file);
+        Storage::disk('public_uploads')->put($filename, file_get_contents($file));
         return $id;
     }
 

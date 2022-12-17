@@ -14,7 +14,6 @@
                 bodyPadding: 10,
                 flex: 1,
                 autoHeight: true,
-                maxHeight: 600,
                 width: 800,
                 border: false,
                 autoScroll: true,
@@ -69,8 +68,12 @@
                             {xtype: 'textfield',name: 'pic', fieldLabel: 'PIC', allowBlank: true},
                             {xtype: 'textfield',name: 'pic_phone', fieldLabel: 'PIC Phone', allowBlank: true},
                             {xtype: 'textfield',name: 'pic_email', fieldLabel: 'PIC Email', vtype: 'email', allowBlank: true},
-                            {xtype: 'textarea', name: 'address', fieldLabel: 'Address', minHeight: 50, allowBlank:true},
-                            {xtype: 'textarea', name: 'description', fieldLabel: 'Description', flex: 1,  minHeight: 50, allowBlank: true},
+                            {xtype: 'textfield',name: 'province', fieldLabel: 'Province',allowBlank:true},
+                            {xtype: 'textfield',name: 'city', fieldLabel: 'City',allowBlank:true},
+                            {xtype: 'textfield',name: 'ward', fieldLabel: 'Ward',allowBlank:true},
+                            {xtype: 'textfield',name: 'postal_code', fieldLabel: 'Postal',allowBlank:true},
+                            {xtype: 'textfield', name: 'address', fieldLabel: 'Address', allowBlank:true},
+                            {xtype: 'textfield', name: 'description', fieldLabel: 'Description', allowBlank: true},
                         ]
                     },
                     {
@@ -156,6 +159,10 @@
                 me.setField('long', rec.long);
                 me.setField('pic_phone', rec.pic_phone);
                 me.setField('pic_email', rec.pic_email);
+                me.setField('province', rec.province);
+                me.setField('city', rec.city);
+                me.setField('ward', rec.ward);
+                me.setField('postal_code', rec.postal_code);
                 me.setField('description', rec.description);
                 me.setField('terminal_name', rec.terminal_name);
                 me.setField('beam', rec.beam);

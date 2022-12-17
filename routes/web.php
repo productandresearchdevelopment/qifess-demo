@@ -53,6 +53,8 @@ Route::group(['middleware' => ['auth','roles'] ], function(){
         Route::get('/', 'Sites\Site@index')->name('site');
         Route::get('/data', 'Sites\Site@data')->name('site.data');
         Route::get('/export/excel', 'Sites\Site@exportExcel')->name('site.export.excel');
+        Route::get('/export/format/import', 'Sites\Site@importFormat')->name('site.export.excel.format.import');
+        Route::post('/import', 'Sites\Site@importData')->name('site.import');
         Route::post('/push/{id?}', 'Sites\Site@push')->name('site.push');
         Route::delete('/delete', 'Sites\Site@delete')->name('site.delete');
     });

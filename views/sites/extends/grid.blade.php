@@ -1,8 +1,11 @@
+@require('form_import')
 <script>
     var Grids = function(){
         let me = Ext.utils.grids(this);
         var map;
         me.init = function(){
+            me.formImport = new FormImport();
+
             me.store = me.httpStore('{{ route('site.data') }}', [
                 {name: 'id', type: 'int'},
                 {name: 'link_id', type: 'string'},
@@ -26,6 +29,10 @@
                 {name: 'inactive_date', type: 'date'},
                 {name: 'workorders_count', type: 'int'},
                 {name: 'workorders', type: 'auto'},
+                {name: 'province', type: 'string'},
+                {name: 'city', type: 'string'},
+                {name: 'ward', type: 'string'},
+                {name: 'postal_code', type: 'string'},
             ]);
 
             me.menus = Ext.create('Ext.menu.Menu', {
@@ -34,6 +41,29 @@
                     {text: 'Create', iconCls: 'icon-add', handler: forms.create},
                     {text: 'Edit',   iconCls: 'icon-edit', handler: forms.edit},
                     @endif
+
+                    @if($user->hasRoute('site.import'))
+                    {
+                        text: 'Import', iconCls: 'icon-excel',
+                        menu: [
+                            {
+                                text: 'Download Format', iconCls: 'icon-cloud',
+                                handler: function(){
+                                    window.location = '{{ route('site.export.excel.format.import') }}';
+                                }
+                            },
+                            {
+                                text: 'Upload File', iconCls: 'icon-excel',
+                                handler: function(){
+                                    me.formImport.open();
+                                }
+                            },
+                        ]
+                    },
+                    @endif
+
+
+
                     @if($user->hasRoute('site.push'))
                     {
                         text: 'Delete', iconCls: 'icon-remove',

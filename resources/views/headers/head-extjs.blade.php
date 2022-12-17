@@ -343,10 +343,10 @@
                         waitMsg: 'Proses',
                         params: params,
                         submitEmptyText: false,
-                        success: function(){
+                        success: function(obj, result){
                             Ext.msg.success('Data Is Saved!');
                             if(property.success != undefined){
-                                property.success();
+                                property.success(Ext.decode(result.response.responseText));
                             }
                             if(autoclose == undefined || autoclose) me.close();
                         },
