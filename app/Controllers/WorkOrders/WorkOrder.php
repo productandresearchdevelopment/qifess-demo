@@ -141,11 +141,11 @@ class WorkOrder extends Controller
     }
 
     public function get(Request $request, $id=null){
-        return $this->checkApi();
-        return Wo::with([
+        $data = Wo::with([
             'site',
             'removeSite',
             'fieldtech.users',
+            'lastAction.status',
             'lastAction.details.files',
             'lastAction.createdBy',
             'lastAction.updatedBy',

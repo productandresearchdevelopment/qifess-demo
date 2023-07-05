@@ -27,6 +27,7 @@ class NotifJob implements ShouldQueue
     }
 
     public function handle() {
+        /*
         if($wo = $this->wo) {
             if($receiver = $this->getReceivers($wo)) {
                 Log::debug(json_encode($receiver));
@@ -58,6 +59,7 @@ class NotifJob implements ShouldQueue
                 }
             }
         }
+        */
     }
 
     private function getReceivers($wo){
