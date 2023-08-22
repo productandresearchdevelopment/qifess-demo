@@ -141,20 +141,6 @@ class WorkOrder extends Controller
     }
 
     public function get(Request $request, $id=null){
-        return $this->pushApi([
-            'activityName' => "INSTALLATION",
-            'orderNumber' => "OH1044695020479673907",
-            'workFlowNumber' => "2023000011045",
-            'orderStatus' => "COMPLETED",
-            'teamID' => "123123",
-            'longitude' => 106.492169,
-            'latitude' => -6.193073,
-            'serialNumber' => "ALCLB2A8976DQ",
-            'fatLongitude' => 106.489150,
-            'fatLatitude' => -6.193315,
-            'additionalUTP' => 0,
-            'additionalDropCable' => 0
-        ]);
         $data = Wo::with([
             'site',
             'removeSite',
@@ -275,6 +261,7 @@ class WorkOrder extends Controller
             $details = $request->input('details');
             $action = $this->actionPush($wo, $input, $details);
             if (is_object($action)) {
+                return $this->pushApi($action);
                 return ['success' => true, 'message' => 'Success...'];
             }
             else $error = $action;
@@ -283,46 +270,73 @@ class WorkOrder extends Controller
         return ['success' => false, 'message' => $error];
     }
 
-    private function pushApi($data=null){
-        if($data) {
-            // $baseUrl = 'https://api.asianet.co.id';
-            // $urlLogin = $baseUrl.'/amt/1.0/security/login';
-            // $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
-            // $email = "ikhsan.darmawan@qualita-indonesia.com";
-            // $password = "ltsm321Q@";
+    private function pushApi($action){
+        // $baseUrl = 'https://api.asianet.co.id';
+        // $urlLogin = $baseUrl.'/amt/1.0/security/login';
+        // $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
+        // $email = "ikhsan.darmawan@qualita-indonesia.com";
+        // $password = "ltsm321Q@";
+
+        $baseUrl = 'http://apidev.asianet.co.id';
+        $urlLogin = $baseUrl . '/amt/1.0/security/login';
+        $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
+        $email = "pradana.santa@gmail.com";
+        $password = "test123";
 
 
-            $baseUrl = 'http://apidev.asianet.co.id';
-            $urlLogin = $baseUrl . '/amt/1.0/security/login';
-            $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
-            $email = "pradana.santa@gmail.com";
-            $password = "test123";
-
-
-            if (Cache::has('token')) $token = Cache::get('woaccesstoken');
-            else {
-                $login = Curl::to($urlLogin)
-                    ->withData(['email' => $email, 'password' => $password])
-                    ->asJson()
-                    ->post();
-                if ($login && isset($login->accessToken)) {
-                    $token = $login->accessToken;
-                    Cache::put('woaccesstoken', $login, 60);
-                }
-            }
-
-            $response = Curl::to($urlPush)
-                ->withData($data)
-                ->withBearer($token)
+        if (Cache::has('token')) $token = Cache::get('woaccesstoken');
+        else {
+            $login = Curl::to($urlLogin)
+                ->withData(['email' => $email, 'password' => $password])
                 ->asJson()
                 ->post();
-
-            return [
-                "url" => $urlPush,
-                "token" => $token,
-                "respon" => (array)$response
-            ];
+            if ($login && isset($login->accessToken)) {
+                $token = $login->accessToken;
+                Cache::put('woaccesstoken', $login, 60);
+            }
         }
+
+        // GET ACTION --------------------------------------------------------------------------------------------------
+        $serialNumber = null;
+        $additionalUTP = null;
+        $additionalDropCable = null;
+
+        $sql = "SELECT A.`name`, B.`value`
+                FROM po_wo_m_status_detail A JOIN po_wo_action_detail B ON A.id = B.detail_id
+                WHERE B.action_id = '$action->id' AND (type != 'file' AND A.name IN ('ONT Serial Number', 'Aditional UTP'))";
+        $extras = DB::select(DB::raw($sql));
+        foreach ($extras AS $extra){
+            if($extra->name == 'ONT Serial Number') $serialNumber = $extra->value;
+        }
+
+        $data = [
+            'activityName' => $action->wo->activity->name,
+            'orderNumber' => $action->wo->no_wo,
+            'workFlowNumber' => $action->wo->id,
+            'orderStatus' => $action->status->name,
+            'teamID' => $action->wo->fieldtech_id,
+            'longitude' => $action->long,
+            'latitude' => $action->lat,
+            'serialNumber' => $serialNumber,
+            'fatLongitude' => $action->long,
+            'fatLatitude' => $action->lat,
+            'additionalUTP' => $additionalUTP,
+            'additionalDropCable' => $additionalDropCable
+        ];
+
+        // PUSH API ----------------------------------------------------------------------------------------------------
+
+        $response = Curl::to($urlPush)
+            ->withData($data)
+            ->withBearer($token)
+            ->asJson()
+            ->post();
+
+        return [
+            "url" => $urlPush,
+            "token" => $token,
+            "respon" => (array)$response
+        ];
     }
 
     private function actionValid($wo, $status, $user){
