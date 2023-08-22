@@ -312,20 +312,7 @@ class WorkOrder extends Controller
             }
 
             $response = Curl::to($urlPush)
-                ->withData([
-                    'activityName' => "INSTALLATION",
-                    'orderNumber' => "OH1044695020479673907",
-                    'workFlowNumber' => "2023000011045",
-                    'orderStatus' => "COMPLETED",
-                    'teamID' => "123123",
-                    'longitude' => 106.492169,
-                    'latitude' => -6.193073,
-                    'serialNumber' => "ALCLB2A8976DQ",
-                    'fatLongitude' => 106.489150,
-                    'fatLatitude' => -6.193315,
-                    'additionalUTP' => 0,
-                    'additionalDropCable' => 0
-                ])
+                ->withData($data)
                 ->withBearer($token)
                 ->asJson()
                 ->post();
