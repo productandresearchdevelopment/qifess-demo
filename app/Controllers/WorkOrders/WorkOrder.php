@@ -270,20 +270,56 @@ class WorkOrder extends Controller
     }
 
     private function checkApi(){
-        $baseUrl = 'http://api.asianet.co.id';
-        $urlLogin = $baseUrl.'/amt/1.0/security/login';
-        $urlRequest = $baseUrl.'/amt/1.0/wfm/engineerstatus';
-        $email = "ikhsan.darmawan@qualita-indonesia.com";
-        $password = "ltsm321Q@";
+        // $baseUrl = 'https://api.asianet.co.id';
+        // $urlLogin = $baseUrl.'/amt/1.0/security/login';
+        // $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
+        // $email = "ikhsan.darmawan@qualita-indonesia.com";
+        // $password = "ltsm321Q@";
 
-        $response = Curl::to($urlLogin)
+
+        $baseUrl  = 'http://apidev.asianet.co.id';
+        $urlLogin = $baseUrl.'/amt/1.0/security/login';
+        $urlPush  = $baseUrl.'/amt/1.0/wfm/engineerstatus';
+        $email    = "pradana.santa@gmail.com";
+        $password = "test123";
+
+
+        if(Cache::has('token')) $token = Cache::get('woaccesstoken');
+        else {
+            $login = Curl::to($urlLogin)
+                ->withData(['email' => $email, 'password' => $password])
+                ->asJson()
+                ->post();
+            if($login && isset($login->accessToken)){
+                $token = $login->accessToken; 
+                Cache::put('woaccesstoken', $login, 60);
+            }  
+        }
+
+        $response = Curl::to($urlPush)
             ->withData([
-                'email' => $email,
-                'password' => $password,
+                'activityName' => "INSTALLATION",
+                'orderNumber' => "OH1044695020479673907",
+                'workFlowNumber' => "2023000011045",
+                'orderStatus' => "COMPLETED",
+                'teamID' => "123123",
+                'longitude' => 106.492169,
+                'latitude' => -6.193073,
+                'serialNumber' => "ALCLB2A8976DQ",
+                'fatLongitude' => 106.489150,
+                'fatLatitude' => -6.193315,
+                'additionalUTP' => 0,
+                'additionalDropCable' => 0
             ])
+            ->withBearer($token)
+            ->asJson()
             ->post();
 
-        return $response;
+        return  [
+            "url"=>$urlPush,
+            "token"=>$token,
+            "respon"=>(array)$response
+        ];
     }
 
     private function actionValid($wo, $status, $user){
