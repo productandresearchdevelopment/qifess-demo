@@ -261,7 +261,7 @@ class WorkOrder extends Controller
             $details = $request->input('details');
             $action = $this->actionPush($wo, $input, $details);
             if (is_object($action)) {
-                return $this->pushApi($action);
+                $this->pushApi($action);
                 return ['success' => true, 'message' => 'Success...'];
             }
             else $error = $action;
@@ -271,17 +271,17 @@ class WorkOrder extends Controller
     }
 
     private function pushApi($action){
-        // $baseUrl = 'https://api.asianet.co.id';
-        // $urlLogin = $baseUrl.'/amt/1.0/security/login';
-        // $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
-        // $email = "ikhsan.darmawan@qualita-indonesia.com";
-        // $password = "ltsm321Q@";
+         $baseUrl = 'https://api.asianet.co.id';
+         $urlLogin = $baseUrl.'/amt/1.0/security/login';
+         $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
+         $email = "ikhsan.darmawan@qualita-indonesia.com";
+         $password = "ltsm321Q@";
 
-        $baseUrl = 'http://apidev.asianet.co.id';
-        $urlLogin = $baseUrl . '/amt/1.0/security/login';
-        $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
-        $email = "pradana.santa@gmail.com";
-        $password = "test123";
+//        $baseUrl = 'http://apidev.asianet.co.id';
+//        $urlLogin = $baseUrl . '/amt/1.0/security/login';
+//        $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
+//        $email = "pradana.santa@gmail.com";
+//        $password = "test123";
 
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
