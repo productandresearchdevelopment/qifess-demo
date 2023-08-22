@@ -261,8 +261,8 @@ class WorkOrder extends Controller
             $details = $request->input('details');
             $action = $this->actionPush($wo, $input, $details);
             if (is_object($action)) {
-                $this->pushApi($action);
-                return ['success' => true, 'message' => 'Success...'];
+                $pushapi = $this->pushApi($action);
+                return ['success' => true, 'message' => 'Success...', 'api' => $pushapi];
             }
             else $error = $action;
         }
@@ -277,12 +277,13 @@ class WorkOrder extends Controller
          $email = "ikhsan.darmawan@qualita-indonesia.com";
          $password = "ltsm321Q@";
 
-//        $baseUrl = 'http://apidev.asianet.co.id';
-//        $urlLogin = $baseUrl . '/amt/1.0/security/login';
-//        $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
-//        $email = "pradana.santa@gmail.com";
-//        $password = "test123";
-
+         /*
+            $baseUrl = 'http://apidev.asianet.co.id';
+            $urlLogin = $baseUrl . '/amt/1.0/security/login';
+            $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
+            $email = "pradana.santa@gmail.com";
+            $password = "test123";
+         */
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
@@ -335,7 +336,7 @@ class WorkOrder extends Controller
         return [
             "url" => $urlPush,
             "token" => $token,
-            "respon" => (array)$response
+            "respon" => (array) $response
         ];
     }
 
