@@ -335,7 +335,6 @@ class WorkOrder extends Controller
 
         return [
             "url" => $urlPush,
-            "token" => $token,
             "respon" => (array) $response
         ];
     }
