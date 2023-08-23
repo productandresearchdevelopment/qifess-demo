@@ -289,7 +289,6 @@ class WorkOrder extends Controller
                     $wo->update(['close_date' => $action->created_at]);
                 }
 
-
                 if($pushapi = $this->pushApi($action)){
                     if($pushapi->respon) {
                         if (isset($pushapi->respon->statusCode) && $pushapi->respon->statusCode == 0) {
@@ -324,6 +323,7 @@ class WorkOrder extends Controller
 
                 // SEND EMAIL ----------------------------------------------------------------
                 // dispatch(new NotifJob($wo->id));
+
             }
             catch(QueryException $error){
                 DB::rollback();
@@ -352,10 +352,14 @@ class WorkOrder extends Controller
             $login = Curl::to($urlLogin)
                 ->withData(['email' => $email, 'password' => $password])
                 ->asJson()
+                ->returnResponseObject()
                 ->post();
             if ($login && isset($login->accessToken)) {
                 $token = $login->accessToken;
                 Cache::put('woaccesstoken', $login, 60);
+            }
+            else {
+                dd($login->status);
             }
         }
 
@@ -389,11 +393,12 @@ class WorkOrder extends Controller
 
         // PUSH API ----------------------------------------------------------------------------------------------------
 
-        $response = Curl::to($urlPush)
-            ->withData($data)
-            ->withBearer($token)
-            ->asJson()
-            ->post();
+        $result = (object) ['success' => false];
+        $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->post();
+        dd($response);
+        if($response){
+
+        }
 
         return (object) [
             "url" => $urlPush,
