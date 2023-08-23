@@ -259,15 +259,77 @@ class WorkOrder extends Controller
                 "long" => $request->input('long')
             ];
             $details = $request->input('details');
-            $action = $this->actionPush($wo, $input, $details);
-            if (is_object($action)) {
-                $pushapi = $this->pushApi($action);
-                return ['success' => true, 'message' => 'Success...', 'api' => $pushapi];
-            }
-            else $error = $action;
+            return $this->actionPush($wo, $input, $details);
         }
 
         return ['success' => false, 'message' => $error];
+    }
+
+    private function actionPush($wo, $input, $details, $id=null){
+        if(!$wo) return 'Undefined WorkOrder';
+        else{
+            DB::beginTransaction();
+            try{
+                $input['wo_id'] = $wo->id;
+                if($id){
+                    if($action = Action::find($id)){
+                        $action->update($input);
+                    }
+                    else return "Undefined Action Id";
+                }
+                else {
+                    $action = Action::create($input);
+                    $wo->update(['last_action' => $action->id]);
+                }
+
+                $this->actionDetailPush($wo, $action, $details);
+
+                // SET CLOSING WO -------------------------------------------
+                if($action->status->type > 1){
+                    $wo->update(['close_date' => $action->created_at]);
+                }
+
+
+                if($pushapi = $this->pushApi($action)){
+                    if($pushapi->respon) {
+                        if (isset($pushapi->respon->statusCode) && $pushapi->respon->statusCode == 0) {
+                            DB::commit();
+                            return [
+                                'success' => true,
+                                'message' => 'Success',
+                                'api' => [
+                                    "url" => $pushapi->urlPush,
+                                    "respon" => (array)$pushapi->response,
+                                    "data" => (array)$pushapi->data
+                                ]
+                            ];
+                        }
+                        DB::rollback();
+                        return [
+                            'success' => false,
+                            'message' => 'Error API',
+                            'api' => [
+                                "url" => $pushapi->urlPush,
+                                "respon" => (array)$pushapi->response,
+                                "data" => (array)$pushapi->data
+                            ]
+                        ];
+                    }
+                    DB::rollback();
+                }
+
+                DB::rollback();
+                return ['success' => false, 'message' => 'API ERROR'];
+
+
+                // SEND EMAIL ----------------------------------------------------------------
+                // dispatch(new NotifJob($wo->id));
+            }
+            catch(QueryException $error){
+                DB::rollback();
+                return ['success' => false, 'message' => '500 (Action WO) '.$error->getMessage()];
+            }
+        }
     }
 
     private function pushApi($action){
@@ -333,9 +395,9 @@ class WorkOrder extends Controller
             ->asJson()
             ->post();
 
-        return [
+        return (object) [
             "url" => $urlPush,
-            "respon" => (array) $response,
+            "respon" => $response,
             "data" => $data
         ];
     }
@@ -348,44 +410,6 @@ class WorkOrder extends Controller
         if(!$status->show_on || !in_array($wo->lastAction->status_id, $status->show_on)) return "Not Show On $status->name";
 
         return null;
-    }
-
-    private function actionPush($wo, $input, $details, $id=null){
-        if(!$wo) return 'Undefined WorkOrder';
-        else{
-            DB::beginTransaction();
-            try{
-                $input['wo_id'] = $wo->id;
-                if($id){
-                    if($action = Action::find($id)){
-                        $action->update($input);
-                    }
-                    else return "Undefined Action Id";
-                }
-                else {
-                    $action = Action::create($input);
-                    $wo->update(['last_action' => $action->id]);
-                }
-
-                $this->actionDetailPush($wo, $action, $details);
-
-                // SET CLOSING WO -------------------------------------------
-                if($action->status->type > 1){
-                    $wo->update(['close_date' => $action->created_at]);
-                }
-
-                DB::commit();
-
-                // SEND EMAIL ----------------------------------------------------------------
-                // dispatch(new NotifJob($wo->id));
-
-                return $action;
-            }
-            catch(QueryException $error){
-                DB::rollback();
-                return '500 (Action WO) '.$error->getMessage();
-            }
-        }
     }
 
     private function actionDetailPush($wo, $action, $details){
