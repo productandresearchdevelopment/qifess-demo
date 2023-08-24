@@ -364,11 +364,20 @@ class WorkOrder extends Controller
             if($extra->name == 'ONT Serial Number') $serialNumber = $extra->value;
         }
 
+        if($action->status->name == "PREPARATION") $status = 'PREPARED';
+        else if($action->status->name == "IN PROGRESS") $status = 'ONGOING';
+        else if($action->status->name == "ARRIVED") $status = 'ARRIVED';
+        else if($action->status->name == "INSTALLATION") $status = 'TAGGED';
+        else if($action->status->name == "DE-INSTALLATION") $status = 'TAGGED';
+        else if($action->status->name == "ACTIVATION") $status = 'ACTIVATED';
+        else if($action->status->name == "DE-ACTIVATION") $status = 'ACTIVATED';
+        else if($action->status->name == "POST ACTIVATION") $status = 'COMPLETED';
+
         $data = [
             'activityName' => (string) $action->wo->activity->name,
             'orderNumber' => (string) $action->wo->no_wo,
             'workFlowNumber' => (string) $action->wo->id,
-            'orderStatus' => (string) $action->status->name,
+            'orderStatus' => $status,
             'teamID' => (string) $action->wo->fieldtech_id,
             'serialNumber' => (string) $serialNumber,
             'longitude' => $action->long,
