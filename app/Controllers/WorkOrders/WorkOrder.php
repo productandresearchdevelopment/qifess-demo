@@ -336,7 +336,7 @@ class WorkOrder extends Controller
                 ->post();
             if(isset($login->content) && isset($login->content->accessToken)) {
                 $token = $login->content->accessToken;
-                Cache::put('woaccesstoken', $login, 60);
+                Cache::put('woaccesstoken', $token, 60);
             }
             else {
                 $result->message = "ERROR API LOGIN (".$login->status.")";
