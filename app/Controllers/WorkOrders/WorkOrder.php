@@ -362,6 +362,8 @@ class WorkOrder extends Controller
         $extras = DB::select(DB::raw($sql));
         foreach ($extras AS $extra){
             if($extra->name == 'ONT Serial Number') $serialNumber = $extra->value;
+            else if($extra->name == 'Serial Number registration') $serialNumber = $extra->value;
+            else if($extra->name == 'Serial Number Unregistration') $serialNumber = $extra->value;
         }
 
         if($action->status->name == "PREPARATION") $status = 'PREPARED';
