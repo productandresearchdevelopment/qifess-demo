@@ -360,7 +360,7 @@ class WorkOrder extends Controller
         $data = [
             'activityName' => $action->wo->activity->name,
             'orderNumber' => $action->wo->no_wo,
-            'workFlowNumber' => $action->wo->id,
+            'workFlowNumber' => strval($action->wo->id),
             'orderStatus' => $action->status->name,
             'teamID' => $action->wo->fieldtech_id,
             'longitude' => $action->long,
