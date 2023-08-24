@@ -394,6 +394,7 @@ class WorkOrder extends Controller
             else $result->message = "Error API engineer status (response is null)";
         }
         else {
+            if($response->status == 400) Cache::put('woaccesstoken', '', 60);
             $result->message = "ERROR API ENGINEERSTATUS (".$response->status.")";
         }
 
