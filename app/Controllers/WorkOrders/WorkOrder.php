@@ -235,7 +235,9 @@ class WorkOrder extends Controller
             $details = $request->input('details');
             $action = $this->actionPush($wo, $inputAction, $details, $actionId);
 
-            if(!is_object($action)) return ['success' => false, 'message' => $action];
+            if(!$action['success']) {
+                return $action;
+            }
 
             DB::commit();
             return ['success' => true, 'message' => 'Success...', 'data' => $wo];
@@ -291,12 +293,11 @@ class WorkOrder extends Controller
 
                 if(in_array($wo->activity->name, ['INSTALLATION', 'SERVICE UPDATE', 'RELOCATION', 'DEVICE MOVING', 'TERMINATION'])) {
                     if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION', 'ACTIVATION', 'POST ACTIVATION', 'DE-INSTALLATION', 'DE-ACTIVATION'])) {
-                        if ($pushapi = $this->pushApi($action)) {
+                        if ($pushapi = $this->pushApi($action, $details)) {
                             if ($pushapi->success) DB::commit();
                             else DB::rollback();
-                            return (array)$pushapi;
+                            return (array) $pushapi;
                         }
-
                         DB::rollback();
                         return ['success' => false, 'message' => 'API ERROR'];
                     }
@@ -317,7 +318,7 @@ class WorkOrder extends Controller
         }
     }
 
-    private function pushApi($action){
+    private function pushApi($action, $details){
         $result = (object) ['success' => false];
 
         $baseUrl = 'https://api.asianet.co.id';
@@ -356,11 +357,16 @@ class WorkOrder extends Controller
         $additionalUTP = null;
         $additionalDropCable = null;
 
-
-        foreach ($action->details AS $extra){
-            if($extra->detail->name == 'ONT Serial Number') $serialNumber = $extra->value;
-            else if($extra->detail->name == 'Serial Number registration') $serialNumber = $extra->value;
-            else if($extra->detail->name == 'Serial Number Unregistration') $serialNumber = $extra->value;
+        foreach (json_decode($details) AS $extra){
+            if($extra && isset($extra->id)) {
+                if ($detail = Master\StatusDetail::find($extra->id)) {
+                    if ($detail->type == 'text') {
+                        if ($detail->name == 'ONT Serial Number') $serialNumber = $extra->value;
+                        else if ($detail->name == 'Serial Number registration') $serialNumber = $extra->value;
+                        else if ($detail->name == 'Serial Number Unregistration') $serialNumber = $extra->value;
+                    }
+                }
+            }
         }
 
         if($action->status->name == "PREPARATION") $status = 'PREPARED';
