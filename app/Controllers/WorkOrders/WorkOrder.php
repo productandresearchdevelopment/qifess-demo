@@ -361,9 +361,9 @@ class WorkOrder extends Controller
             if($extra && isset($extra->id)) {
                 if ($detail = Master\StatusDetail::find($extra->id)) {
                     if ($detail->type == 'text') {
-                        if ($detail->name == 'ONT Serial Number') $serialNumber = $extra->value;
-                        else if ($detail->name == 'Serial Number registration') $serialNumber = $extra->value;
-                        else if ($detail->name == 'Serial Number Unregistration') $serialNumber = $extra->value;
+                        if (strtolower($detail->name) == 'ont serial number') $serialNumber = $extra->value;
+                        else if (strtolower($detail->name) == 'serial number registration') $serialNumber = $extra->value;
+                        else if (strtolower($detail->name) == 'serial number unregistration') $serialNumber = $extra->value;
                     }
                 }
             }
