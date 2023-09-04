@@ -45,14 +45,24 @@ Route::group(['middleware' => ['auth.api'] ], function(){
             if($username && $password) {
                 if($user = User::where('username', $username)->where('role_id', 20)->first()) {
                     if(Hash::check($password, $user->password)) {
-                        $token = \Illuminate\Support\Str::uuid();
-                        $user->update(['token_api' => $token]);
+                        if($user->token_api && ($user->token_api_expired_at < date('Y-m-d H:i:s'))) {
+                            $token = $user->token_api;
+                        }
+                        else $token = \Illuminate\Support\Str::uuid();
+                        $expired = 120;
+                        $expiredAt = date('Y-m-d H:i:s', strtotime("+$expired minutes"));
+                        $user->update([
+                            'token_api' => $token,
+                            'token_api_expired_at' => $expiredAt
+                        ]);
                         return [
                             'success' => true,
                             'message' => 'Success...',
                             'name' => $user->name,
                             'username' => $username,
-                            'token' => $token
+                            'token' => $token,
+                            'expired_token' => $expired,
+                            'expired_token_at' => $expiredAt
                         ];
                     }
                     return response()->json(['success' => false, 'message' => 'Invalid Password!']);
