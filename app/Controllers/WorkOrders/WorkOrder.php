@@ -410,7 +410,8 @@ class WorkOrder extends Controller
                         $result->success = true;
                         $result->message = "Success";
                     }
-                    else $result->message = "Error API engineer status response failed";
+                    else $result->message = "Error API engineer status response failed (".json_encode($content).")";
+
                     $result->data = [
                         'url' => $urlPush,
                         'dataPush' => $data,
