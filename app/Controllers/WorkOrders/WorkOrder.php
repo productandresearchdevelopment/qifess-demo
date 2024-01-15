@@ -291,6 +291,7 @@ class WorkOrder extends Controller
                     $wo->update(['close_date' => $action->created_at]);
                 }
 
+                /*
                 if(in_array($wo->activity->name, ['INSTALLATION', 'SERVICE UPDATE', 'RELOCATION', 'DEVICE MOVING', 'TERMINATION'])) {
                     if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION', 'ACTIVATION', 'POST ACTIVATION', 'DE-INSTALLATION', 'DE-ACTIVATION'])) {
                         if ($pushapi = $this->pushApi($action, $details)) {
@@ -302,6 +303,7 @@ class WorkOrder extends Controller
                         return ['success' => false, 'message' => 'API ERROR'];
                     }
                 }
+                */
 
                 DB::commit();
                 return ['success' => true, 'message' => 'Success'];
@@ -385,9 +387,6 @@ class WorkOrder extends Controller
         else if($action->status->name == "DE-ACTIVATION") $status = 'ACTIVATED';
         else if($action->status->name == "POST ACTIVATION") $status = 'COMPLETED';
 
-        /*
-        // PUSH API ----------------------------------------------------------------------------------------------------
-
         $data = [
             'activityName' => (string) $action->wo->activity->name,
             'orderNumber' => (string) $action->wo->no_wo,
@@ -403,8 +402,9 @@ class WorkOrder extends Controller
             'additionalDropCable' => (float) $additionalDropCable
         ];
 
-        $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
+        // PUSH API ----------------------------------------------------------------------------------------------------
 
+        $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
         if($response->status == 200 || $response->status == 400){
             if($content = $response->content){
                 if(isset($content->statusCode)){
@@ -427,9 +427,8 @@ class WorkOrder extends Controller
         else {
             $result->message = "ERROR API ENGINEERSTATUS (".$response->status.") ". ($response->content ? json_encode($response->content) : '');
         }
-        */
 
-        return ['success' => true, 'message' => 'success...'];
+        return $result;
     }
 
     private function actionValid($wo, $status, $user){
