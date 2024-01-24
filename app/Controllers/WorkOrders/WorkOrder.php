@@ -308,7 +308,6 @@ class WorkOrder extends Controller
                 DB::commit();
                 return ['success' => true, 'message' => 'Success'];
 
-
                 // SEND EMAIL ----------------------------------------------------------------
                 // dispatch(new NotifJob($wo->id));
 
