@@ -117,9 +117,11 @@ class ImportSheet implements ToCollection, WithChunkReading
     private function createTicket($site, $ticketNumber, $ticketDescription){
         if($team = $this->getTeam($site->active_date, $site->vendor_id)) {
             try {
+                $status = ($this->activity == 5) ? 5110 : 1110;
+
                 $input = [
                     'site_id' => $site->id,
-                    'activity_id' => 1,
+                    'activity_id' => $this->activity,
                     'vendor_id' => $site->vendor_id,
                     'client_id' => $site->client_id,
                     'fieldtech_id' => $team->fieldtech,
@@ -135,7 +137,7 @@ class ImportSheet implements ToCollection, WithChunkReading
                 $wo = WorkOrder::create($input);
                 $action = Action::create([
                     'wo_id' => $wo->id,
-                    'status_id' => '1110',
+                    'status_id' => $status,
                     'note' => '-',
                     'created_by' => $this->user->id,
                     'updated_by' => $this->user->id,
