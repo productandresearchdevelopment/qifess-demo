@@ -67,7 +67,7 @@ class WorkOrder extends Controller
     public function data(Request $request, $archive=false){
         $user = $request->user();
         $query = Wo::with([
-            'site',
+            'site.service',
             'client',
             'removeSite',
             'fieldtech.users',
@@ -142,7 +142,7 @@ class WorkOrder extends Controller
 
     public function get(Request $request, $id=null){
         $data = Wo::with([
-            'site',
+            'site.service',
             'removeSite',
             'fieldtech.users',
             'lastAction.status',

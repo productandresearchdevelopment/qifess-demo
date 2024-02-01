@@ -100,9 +100,16 @@
             dataTpl.siteTpl = '';
             if (dataTpl.site) {
                 dataTpl.site.linkTpl = dataTpl.site.link_id ? '(' + dataTpl.site.link_id + ')' : '';
+                dataTpl.site.serviceName = dataTpl.site.service ? dataTpl.site.service.name : '-';
+
                 dataTpl.siteTpl = String.format(`<div class="container info-container">
                         <span>Site</span> {name} {linkTpl}
-                        <div class="info">{address} <br> <i>PIC: {pic} <br> ({pic_phone}, {pic_email}))</i> </div>
+                        <br><b>SERVICE: {serviceName}</b>
+                        <div class="info">
+                             {address} <br>
+                             <i>PIC: {pic} <br> ({pic_phone}, {pic_email}))</i> <br>
+
+                        </div>
                     </div>`, dataTpl.site);
             }
 
