@@ -25,6 +25,8 @@
         <td align="center" valign="center" height="30" width="30" rowspan="2" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>LATITUDE</b></td>
         <td align="center" valign="center" height="30" width="30" rowspan="2" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>LONGITUDE</b></td>
         <td align="center" valign="center" height="30" colspan="2" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>CREATE WO INSTALLATION</b></td>
+        <td align="center" valign="center" height="30" colspan="2" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>TEAM</b></td>
+        <td align="center" valign="center" height="30" colspan="2" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>SLOT</b></td>
     </tr>
     <tr>
         <td align="center" valign="center" height="30" width="13" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>ID</b></td>
@@ -35,6 +37,10 @@
         <td align="center" valign="center" height="30" width="30" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>NAME</b></td>
         <td align="center" valign="center" height="30" width="20" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>TICKET CUSTOMER</b></td>
         <td align="center" valign="center" height="30" width="40" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>DESCRIPTION</b></td>
+        <td align="center" valign="center" height="30" width="20" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>CODE</b></td>
+        <td align="center" valign="center" height="30" width="40" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>TEAM NAME</b></td>
+        <td align="center" valign="center" height="30" width="20" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>CODE</b></td>
+        <td align="center" valign="center" height="30" width="40" bgcolor="#EEEEEE" style="border: 1px solid #666"><b>SLOT NAME</b></td>
     </tr>
 
     @for($i = 0; $i < 100; $i++)
@@ -60,6 +66,12 @@
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>=VLOOKUP(X{{ $i+5 }},TEAM!$A$3:$B${{ $teams->count() + 3 }}, 2, FALSE)</td>
+            <td></td>
+            <td>=VLOOKUP(Z{{ $i+5 }},SLOT!$A$3:$B${{ $slots->count() + 3 }}, 2, FALSE)</td>
         </tr>
     @endfor
 </table>

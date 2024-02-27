@@ -74,8 +74,11 @@ class ImportSheet implements ToCollection, WithChunkReading
                         $site = Site::create((array) $data);
                         $ticketNumber = $rows[$i][21];
                         $ticketDescription = $rows[$i][22];
+                        $fieldtech = $rows[$i][23];
+                        $slot = $rows[$i][25];
+
                         if($this->activity) {
-                            $ticket = $this->createTicket($site, $ticketNumber, $ticketDescription);
+                            $ticket = $this->createTicket($site, $ticketNumber, $ticketDescription, $fieldtech, $slot);
                         }
 
                         if($ticket->success) {
@@ -114,42 +117,39 @@ class ImportSheet implements ToCollection, WithChunkReading
         ];
     }
 
-    private function createTicket($site, $ticketNumber, $ticketDescription){
-        if($team = $this->getTeam($site->active_date, $site->vendor_id)) {
-            try {
-                $status = ($this->activity->id == 5) ? 5110 : 1110;
+    private function createTicket($site, $ticketNumber, $ticketDescription, $fieldtech, $slot){
+        try {
+            $status = ($this->activity->id == 5) ? 5110 : 1110;
 
-                $input = [
-                    'site_id' => $site->id,
-                    'activity_id' => $this->activity->id,
-                    'vendor_id' => $site->vendor_id,
-                    'client_id' => $site->client_id,
-                    'fieldtech_id' => $team->fieldtech,
-                    'service_id' => $site->service_id,
-                    'no_wo' => $ticketNumber,
-                    'description' => $ticketDescription,
-                    'start_date' => $site->active_date,
-                    'slot_id' => $team->slot,
-                    'last_action' => null,
-                    'created_by' => $this->user->id,
-                    'updated_by' => $this->user->id,
-                ];
-                $wo = WorkOrder::create($input);
-                $action = Action::create([
-                    'wo_id' => $wo->id,
-                    'status_id' => $status,
-                    'note' => '-',
-                    'created_by' => $this->user->id,
-                    'updated_by' => $this->user->id,
-                ]);
-                $wo->update(['last_action' => $action->id]);
-                return (object)['success' => true, 'message' => 'Success...'];
-            }
-            catch(QueryException $e){
-                return (object)['success' => false, 'message' =>  $e->getMessage()];
-            }
+            $input = [
+                'site_id' => $site->id,
+                'activity_id' => $this->activity->id,
+                'vendor_id' => $site->vendor_id,
+                'client_id' => $site->client_id,
+                'fieldtech_id' => $fieldtech,
+                'service_id' => $site->service_id,
+                'no_wo' => $ticketNumber,
+                'description' => $ticketDescription,
+                'start_date' => $site->active_date,
+                'slot_id' => $slot,
+                'last_action' => null,
+                'created_by' => $this->user->id,
+                'updated_by' => $this->user->id,
+            ];
+            $wo = WorkOrder::create($input);
+            $action = Action::create([
+                'wo_id' => $wo->id,
+                'status_id' => $status,
+                'note' => '-',
+                'created_by' => $this->user->id,
+                'updated_by' => $this->user->id,
+            ]);
+            $wo->update(['last_action' => $action->id]);
+            return (object)['success' => true, 'message' => 'Success...'];
         }
-        return (object)['success' => false, 'message' => 'Team not available'];
+        catch(QueryException $e){
+            return (object)['success' => false, 'message' =>  $e->getMessage()];
+        }
     }
 
     private function getTeam($date, $vendor){
