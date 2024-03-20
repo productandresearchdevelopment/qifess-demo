@@ -358,11 +358,15 @@
         }
 
         me.save = function(){
+            mask.show();
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function (position) {
                     let details = me.getDetails();
                     let errorMessage = me.checkRequired(details);
-                    if(errorMessage) ons.notification.alert(errorMessage);
+                    if(errorMessage) {
+                        mask.hide();
+                        ons.notification.alert(errorMessage);
+                    }
                     else {
                         $.ajax({
                             url: '{{ route('wo.push.action') }}/' + me.data.id + '/' + me.status.id,
@@ -375,9 +379,11 @@
                                 long: position.coords.longitude
                             },
                             success: function (res) {
+                                mask.hide();
                                 if (res.success) {
                                     me.hide();
                                     store.load();
+
                                 } else {
                                     ons.notification.alert(res.message);
                                     //ai.toast('<div style="font-size: 18px; color: #ffa19b">ddddd</div>rrr');
@@ -385,11 +391,16 @@
                             },
                             error: function (jqXHR, textStatus, errorThrown) {
                                 ons.notification.alert(errorThrown);
+                                mask.hide();
                             }
                         });
                     }
                 });
-            } else alert("Geolocation is not supported by this browser.");
+            }
+            else {
+                alert("Geolocation is not supported by this browser.");
+                mask.hide();
+            }
         }
     }
 </script>

@@ -15,6 +15,10 @@
 <script src="{{ asset('js/jquery-ui/jquery-ui.min.js') }}"></script>
 <script src="{{ asset('js/file-utils/fileutil.js') }}"></script>
 
+<style>
+    .overlay{z-index: 100000; background: rgba(215, 214, 214, 0.56); position: fixed; top: 0; left: 0; bottom: 0; right: 0; display: none;}
+</style>
+
 <script type="text/javascript">
     var grep = function (data, search, boolean){
         /*
@@ -64,12 +68,36 @@
         return (isUndef(val) || !val) ? true : false;
     }
 
+    var mask = {
+        show: function (text){
+            $('#masking').show();
+            if(text) $('#masking-text').html('text');
+        },
+
+        hide: function (){
+            $('#masking').hide();
+        }
+    }
+
     $(document).ready(function() {
         if(window.top.trigger != undefined) {
             window.top.trigger();
         }
     });
 </script>
+
+<div id="masking" class="overlay">
+    <table style="height: 100%; width: 100%">
+        <tr>
+            <td align="center">
+                <div>
+                    <img src="{{ asset('images/loading.gif') }}">
+                    <div id="masking-text" style="font-size: 12px; font-weight: 600; color: #555555; padding: 5px;">LOADING</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
 
 
 
