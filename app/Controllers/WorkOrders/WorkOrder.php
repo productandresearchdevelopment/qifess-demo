@@ -322,19 +322,12 @@ class WorkOrder extends Controller
     private function pushApi($action, $details){
         $result = (object) ['success' => false];
 
-        $baseUrl = 'https://api.asianet.co.id';
+        $baseUrl = env("ASIANET_API_URL");
+        $email = env("ASIANET_API_USER");
+        $password = env("ASIANET_API_PASSWORD");
+
         $urlLogin = $baseUrl.'/amt/1.0/security/login';
         $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
-        $email = "ikhsan.darmawan@qualita-indonesia.com";
-        $password = '1@Y1eAxY$AO2';
-
-         /*
-            $baseUrl = 'http://apidev.asianet.co.id';
-            $urlLogin = $baseUrl . '/amt/1.0/security/login';
-            $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
-            $email = "pradana.santa@gmail.com";
-            $password = "test123";
-         */
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
