@@ -31,7 +31,7 @@ class Vendor extends Controller
 
     public function data(Request $request){
         $search = ['name', 'address'];
-        $query = Mod::with(['files','workorders.fieldtech']);
+        $query = Mod::with(['files']);
         $query ->withCount(['workorders']);
         $query ->withCount(['fieldteches']);
         return Query::open($query, $search);
