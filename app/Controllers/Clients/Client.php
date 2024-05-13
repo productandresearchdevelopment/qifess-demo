@@ -32,7 +32,7 @@ class Client extends Controller
     public function data(Request $request){
         $user = $request->user();
         $search = ['id', 'name', 'address','alias','customer_id'];
-        $query = Mod::with(['workorders']);
+        $query = Mod::query();
         $query ->withCount(['workorders']);
         $query ->withCount(['sites']);
         if($user->client_id) $query = $query->where('id', $user->client_id);
