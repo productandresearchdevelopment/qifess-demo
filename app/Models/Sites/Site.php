@@ -4,6 +4,7 @@ namespace App\Models\Sites;
 
 use App\Models\Clients\Client;
 use App\Models\Services\Service;
+use App\Models\Vendors\Vendor;
 use App\Models\WorkOrders\WorkOrder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -23,6 +24,10 @@ class Site extends Model
 
     public function service(){
         return $this->hasOne(Service::class, 'id', 'service_id')->withTrashed();
+    }
+
+    public function vendor(){
+        return $this->hasOne(Vendor::class, 'id', 'vendor_id')->withTrashed();
     }
 
     public function workorders(){

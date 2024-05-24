@@ -121,6 +121,11 @@ class ExportExcel {
         $this->groupTpl    = (isset($param->groups)) ? $this->createGroupTpl() : null;
     }
 
+    public static function export($param = []){
+        $excel = new ExportExcel($param);
+        return $excel->run();
+    }
+
     public function xmlStyle(){
         echo '<Styles>';
 
@@ -128,7 +133,10 @@ class ExportExcel {
               <Style ss:ID="h2"><Font ss:Size="20" ss:Bold="1"/> <Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>
               <Style ss:ID="h3"><Font ss:Size="16" ss:Bold="1"/> <Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>
               <Style ss:ID="h4"><Font ss:Size="14" ss:Bold="1"/> <Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>
-              <Style ss:ID="h5"><Font ss:Size="12" ss:Bold="1"/> <Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>';
+              <Style ss:ID="h5"><Font ss:Size="12" ss:Bold="1"/> <Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>
+              <Style ss:ID="h6"><Font ss:Size="11" ss:Bold="1"/> <Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>
+              <Style ss:ID="h7"><Font ss:Size="10" ss:Bold="1"/> <Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>
+              ';
 
         echo '<Style ss:ID="footer"><Alignment ss:Horizontal="Left"/><Font ss:Italic="1" ss:Size="8" /></Style>';
 
@@ -258,6 +266,7 @@ class ExportExcel {
                         'align'   => $align,
                         'width'   => (isset($column->width)) ? $column->width : 100,
                         'summary' => (isset($column->summaryType)) ? $column->summaryType : null,
+                        'renderer' => (isset($column->renderer)) ? $column->renderer : null,
                     ));
                 }
                 if(isset($column->summaryType) && $column->summaryType) $this->summary = true;
@@ -430,9 +439,9 @@ class ExportExcel {
                         switch ($field->type) {
                             case "int": $txt = number_format($txt, 0, ".",","); break;
                             case "float": $txt = number_format($txt, 2, ".", ","); break;
-                            case "date": $txt = date('d/m/Y', strtotime($txt)); break;
-                            case "datetime": $txt = date('d/m/Y H:i', strtotime($txt)); break;
-                            case "time": $txt = date('H:i:s', strtotime($txt)); break;
+                            case "date": $txt = $txt ? date('d/m/Y', strtotime($txt)) : ''; break;
+                            case "datetime": $txt = $txt ? date('d/m/Y H:i', strtotime($txt)) : ''; break;
+                            case "time": $txt = $txt ? date('H:i:s', strtotime($txt)) : ''; break;
                         }
                         $text .= $txt;
                     }
@@ -543,6 +552,17 @@ class ExportExcel {
             foreach ($this->fields AS $col){
                 $dataIndex = $col->name;
                 $text = (isset($row->$dataIndex)) ? $row->$dataIndex : '';
+                if(is_callable($renderer = $col->renderer)) {
+                    $text = $renderer($text, $row);
+                }
+                else {
+                    $text = str_replace("'", ' ', $text);
+                    $text = str_replace('"', ' ', $text);
+                    $text = str_replace("`", ' ', $text);
+                    $text = str_replace("<", ' ', $text);
+                    $text = str_replace(">", ' ', $text);
+                    $text = str_replace(";", ' ', $text);
+                }
                 switch ($col->type) {
                     case "int": $dataType = "Number"; break;
                     case "float": $dataType = "Number"; break;

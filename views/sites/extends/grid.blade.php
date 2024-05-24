@@ -34,6 +34,7 @@
                 {name: 'district', type: 'string'},
                 {name: 'ward', type: 'string'},
                 {name: 'postal_code', type: 'string'},
+                {name: 'deleted_at', type: 'date'},
             ]);
 
             me.menus = Ext.create('Ext.menu.Menu', {
@@ -42,28 +43,6 @@
                     {text: 'Create', iconCls: 'icon-add', handler: forms.create},
                     {text: 'Edit',   iconCls: 'icon-edit', handler: forms.edit},
                     @endif
-
-                    @if($user->hasRoute('site.import'))
-                    {
-                        text: 'Import', iconCls: 'icon-excel',
-                        menu: [
-                            {
-                                text: 'Download Format', iconCls: 'icon-cloud',
-                                handler: function(){
-                                    window.location = '{{ route('site.export.excel.format.import') }}';
-                                }
-                            },
-                            {
-                                text: 'Upload File', iconCls: 'icon-excel',
-                                handler: function(){
-                                    me.formImport.open();
-                                }
-                            },
-                        ]
-                    },
-                    @endif
-
-
 
                     @if($user->hasRoute('site.push'))
                     {
@@ -86,11 +65,41 @@
                         }
                     },
                     @endif
+
+                    @if($user->hasRoute('site.import'))
+                    '-',
+                    {
+                        text: 'Import Data', iconCls: 'icon-excel',
+                        menu: [
+                            {
+                                text: 'Download Format', iconCls: 'icon-cloud',
+                                handler: function(){
+                                    window.location = '{{ route('site.export.excel.format.import') }}';
+                                }
+                            },
+                            {
+                                text: 'Upload File', iconCls: 'icon-excel',
+                                handler: function(){
+                                    me.formImport.open();
+                                }
+                            },
+                        ]
+                    },
+                    @endif
                 ]
             });
 
-            let bbar = [{
-                        text: 'Export',   iconCls: 'icon-excel',
+            me.grid  = Ext.create('Ext.grid.Panel', {
+                region: 'center',
+                store: me.store,
+                selType: 'checkboxmodel',
+                border: false,
+
+                tbar: [
+                    {text: 'Menu', iconCls: 'icon-menu', menu: me.menus},
+                    @if($user->hasRoute('site.export.excel'))
+                    {
+                        text: 'Export Data',   iconCls: 'icon-excel',
                         handler: function(){
                             let filters = me.store.proxy.extraParams;
                             let query = '';
@@ -103,21 +112,11 @@
                             }
 
                             window.location = '{{ route('site.export.excel') }}?'+params.join('&');
-
                         }
-                    },'-'];
-             bbar = bbar.concat(me.bbar([
-                    {id: 'client', name: 'Client', items: @json($clients)},
-                    {id: 'service', name: 'Services', items: @json($services)},
-                    {id: 'status', name: 'Status', items: [{"id":1,"name":"Active"},{"id":2,"name":"Inactive"}]},
-                ]));
-
-            me.grid  = Ext.create('Ext.grid.Panel', {
-                region: 'center',
-                store: me.store,
-                selType: 'checkboxmodel',
-                border: false,
-                tbar: me.tbar(me.menus),
+                    },
+                    @endif
+                    '->', {xtype: 'searchfield', flex:1, maxWidth: 300, minWidth: 180, store: me.store}
+                ],
                 cls: 'large-grid',
                 columns: [
                     {text: "#", dataIndex: 'id', width: 80, hidden:true},
@@ -170,13 +169,28 @@
                     {text: "PIC", dataIndex: 'pic', width: 250},
                     {text: "DESCRIPTION", dataIndex: 'description', minWidth: 200, flex: 1},
                 ],
-
-                @if(!$user->client_id)
-                bbar: bbar,
-                @endif
-
+                bbar: me.bbar([
+                    {
+                        id: 'trash', name: 'Data', iconCls: 'icon-trash',
+                        items: [
+                            {id: 1, name: 'Data Active', checked: true},
+                            {id: 2, name: 'Data Deleted'}
+                        ]
+                    },
+                    {id: 'status', name: 'Status', items: [{"id":1,"name":"Active"},{"id":2,"name":"Inactive"}]},
+                    {id: 'client', name: 'Client', items: @json($clients)},
+                    {id: 'service', name: 'Services', items: @json($services)},
+                    {
+                        id: 'status', name: 'Status',
+                        items: [
+                            {id: 1, name: 'Active'},
+                            {id: 2, name: 'Inactive'}
+                        ]
+                    },
+                ]),
                 viewConfig: {
                     stripeRows  : false,
+                    getRowClass : function(rec){ if(rec.get('deleted_at')) return 'disabled'; },
                     listeners: {
                         itemcontextmenu: function(obj, rec, node, index, e) {
                             e.stopEvent();
