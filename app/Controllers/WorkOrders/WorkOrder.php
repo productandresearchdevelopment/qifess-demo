@@ -329,6 +329,7 @@ class WorkOrder extends Controller
         $urlLogin = $baseUrl.'/amt/1.0/security/login';
         $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
 
+
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
             $login = Curl::to($urlLogin)
@@ -338,13 +339,14 @@ class WorkOrder extends Controller
                 ->post();
             if(isset($login->content) && isset($login->content->accessToken)) {
                 $token = $login->content->accessToken;
-                Cache::put('woaccesstoken', $token, 60);
+                Cache::put('woaccesstoken', $token, 10);
             }
             else {
                 $result->message = "ERROR API LOGIN (".$login->status.") ". ($login->content ? json_encode($login->content) : '');
                 return $result;
             }
         }
+
 
         // GET ACTION --------------------------------------------------------------------------------------------------
         $serialNumber = null;
