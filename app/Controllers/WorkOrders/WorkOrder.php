@@ -91,10 +91,15 @@ class WorkOrder extends Controller
         // FILTER ON GOING ---------------------------------------------------------------------------------------------
         if($archive) $query->whereNotNull('close_date');
         else {
-            $query->where(function ($query) {
+            if($request->input('actived_only') == 1){
                 $query->whereNull('close_date');
-                $query->orWhere('close_date', '>', date('Y-m-d', strtotime('-1 days')));
-            });
+            }
+            else {
+                $query->where(function ($query) {
+                    $query->whereNull('close_date');
+                    $query->orWhere('close_date', '>', date('Y-m-d', strtotime('-1 days')));
+                });
+            }
         }
 
         // FILTER BY USER AUTH -----------------------------------------------------------------------------------------
