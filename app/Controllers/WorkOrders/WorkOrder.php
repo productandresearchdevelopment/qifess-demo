@@ -91,7 +91,7 @@ class WorkOrder extends Controller
         // FILTER ON GOING ---------------------------------------------------------------------------------------------
         if($archive) $query->whereNotNull('close_date');
         else {
-            if($request->input('actived_only') == 1){
+            if($request->input('activedOnly') == 1){
                 $query->whereNull('close_date');
             }
             else {
