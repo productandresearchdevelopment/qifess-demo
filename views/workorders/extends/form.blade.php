@@ -465,6 +465,8 @@
                 header: false,
             });
 
+            Ext.getCmp('form-detail-property').columns[0].setWidth(200);
+
             forms.clear();
         };
 

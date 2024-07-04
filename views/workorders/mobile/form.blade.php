@@ -202,6 +202,12 @@
             $('#forms-fieldtech').hide();
             status.details.forEach(function (detail) {
                 let fieldsTpl = null;
+
+                if(detail.required){
+                    detail.name += ' (<i class="bi bi-asterisk" style="font-size: 6px; color: #1d4bc0"></i>)';
+                }
+
+
                 if(detail.type == 'hide'){
                     if(detail.property == 'fieldtech') $('#forms-fieldtech').show();
                 }
