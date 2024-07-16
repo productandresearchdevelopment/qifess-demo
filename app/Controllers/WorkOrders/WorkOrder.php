@@ -268,8 +268,8 @@ class WorkOrder extends Controller
     }
 
     private function fieldtechCheck ($fieldtech, $date, $slot){
-        if($startDate && $fieldtechId){
-            $cnt = Wo::where('fieldtech_id', $fieldtechId)
+        if($date && $fieldtech && $slot){
+            $cnt = Wo::where('fieldtech_id', $fieldtech)
                 ->where('start_date', $date)
                 ->where('activity_id', 1)
                 ->where('slot_id', $slot)
