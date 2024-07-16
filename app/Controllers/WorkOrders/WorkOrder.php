@@ -273,7 +273,7 @@ class WorkOrder extends Controller
                 ->where('start_date', $date)
                 ->where('activity_id', 1)
                 ->where('slot_id', $slot)
-                ->count();
+                ->first();
 
             if($cnt) return false;
         }
