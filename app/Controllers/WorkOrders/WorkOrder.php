@@ -267,15 +267,15 @@ class WorkOrder extends Controller
         }
     }
 
-    private function fieldtechCheck ($fieldtech, $date, $slot){
+    private function fieldtechCheck ($fieldtech, $date, $slot, $id=null){
         if($date && $fieldtech && $slot){
             $rec = Wo::where('fieldtech_id', $fieldtech)
                     ->where('start_date', $date)
                     ->where('activity_id', 1)
-                    ->where('slot_id', $slot)
+                    ->where('slot_id', $slot);
                     ->first();
-
-            return $rec;
+            if($id) $rec->where('id', '<>', $id);
+            return $rec->first();
         }
         return null;
     }
@@ -614,7 +614,7 @@ class WorkOrder extends Controller
                     }
                 }
 
-                if($err = $this->fieldtechCheck($fieldtechId, $startDate, $slotId)) {
+                if($err = $this->fieldtechCheck($fieldtechId, $startDate, $slotId, $wo->id)) {
                     DB::rollback();
                     return ['success' => false, 'message' => "Team already have installation ticket", 'data' => $err];
                 }
@@ -687,7 +687,7 @@ class WorkOrder extends Controller
                         if(!$fieldtech = $request->input('fieldtech_id')) return ['success' => false, 'message' => 'fieldtech_id is empty'];
                         if(!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
 
-                        if($err = $this->fieldtechCheck($fieldtech, $date, $slot)) {
+                        if($err = $this->fieldtechCheck($fieldtech, $date, $slot, $wo->id)) {
                             return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $err];
                         }
 
