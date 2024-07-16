@@ -211,8 +211,8 @@ class WorkOrder extends Controller
             if(!$request->input('description')) return ['success' => false, 'message' => 'description Is Null'];
             //if(!$request->input('no_wo')) return ['success' => false, 'message' => 'no_wo Is Null'];
             if($startDate && $fieldtechId && $slotId){
-                if(!$this->fieldtechCheck ($fieldtechId, $startDate, $slotId)) {
-                    return ['success' => false, 'message' => 'Team already have installation ticket'];
+                if($data = $this->fieldtechCheck ($fieldtechId, $startDate, $slotId)) {
+                    return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $data];
                 }
             }
 
@@ -269,15 +269,15 @@ class WorkOrder extends Controller
 
     private function fieldtechCheck ($fieldtech, $date, $slot){
         if($date && $fieldtech && $slot){
-            $cnt = Wo::where('fieldtech_id', $fieldtech)
-                ->where('start_date', $date)
-                ->where('activity_id', 1)
-                ->where('slot_id', $slot)
-                ->first();
+            $rec = Wo::where('fieldtech_id', $fieldtech)
+                    ->where('start_date', $date)
+                    ->where('activity_id', 1)
+                    ->where('slot_id', $slot)
+                    ->first();
 
-            if($cnt) return false;
+            return $rec;
         }
-        return true;
+        return null;
     }
 
     public function pushAction(Request $request, $wo=null, $status=null){
@@ -619,7 +619,7 @@ class WorkOrder extends Controller
 
                 if(!$this->fieldtechCheck($fieldtechId, $startDate, $slotId)) {
                     DB::rollback();
-                    return ['success' => false, 'message' => "Team already have installation ticket ($fieldtechId, $startDate, $slotId)"];
+                    return ['success' => false, 'message' => "Team already have installation ticket", 'data' => $data];
                 }
 
                 DB::commit();
@@ -686,8 +686,8 @@ class WorkOrder extends Controller
                         if(!$fieldtech = $request->input('fieldtech_id')) return ['success' => false, 'message' => 'fieldtech_id is empty'];
                         if(!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
 
-                        if(!$this->fieldtechCheck($fieldtech, $date, $slot)) {
-                            return ['success' => false, 'message' => 'Team already have installation ticket'];
+                        if($this->fieldtechCheck($fieldtech, $date, $slot)) {
+                            return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $data];
                         }
 
                         if(!Master\Slot::find($slot)) return ['success' => false, 'message' => 'slot_id not found'];
