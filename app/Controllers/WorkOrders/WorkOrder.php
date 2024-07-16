@@ -211,8 +211,8 @@ class WorkOrder extends Controller
             if(!$request->input('description')) return ['success' => false, 'message' => 'description Is Null'];
             //if(!$request->input('no_wo')) return ['success' => false, 'message' => 'no_wo Is Null'];
             if($startDate && $fieldtechId && $slotId){
-                if($data = $this->fieldtechCheck ($fieldtechId, $startDate, $slotId)) {
-                    return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $data];
+                if($err = $this->fieldtechCheck ($fieldtechId, $startDate, $slotId)) {
+                    return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $err];
                 }
             }
 
@@ -617,9 +617,9 @@ class WorkOrder extends Controller
                     }
                 }
 
-                if(!$this->fieldtechCheck($fieldtechId, $startDate, $slotId)) {
+                if($err = $this->fieldtechCheck($fieldtechId, $startDate, $slotId)) {
                     DB::rollback();
-                    return ['success' => false, 'message' => "Team already have installation ticket", 'data' => $data];
+                    return ['success' => false, 'message' => "Team already have installation ticket", 'data' => $err];
                 }
 
                 DB::commit();
@@ -686,8 +686,8 @@ class WorkOrder extends Controller
                         if(!$fieldtech = $request->input('fieldtech_id')) return ['success' => false, 'message' => 'fieldtech_id is empty'];
                         if(!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
 
-                        if($this->fieldtechCheck($fieldtech, $date, $slot)) {
-                            return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $data];
+                        if($err = $this->fieldtechCheck($fieldtech, $date, $slot)) {
+                            return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $err];
                         }
 
                         if(!Master\Slot::find($slot)) return ['success' => false, 'message' => 'slot_id not found'];
