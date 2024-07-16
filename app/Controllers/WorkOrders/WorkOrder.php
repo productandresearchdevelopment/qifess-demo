@@ -211,7 +211,7 @@ class WorkOrder extends Controller
             if(!$request->input('description')) return ['success' => false, 'message' => 'description Is Null'];
             //if(!$request->input('no_wo')) return ['success' => false, 'message' => 'no_wo Is Null'];
             if($startDate && $fieldtechId && $slotId){
-                if(!$this->fieldtechCheck ($fieldtech, $startDate, $slotId)) {
+                if(!$this->fieldtechCheck ($fieldtechId, $startDate, $slotId)) {
                     return ['success' => false, 'message' => 'Team already have installation ticket'];
                 }
             }
