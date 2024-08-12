@@ -549,7 +549,7 @@ class WorkOrder extends Controller
 
     private function actionDetailPush($wo, $action, $details){
         $details = json_decode($details);
-        if($details){
+        if(is_array($details)){
             DB::beginTransaction();
             try{
                 $fieldtechId = null;
