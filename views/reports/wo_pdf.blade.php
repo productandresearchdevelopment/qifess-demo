@@ -162,22 +162,24 @@
                                 <div style="font-size: 12px;">{{ $detail ? $detail->slot->name : '-' }}</div>
                             @elseif($statusDetail->type == 'file')
                                 <div style="font-size: 12px;">
-                                    @if($detail)
-                                    @else
+                                    @if(!$detail)
                                         @foreach($detail->files AS $file)
                                             @if($file->type == 'image')
                                                 <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ storage_path("app/public/uploads/".$file->filename) }}">
                                             @endif
                                         @endforeach
+                                    @else
+                                        <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ public_path("images/nouser.png") }}">
                                     @endif
                                 </div>
                             @elseif($statusDetail->type == 'signature')
                                 <div style="font-size: 12px;">
                                     @if($detail)
-                                    @else
                                         @if($fsign = \App\SystemModels\Globals\Upload::find($detail->value))
                                             <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ storage_path("app/public/uploads/".$fsign->filename) }}">
                                         @endif
+                                    @else
+                                       'No signature'
                                     @endif
                                 </div>
                             @elseif($statusDetail->type == 'date')
