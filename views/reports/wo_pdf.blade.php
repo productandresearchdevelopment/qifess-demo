@@ -162,14 +162,14 @@
                                 <div style="font-size: 12px;">{{ $detail ? $detail->slot->name : '-' }}</div>
                             @elseif($statusDetail->type == 'file')
                                 <div style="font-size: 12px;">
-                                    @if(!$detail)
+                                    @if($detail)
                                         @foreach($detail->files AS $file)
                                             @if($file->type == 'image')
                                                 <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ storage_path("app/public/uploads/".$file->filename) }}">
                                             @endif
                                         @endforeach
                                     @else
-                                        <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ public_path("images/nouser.png") }}">
+                                        <img style="height: 200px; border: 1px solid #CCC; margin: 10px;" src="{{ public_path("images/no_image.png") }}">
                                     @endif
                                 </div>
                             @elseif($statusDetail->type == 'signature')
