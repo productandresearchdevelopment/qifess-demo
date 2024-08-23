@@ -929,7 +929,6 @@ class WorkOrder extends Controller
 
     public function exportBalapPdf(Request $request, $id = null){
         $user = $request->user();
-        $view = 'reports.wo_balap_pdf';
         $data = Wo::find($id);
 
         $params = [
@@ -950,6 +949,9 @@ class WorkOrder extends Controller
             }
         }
 
+        if(in_array($data->client_id, [3,6])) $view = 'reports.wo_balap_hifi_pdf';
+        else if(in_array($data->client_id, [4])) $view = 'reports.wo_balap_taranet_pdf';
+        else if(in_array($data->client_id, [5])) $view = 'reports.wo_balap_relab_pdf';
 
         $html = view($view, $params);
         $pdf = PDF::loadHtml($html);
