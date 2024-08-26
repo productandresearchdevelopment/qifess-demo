@@ -78,7 +78,7 @@
                    <tr>
                        <td width="150"> <b>Nomor</b> <br> <i>Number</i> </td>
                        <td width="10">:</td>
-                       <td> <div class="divsquare">{{ $data->no_wo ?: '-' }}</div> </td>
+                       <td> <div class="divsquare">{{ $data->id ?: '-' }}</div> </td>
                    </tr>
                    <tr>
                        <td> <b>Tanggal</b> <br> <i>Date</i> </td>
@@ -88,7 +88,7 @@
                    <tr>
                        <td> <b>Vendor</b> <br> <i>Company</i> </td>
                        <td>:</td>
-                       <td> <div class="divsquare">&nbsp;</div> </td>
+                       <td> <div class="divsquare">{{ $data->fieldtech->vendor_name ?: '-' }}</div> </td>
                    </tr>
                    <tr>
                        <td> <b>Teknisi</b> <br> <i>Technician</i> </td>
@@ -225,7 +225,7 @@
                     <tr>
                         <td> <b>Internet</b> <br> <i>Internet</i> </td>
                         <td>:</td>
-                        <td> <div class="divsquare">&nbsp;</div> </td>
+                        <td> <div class="divsquare"> {{ $internet ?: '-' }} </div> </td>
                     </tr>
                     <tr>
                         <td> <b>Telepon</b> <br> <i>Phone</i> </td>
@@ -235,7 +235,7 @@
                     <tr>
                         <td> <b>Televisi</b> <br> <i>Television</i> </td>
                         <td>:</td>
-                        <td><div class="divsquare"> &nbsp; </div></td>
+                        <td><div class="divsquare"> {{ $totalStb ?: '-' }} </div></td>
                     </tr>
 
                 </table>
@@ -259,22 +259,22 @@
             <td><b>Instalasi Kabel FO</b> <br> <i>FO Cable Installation</i> </td>
             <td width="100" align="right">Baik / Good</td>
             <td width="20" align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td width="100" align="right">Buruk / Bad</td>
             <td width="20" align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td width="100" align="right">PING</td>
             <td width="20" align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td width="100" align="right">STREAMING</td>
             <td width="20" align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td width="100" align="right">TEST CALL</td>
@@ -287,27 +287,27 @@
             <td><b>Instalasi Perangkat</b> <br> <i>Device Installation</i> </td>
             <td align="right">Baik / Good</td>
             <td align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td align="right">Buruk / Bad</td>
             <td align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td align="right">BROWSING</td>
             <td align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td align="right">SPEED TEST</td>
             <td align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
 
             <td align="right">VIDEO / TV</td>
             <td align="right">
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+                <img style="height: 16px;" src="{{ public_path($totalStb ? "images/check.jpg" : "images/uncheck.jpg") }}">
             </td>
             <td align="right">&nbsp;</td>
         </tr>
@@ -357,19 +357,19 @@
             <td width="100"><b>Subtotal Harga</b> <br> <i>Subtotal Price</i></td>
         </tr>
         <tr>
-            <td></td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <td>1</td>
+            <td>Excess Material - UTP</td>
+            <td>{{ $emUtp ?: 0 }}</td>
+            <td>Meter</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
         </tr>
         <tr>
-            <td></td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <td>2</td>
+            <td>Excess Material - Drop Wire</td>
+            <td> {{ $emWire ?: 0 }} </td>
+            <td>Meter</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
@@ -394,15 +394,27 @@
             <td width="32%"><b>Kodifikasi</b> / <i>Codification</i></td>
         </tr>
         <tr>
-            <td></td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <td>1</td>
+            <td>{{ $ontType ?: '-' }}</td>
+            <td>{{ $ontSN ?: '-' }}</td>
             <td>&nbsp;</td>
         </tr>
         <tr>
-            <td></td>
+            <td>2</td>
+            <td>{{ $stbType1 ?: '-' }}</td>
+            <td>{{ $stbSN1 ?: '-' }}</td>
             <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>{{ $stbType2 ?: '-' }}</td>
+            <td>{{ $stbSN2 ?: '-' }}</td>
             <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>{{ $stbType3 ?: '-' }}</td>
+            <td>{{ $stbSN3 ?: '-' }}</td>
             <td>&nbsp;</td>
         </tr>
     </table>
@@ -421,19 +433,32 @@
         </i>
     </div>
 
-    <table style="font-size: 11px;">
+    <table style="font-size: 11px;margin-top: 50px">
         <tr>
-            <td width="33%" height="250">
+            <td width="33%">
+                <div style="height: 120px"></div>
                 <div style="padding: 10px 20px; border-top: 1px solid #333333; text-align: center; margin: 1px 60px;">
                     <b>Admin Lapangan</b> / Field Admin
                 </div>
             </td>
-            <td width="33%">
+            <td width="33%" align="center">
+                @if($ttdFieldtech)
+                <img style="height: 100px; border: 1px solid #CCC;" src="{{ storage_path("app/public/uploads/".$ttdFieldtech->filename) }}">
+                <div style="height: 20px; padding: 0px">{{ $ttdFieldtechName }}</div>
+                @else
+                    <div style="height: 150px"></div>
+                @endif
                 <div style="padding: 10px 20px; border-top: 1px solid #333333; text-align: center; margin: 1px 60px;">
                     <b>Teknisi</b> / Technician
                 </div>
             </td>
-            <td width="33%">
+            <td width="33%" align="center">
+                @if($ttdCustomer)
+                    <img style="height: 100px; border: 1px solid #CCC;" src="{{ storage_path("app/public/uploads/".$ttdCustomer->filename) }}">
+                    <div>{{ $ttdCustomerName }}</div>
+                @else
+                    <div style="height: 150px"></div>
+                @endif
                 <div style="padding: 10px 20px; border-top: 1px solid #333333; text-align: center; margin: 1px 60px;">
                     <b>Pelanggan</b> / Customer
                 </div>
@@ -441,8 +466,8 @@
         </tr>
     </table>
 
-    <div style="font-size: 11px; margin-top: 0;"><b>Syarat dan Ketentuan</b> / Terms and Conditions</div>
-    <ol style="font-size: 11px; line-height: 18px;">
+    <div style="font-size: 11px; margin-top: 50px;"><b>Syarat dan Ketentuan</b> / Terms and Conditions</div>
+    <ol style="font-size: 11px; line-height: 18px; margin-top: 0px">
         <li>
             Formulir Berita Acara Lapangan ini tunduk pada Syarat dan Ketentuan Layanan Indosat HiFi yang merupakan satu kesatuan yang tidak terpisahkan.
             <br>

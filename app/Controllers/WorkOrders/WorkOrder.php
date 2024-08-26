@@ -2,6 +2,7 @@
 
 namespace App\Controllers\WorkOrders;
 
+use App\SystemModels\Globals\Upload;
 use Cache;
 use Curl;
 use Illuminate\Database\QueryException;
@@ -949,13 +950,85 @@ class WorkOrder extends Controller
 
         $params['time_start'] = null;
         $params['time_finish'] = null;
+        $params['internet'] = null;
+        $params['totalStb'] = null;
+        $params['emUtp'] = 0;
+        $params['emWire'] = 0;
+        $params['ontType'] = null;
+        $params['ontSN'] = null;
+        $params['stbType1'] = null;
+        $params['stbType2'] = null;
+        $params['stbType3'] = null;
+        $params['stbSN1'] = null;
+        $params['stbSN2'] = null;
+        $params['stbSN3'] = null;
+        $params['ttdFieldtech'] = null;
+        $params['ttdCustomer'] = null;
+        $params['ttdFieldtechName'] = null;
+        $params['ttdCustomerName'] = null;
 
         if($data) {
             foreach ($data->actions as $action) {
                 if (str_contains(strtoupper($action->status->name), 'INSTALLATION')) {
                     $params['time_start']  = $action->created_at;
-                } else if (str_contains(strtoupper($action->status->name), 'POST ACTIVATION')) {
+                }
+                else if (str_contains(strtoupper($action->status->name), 'POST ACTIVATION')) {
                     $params['time_finish'] = $action->created_at;
+                    foreach ($action->details as $detail) {
+                        if(strtoupper($detail->detail->name) == 'EXCESS MATERIAL - DROP WIRE'){
+                            $params['emWire'] = $detail->value;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'SIGNATURE INSTALLER'){
+                            $params['ttdFieldtech'] = Upload::find($detail->value);
+                        }
+                        else if(strtoupper($detail->detail->name) == 'SIGNATURE CUSTOMER'){
+                            $params['ttdCustomer'] = Upload::find($detail->value);
+                        }
+                        else if(strtoupper($detail->detail->name) == 'CUSTOMER NAME'){
+                            $params['ttdCustomerName'] = $detail->value;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'TECHNICIAN NAME'){
+                            $params['ttdFieldtechName'] = $detail->value;
+                        }
+                    }
+                }
+                else if (str_contains(strtoupper($action->status->name), 'ACTIVATION')) {
+                    foreach ($action->details as $detail) {
+                        if(strtoupper($detail->detail->name) == 'QOS REGISTRATION'){
+                            $params['internet'] = $detail->valueOption ? $detail->valueOption->option : null;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'TOTAL STB'){
+                            $params['totalStb'] = $detail->value;
+                        }
+                    }
+                }
+                else if (str_contains(strtoupper($action->status->name), 'PREPARATION')) {
+                    foreach ($action->details as $detail) {
+                        if($detail->detail->type != 'file' && (strtoupper($detail->detail->name) == 'ONT TYPE')){
+                            $params['ontType'] = $detail->valueOption ? $detail->valueOption->option : null;
+                        }
+                        else if($detail->detail->type != 'file' && (strtoupper($detail->detail->name) == 'ONT SERIAL NUMBER')){
+                            $params['ontSN'] = $detail->value;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'TYPE STB 1'){
+                            $params['stbType1'] = $detail->valueOption ? $detail->valueOption->option : null;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'SN STB 1'){
+                            $params['stbSN1'] = $detail->value;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'TYPE STB 2'){
+                            $params['stbType2'] = $detail->valueOption ? $detail->valueOption->option : null;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'SN STB 2'){
+                            $params['stbSN2'] = $detail->value;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'TYPE STB 3'){
+                            $params['stbType3'] = $detail->valueOption ? $detail->valueOption->option : null;
+                        }
+                        else if(strtoupper($detail->detail->name) == 'SN STB 3'){
+                            $params['stbSN3'] = $detail->value;
+                        }
+                    }
                 }
             }
         }
