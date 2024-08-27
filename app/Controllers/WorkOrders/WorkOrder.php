@@ -263,12 +263,28 @@ class WorkOrder extends Controller
                 "lat" => $request->input('lat'),
                 "long" => $request->input('long')
             ];
-            $details = $request->input('details');
+
+            // CREATE DETAIL ON API -----------------------------------------------------------------------------------
+            if(!$details = $request->input('details')){
+                $details = [];
+                if($statusDetails = Master\StatusDetail::where('status_id', $status->id)->get()){
+                    foreach($statusDetails as $detail){
+                        if($detail->name == "Team") $details[] = (object) ['id' => $detail->id, 'value' => $fieldtechId];
+                        else if($detail->name == "Date") $details[] = (object) ['id' => $detail->id, 'value' => $startDate];
+                        else if($detail->name == "Slot") $details[] = (object) ['id' => $detail->id, 'value' => $slotId];
+                        else if($detail->name == "ONT Type") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('ontType')];
+                        else if($detail->name == "Total STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('totalSTB')];
+                        else if($detail->name == "Tipe STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('deviceDetailType')];
+                    }
+                    return $details;
+                }
+            }
+
+
             $action = $this->actionPush($wo, $inputAction, $details, $actionId);
 
-            if(!$action['success']) {
-                return $action;
-            }
+            if(!is_array($action)) return ['success' => false, 'message' => $action];
+            elseif(!$action['success']) return ['success' => false, 'message' => $action];
 
             DB::commit();
             return ['success' => true, 'message' => 'Success...', 'data' => $wo];
@@ -560,7 +576,7 @@ class WorkOrder extends Controller
     }
 
     private function actionDetailPush($wo, $action, $details){
-        $details = json_decode($details);
+        $details = is_string($details) ? json_decode($details) : $details;
         if(is_array($details)){
             DB::beginTransaction();
             try{
