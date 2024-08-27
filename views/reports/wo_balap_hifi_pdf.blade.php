@@ -446,7 +446,7 @@
                 <img style="height: 100px;" src="{{ storage_path("app/public/uploads/".$ttdFieldtech->filename) }}">
                 <div style="height: 20px; padding: 0px">{{ $ttdFieldtechName }}</div>
                 @else
-                    <div style="height: 150px"></div>
+                    <div style="height: 120px"></div>
                 @endif
                 <div style="padding: 10px 20px; border-top: 1px solid #333333; text-align: center; margin: 1px 60px;">
                     <b>Teknisi</b> / Technician
@@ -457,7 +457,7 @@
                     <img style="height: 100px;" src="{{ storage_path("app/public/uploads/".$ttdCustomer->filename) }}">
                     <div>{{ $ttdCustomerName }}</div>
                 @else
-                    <div style="height: 150px"></div>
+                    <div style="height: 120px"></div>
                 @endif
                 <div style="padding: 10px 20px; border-top: 1px solid #333333; text-align: center; margin: 1px 60px;">
                     <b>Pelanggan</b> / Customer
