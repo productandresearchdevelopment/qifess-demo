@@ -276,7 +276,6 @@ class WorkOrder extends Controller
                         else if($detail->name == "Total STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('totalSTB')];
                         else if($detail->name == "Tipe STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('deviceDetailType')];
                     }
-                    return $details;
                 }
             }
 
