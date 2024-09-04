@@ -8,12 +8,12 @@ Main::routes();
 
 Route::view('/privacy-policies', 'public/privacy-policies');
 
-Route::get('/mobile/redirect/login', function (Request $request){
+Route::get('/mobile/redirect/login', function (Request $request) {
     $username = $request->input('username');
     $password = $request->input('password');
     $user = User::where(['username' => $username])->first();
-    if($user){
-        if(Hash::check($password, $user->password)){
+    if ($user) {
+        if (Hash::check($password, $user->password)) {
             Auth::guard()->login($user);
             $wo = route('wo');
             return redirect($wo);
@@ -23,10 +23,10 @@ Route::get('/mobile/redirect/login', function (Request $request){
     return 'User Notfound';
 });
 
-Route::group(['middleware' => ['auth','roles'] ], function(){
+Route::group(['middleware' => ['auth', 'roles']], function () {
     // EXTENDS USER ROUTE ----------------------------------------------------------------------------
-    Route::group(['prefix' => 'sys'], function (){
-        Route::group(['prefix' => 'user'], function (){
+    Route::group(['prefix' => 'sys'], function () {
+        Route::group(['prefix' => 'user'], function () {
             Route::get('/data/fieldtech', '\App\Http\Controllers\Systems\User@dataFieldtech')->name('auth.user.data.fieldtech');
         });
 
@@ -34,23 +34,29 @@ Route::group(['middleware' => ['auth','roles'] ], function(){
     });
 
     // VENDOR ROUTE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'vendor'], function (){
+    Route::group(['prefix' => 'vendor'], function () {
         Route::get('/', 'Vendors\Vendor@index')->name('vendor');
         Route::get('/data', 'Vendors\Vendor@data')->name('vendor.data');
+        Route::get('/export/excel', 'Vendors\Vendor@exportExcel')->name('vendor.export.excel');
+        Route::get('/export/format/import', 'Vendors\Vendor@importFormat')->name('vendor.export.excel.format.import');
+        Route::post('/import', 'Vendors\Vendor@importData')->name('vendor.import');
         Route::post('/push/{id?}',  'Vendors\Vendor@push')->name('vendor.push');
         Route::delete('/delete', 'Vendors\Vendor@delete')->name('vendor.delete');
     });
 
     // CLIENT ROUTE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'client'], function (){
+    Route::group(['prefix' => 'client'], function () {
         Route::get('/', 'Clients\Client@index')->name('client');
         Route::get('/data', 'Clients\Client@data')->name('client.data');
+        Route::get('/export/excel', 'Clients\Client@exportExcel')->name('client.export.excel');
+        Route::get('/export/format/import', 'Clients\Client@importFormat')->name('client.export.excel.format.import');
+        Route::post('/import', 'Clients\Client@importData')->name('client.import');
         Route::post('/push/{id?}', 'Clients\Client@push')->name('client.push');
         Route::delete('/delete', 'Clients\Client@delete')->name('client.delete');
     });
 
     // SITE ROUTE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'site'], function (){
+    Route::group(['prefix' => 'site'], function () {
         Route::get('/', 'Sites\Site@index')->name('site');
         Route::get('/data', 'Sites\Site@data')->name('site.data');
         Route::get('/export/excel', 'Sites\Site@exportExcel')->name('site.export.excel');
@@ -62,7 +68,7 @@ Route::group(['middleware' => ['auth','roles'] ], function(){
 
 
     // SERVICE ROUTE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'service'], function (){
+    Route::group(['prefix' => 'service'], function () {
         Route::get('/', 'Services\Service@index')->name('service');
         Route::get('/data', 'Services\Service@data')->name('service.data');
         Route::post('/push/{id?}', 'Services\Service@push')->name('service.push');
@@ -70,31 +76,33 @@ Route::group(['middleware' => ['auth','roles'] ], function(){
     });
 
     // FIELDTECH ROUTE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'fieldtech'], function (){
+    Route::group(['prefix' => 'fieldtech'], function () {
         Route::get('/', 'Fieldtechs\Fieldtech@index')->name('fieldtech');
         Route::get('/data', 'Fieldtechs\Fieldtech@data')->name('fieldtech.data');
+        Route::get('/export/excel', 'Fieldtechs\Fieldtech@exportExcel')->name('fieldtech.export.excel');
+        Route::get('/export/format/import', 'Fieldtechs\Fieldtech@importFormat')->name('fieldtech.export.excel.format.import');
+        Route::post('/import', 'Fieldtechs\Fieldtech@importData')->name('fieldtech.import');
         Route::post('/push/{id?}', 'Fieldtechs\Fieldtech@push')->name('fieldtech.push');
         Route::delete('/delete', 'Fieldtechs\Fieldtech@delete')->name('fieldtech.delete');
     });
 
     // WORK SCHEDULE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'work/schedule'], function (){
+    Route::group(['prefix' => 'work/schedule'], function () {
         Route::get('/', 'WorkSchedule@index')->name('workschedule');
         Route::get('/data', 'WorkSchedule@data')->name('workschedule.data');
     });
 
     // SPAREPART ROUTE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'part'], function (){
+    Route::group(['prefix' => 'part'], function () {
         Route::get('/page/{id?}', 'Parts\Part@index')->name('part');
         Route::get('/data/{id?}', 'Parts\Part@data')->name('part.data');
         Route::get('/export/excel', 'Parts\Part@exportExcel')->name('part.export.excel');
         Route::post('/push/{id?}', 'Parts\Part@push')->name('part.push');
         Route::delete('/delete', 'Parts\Part@delete')->name('part.delete');
-
     });
 
     // WO ROUTE ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'wo'], function (){
+    Route::group(['prefix' => 'wo'], function () {
         Route::get('/', 'WorkOrders\WorkOrder@index')->name('wo');
         Route::get('/archive', 'WorkOrders\WorkOrder@archive')->name('wo.archive');
         Route::get('/get/{id?}', 'WorkOrders\WorkOrder@get')->name('wo.get');
@@ -117,13 +125,13 @@ Route::group(['middleware' => ['auth','roles'] ], function(){
     });
 
     // REPORTING ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'reports'], function (){
+    Route::group(['prefix' => 'reports'], function () {
         Route::get('/wo/pdf/{id?}', 'Reports\Report@woPdf')->name('report.wo.pdf');
         Route::get('/bast/pdf/{id?}', 'Reports\Report@bastPdf')->name('report.bast.pdf');
     });
 
     // DASHBOARD ----------------------------------------------------------------------------------
-    Route::group(['prefix' => 'dashboard'], function (){
+    Route::group(['prefix' => 'dashboard'], function () {
         Route::get('/', 'Dashboards\Dashboard@index')->name('dashboard');
     });
 });
