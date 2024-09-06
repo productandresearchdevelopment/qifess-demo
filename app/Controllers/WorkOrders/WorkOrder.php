@@ -1240,6 +1240,8 @@ class WorkOrder extends Controller
             if (in_array($data->client_id, [3, 6])) $view = 'reports.wo_balap_hifi_pdf';
             else if (in_array($data->client_id, [4])) $view = 'reports.wo_balap_taranet_pdf';
             else if (in_array($data->client_id, [5])) $view = 'reports.wo_balap_relab_pdf';
+            else if (in_array($data->client_id, [2])) $view = 'reports.wo_balap_dankom_pdf';
+            else if (in_array($data->client_id, [0])) $view = 'reports.wo_balap_viberlink_pdf';
 
             $html = view($view, $params);
             $pdf = PDF::loadHtml($html);
