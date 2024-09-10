@@ -13,11 +13,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AuthRoles;
 use App\Imports\Users\Import;
 use App\Libraries\ExportExcel;
 use App\Libraries\FileUpload;
 use App\SystemModels\Auth;
 use App\Libraries\Query;
+use App\SystemModels\Auth\Role;
 use App\SystemModels\Auth\User as AuthUser;
 use App\SystemModels\Globals\Upload;
 use Illuminate\Support\Facades\Mail;
@@ -62,32 +64,30 @@ class User extends Controller
         }
 
 
-        if ($request->has('role') && !empty($request->get('role'))) {
+        if ($request->has('role') && !empty($request->get('role') && $request->get('role') != 'null' && $request->get('role') !== 'null')) {
             $query->where('role_id', $request->get('role'));
         }
 
-        if ($request->has('client') && !empty($request->get('client'))) {
+        if ($request->has('client') && !empty($request->get('client') && $request->get('client') != 'null' && $request->get('client') !== 'null')) {
             $query->where('client_id', $request->get('client'));
         }
 
-        if ($request->has('vendor') && !empty($request->get('vendor'))) {
+        if ($request->has('vendor') && !empty($request->get('vendor') && $request->get('vendor') != 'null' && $request->get('vendor') !== 'null')) {
             $query->where('vendor_id', $request->get('vendor'));
         }
 
-        if ($request->has('activities') && !empty($request->get('activities'))) {
+        if ($request->has('activities') && !empty($request->get('activities') && $request->get('activities') != 'null' && $request->get('activities') !== 'null')) {
             $query->where('activities', $request->get('activities'));
         }
 
-        if ($request->has('owners') && !empty($request->get('owners'))) {
+        if ($request->has('owners') && !empty($request->get('owners') && $request->get('owners') != 'null' && $request->get('owners') !== 'null')) {
             $query->where('owners', $request->get('owners'));
         }
 
-        if (!$request->trash) {
-            $query->withoutTrashed(); // Ini memastikan hanya data yang tidak terhapus yang ditampilkan.
-        } elseif ($request->trash == 2) {
-            $query->onlyTrashed(); // Ini memastikan hanya data yang terhapus yang ditampilkan.
-        } else {
-            $query->withTrashed(); // Ini akan menampilkan semua data, baik yang terhapus maupun yang tidak.
+        if ($request->trash < 1) {
+            $query->withTrashed();
+        } elseif ($request->trash > 1) {
+            $query->onlyTrashed();
         }
 
 
@@ -228,7 +228,41 @@ class User extends Controller
         $title = [];
 
         $title[] = ['User Manager', 'h2'];
-        // $data = AuthUser::with(['role', 'vendor', 'client', 'fieldtech', 'vendors'])->orderBy('role_id', 'asc')->get();
+        if ($request->input('role') !== null && $request->input('role') !== 'null') {
+            $role = Role::find($request->input('role'));
+            if ($role) {
+                $title[] = ['Role: ' . $role->name, 'h4'];
+            }
+        }
+
+        if ($request->input('client') !== null && $request->input('client') !== 'null') {
+            $client = Client::find($request->input('client'));
+            if ($client) {
+                $title[] = ['Client: ' . $client->name, 'h4'];
+            }
+        }
+
+        if ($request->input('vendor') !== null && $request->input('vendor') !== 'null') {
+            $vendor = Vendor::find($request->input('vendor'));
+            if ($vendor) {
+                $title[] = ['Area: ' . $vendor->name, 'h4'];
+            }
+        }
+        // if ($request->input('vendor' !== null && $request->input('vendor') !== 'null')) {
+        //     $vendor = Vendor::find($request->input('vendor'));
+        //     if ($vendor) {
+        //         $title[] = ['Area: ' . $vendor->name, 'h4'];
+        //     }
+        // }
+        // if ($request->input('vendor' !== null && $request->input('vendor') !== 'null')) {
+        //     $vendor = Vendor::find($request->input('vendor'));
+        //     if ($vendor) {
+        //         $title[] = ['Area: ' . $vendor->name, 'h4'];
+        //     }
+        // }
+
+        // dd($title, $request->all());
+
 
         $data = $this->data($request, false);
 
