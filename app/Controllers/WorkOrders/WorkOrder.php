@@ -392,7 +392,7 @@ class WorkOrder extends Controller
         $urlLogin = $baseUrl.'/amt/1.1/atm/generate-token';
         //$urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
         $urlPush = $baseUrl.'/amt/1.1/apm/engineerstatus';
- 
+
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
@@ -411,7 +411,7 @@ class WorkOrder extends Controller
                 return (array) $result;
             }
         }
-        
+
         // GET ACTION --------------------------------------------------------------------------------------------------
 
         $data = [
@@ -496,7 +496,7 @@ class WorkOrder extends Controller
         $password = config('site.asianet_api_password');
 
         $urlLogin = $baseUrl.'/amt/1.1/atm/generate-token';
-        $urlPush = $baseUrl.'/amt/1.1/apm/engineerstatus';
+        $urlPush = $baseUrl.'/amt/1.1/eda/engineerstatus';
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
@@ -526,7 +526,7 @@ class WorkOrder extends Controller
         $cpe = [];
         $bastURL = null;
 
-        
+
 
         if($action->status->name == 'POST ACTIVATION'){
             $bastURL = route('wo.export.balap', $action->wo->id);
@@ -537,7 +537,7 @@ class WorkOrder extends Controller
         $stb1 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
         $stb2 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
         $stb3 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
-            
+
 
         foreach (json_decode($details) AS $extra){
             if($extra && isset($extra->id)) {
@@ -557,7 +557,7 @@ class WorkOrder extends Controller
                             }
                         }
 
-                        // CPE -------------------------------------------------------------------------------------------------------------------------------------- 
+                        // CPE --------------------------------------------------------------------------------------------------------------------------------------
 
                         else if (strtolower($detail->name) == 'sn ont') $ont['serialNumber'] = $extra->value;
                         else if (strtolower($detail->name) == 'mac address ont') $ont['macaddressont'] = $extra->value;
@@ -565,7 +565,7 @@ class WorkOrder extends Controller
                         else if (strtolower($detail->name) == 'tipe stb 1') $stb1['stbType'] = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
                         else if (strtolower($detail->name) == 'sn stb 1') $stb1['serialNumber'] = $extra->value;
                         else if (strtolower($detail->name) == 'mac address stb 1') $stb1['macAddressstb'] = $extra->value;
- 
+
                         else if (strtolower($detail->name) == 'tipe stb 2') $stb2['stbType'] = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
                         else if (strtolower($detail->name) == 'sn stb 2') $stb2['serialNumber'] = $extra->value;
                         else if (strtolower($detail->name) == 'mac address stb 2') $stb2['macAddressstb'] = $extra->value;
@@ -615,12 +615,16 @@ class WorkOrder extends Controller
         // PUSH API ----------------------------------------------------------------------------------------------------
 
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
-        if($response->status == 200 || $response->status == 400){
+        if($response->status >= 200 && $response->status <= 490){
             if($content = $response->content){
                 if(isset($content->statusCode)){
-                    if($response->status >= 200 && $response->status <= 200){
+                    if($response->status == 200){
                         $result->success = true;
                         $result->message = "Success";
+                    }
+                    else if($response->status == 206){
+                        $result->success = false;
+                        $result->message = "Hold, waiting from partner acknowledgement";
                     }
                     else {
                         $result->message = "Error API engineer status response failed (".json_encode($content).")";
@@ -1205,7 +1209,7 @@ class WorkOrder extends Controller
                         foreach ($action->details as $detail) {
                             if (strtoupper($detail->detail->name) == 'QOS REGISTRATION') {
                                 $params['internet'] = $detail->valueOption ? $detail->valueOption->option : null;
-                            } 
+                            }
                             else if (strtoupper($detail->detail->name) == 'TOTAL STB') {
                                 $params['totalStb'] = $detail->value;
                             }
