@@ -102,13 +102,25 @@ class Fieldtech extends Controller
             ['TEAM', 'h2']
         ];
 
+        if ($request->input('trash') !== null && $request->input('trash') !== 'null') {
+            if ($request->input('trash') == 1) {
+                $title[] = ['DATA : Active', 'h5'];
+            } elseif ($request->input('trash') == 2) {
+                $title[] = ['DATA : Deleted', 'h5'];
+            }
+        } else {
+            $title[] = ['DATA : All ( Active + Deleted )', 'h5'];
+        }
+
         $filterVendor = $request->input('filter-vendor');
 
         if ($filterVendor !== 'null' && $filterVendor !== null) {
             $vendor = Vendor::find($filterVendor);
             if ($vendor) {
-                $title[] = ['AREA : ' . $vendor->name, 'h3'];
+                $title[] = ['AREA : ' . $vendor->name, 'h5'];
             }
+        } else {
+            $title[] = ['AREA : All', 'h5'];
         }
 
         $data = $this->data($request, false);
