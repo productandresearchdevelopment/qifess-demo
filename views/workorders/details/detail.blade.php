@@ -463,7 +463,7 @@
         attachmentAction.toggleDetailDisplay = "display: none";
         attachmentAction.note = `
         <b style="color: #000; margin-top: 8px; display: block">BAST URL:</b>
-        <a href="${{ route('wo.export.balap') }}/${data.id}" target="_blank" style="display: block; word-break: break-word; overflow-wrap: break-word; margin-top: 4px; max-width: 200px">
+        <a href="{{ route('wo.export.balap') }}/${data.id}" target="_blank" style="display: block; word-break: break-word; overflow-wrap: break-word; margin-top: 4px; max-width: 200px">
             {{ route('wo.export.balap') }}/${data.id}
         </a>
         `;
