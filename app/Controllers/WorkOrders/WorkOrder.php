@@ -495,8 +495,8 @@ class WorkOrder extends Controller
         $email = config('site.asianet_api_user');
         $password = config('site.asianet_api_password');
 
-        $urlLogin = $baseUrl.'/amt/1.1/atm/generate-token';
-        $urlPush = $baseUrl.'/amt/1.1/eda/engineerstatus';
+        $urlLogin = $baseUrl.'/amt/1.1/atm/generateToken';
+        $urlPush = $baseUrl.'/amt/1.1/eda/engineerStatus';
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
