@@ -360,7 +360,7 @@ class WorkOrder extends Controller
                             if ($pushapi = $this->pushApi($wo, $action, $details)) {
                                 if ($pushapi->success) DB::commit();
                                 else DB::rollback();
-                                return (array)$pushapi;
+                                return (array) $pushapi;
                             }
                             DB::rollback();
                             return ['success' => false, 'message' => 'API ERROR'];
@@ -495,8 +495,8 @@ class WorkOrder extends Controller
         $email = config('site.asianet_api_user');
         $password = config('site.asianet_api_password');
 
-        $urlLogin = $baseUrl.'/amt/1.1/atm/generate-token';
-        $urlPush = $baseUrl.'/amt/1.1/eda/engineerstatus';
+        $urlLogin = $baseUrl.'/amt/1.1/atm/generateToken';
+        $urlPush = $baseUrl.'/amt/1.1/eda/engineerStatus';
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
@@ -512,7 +512,7 @@ class WorkOrder extends Controller
             }
             else {
                 $result->message = "ERROR API LOGIN (".$login->status.") ". ($login->content ? json_encode($login->content) : '');
-                return (array) $result;
+                return $result;
             }
         }
 
@@ -522,6 +522,7 @@ class WorkOrder extends Controller
         $additionalDropCable = null;
         $fatPort = "";
         $bastURL = null;
+        $evidenceURL = null;
 
         $ont  = ["type" => 'ont', "serialNumber" => "", "macaddressont" => ""];
         $stb1 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
@@ -530,6 +531,7 @@ class WorkOrder extends Controller
 
         if($action->status->name == 'POST ACTIVATION'){
             $bastURL = route('wo.export.balap', $wo->id);
+            $evidenceURL = route('wo.export.pdf', $wo->id);
         }
 
         foreach ($wo->actions as $act) {
@@ -549,12 +551,19 @@ class WorkOrder extends Controller
 
                     else if (strtolower($extra->detail->name) == 'serial number registration') $serialNumber = $extra->value;
                     else if (strtolower($extra->detail->name) == 'serial number registration') $serialNumber = $extra->value;
-
-                } else if (strtoupper($act->status->name) == 'DE-ACTIVATION') {
+                }
+                else if (strtoupper($act->status->name) == 'INSTALLATION') {
+                    if (strtolower($extra->detail->name) == 'fat port') {
+                        $fatPort = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
+                    }
+                }
+                else if (strtoupper($act->status->name) == 'DE-ACTIVATION') {
                     if (strtolower($extra->detail->name) == 'serial number unregistration') $serialNumber = $extra->value;
-                } else if (strtoupper($act->status->name) == 'PREPARATION') {
+                }
+                else if (strtoupper($act->status->name) == 'PREPARATION') {
                     if (strtolower($extra->detail->name) == 'ont serial number') $serialNumber = $extra->value;
-                } else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
+                }
+                else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
                     if (strtolower($extra->detail->name) == 'excess material - drop wire') $additionalDropCable = $extra->value;
                     else if (strtolower($extra->detail->name) == 'excess material - utp') $additionalUTP = $extra->value;
                 }
@@ -631,6 +640,7 @@ class WorkOrder extends Controller
             'additionalUTP' => (float) $additionalUTP,
             'additionalDropCable' => (float) $additionalDropCable,
             'bastURL' => $bastURL,
+            'evidenceURL' => $evidenceURL,
             'fatport' => (string) $fatPort,
             'cpe' => $cpe
         ];
@@ -646,7 +656,6 @@ class WorkOrder extends Controller
                         $result->message = "Success";
                     }
                     else if($response->status == 206){
-                        $result->success = false;
                         $result->message = "Hold, waiting from partner acknowledgement";
                     }
                     else {
