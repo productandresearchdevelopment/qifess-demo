@@ -1270,6 +1270,8 @@ class WorkOrder extends Controller
                                 $params['stbType3'] = $detail->valueOption ? $detail->valueOption->option : null;
                             } else if (strtoupper($detail->detail->name) == 'SN STB 3') {
                                 $params['stbSN3'] = $detail->value;
+                            } else if (strtoupper($detail->detail->name) == 'SN ONT') {
+                                $params['OntSN'] = $detail->value;
                             }
                         }
                     } else if (str_contains(strtoupper($action->status->name), 'PREPARATION')) {

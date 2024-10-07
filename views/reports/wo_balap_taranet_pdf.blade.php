@@ -151,30 +151,50 @@
         <tr>
             <td>Equipment Name</td>
             <td>: -</td>
-            <td colspan="2" rowspan="6">
-                Note
-                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+            <td align="center">PING</td>
+            <td>
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
             </td>
         </tr>
         <tr>
             <td>OLT</td>
             <td>: -</td>
+            <td align="center">STREAMING</td>
+            <td>
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
+            </td>
         </tr>
         <tr>
             <td>ODF</td>
             <td>: -</td>
+            <td align="center">BROWSING</td>
+            <td>
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
+            </td>
         </tr>
         <tr>
             <td>ODP</td>
             <td>: -</td>
+            <td align="center">SPEEDTEST</td>
+            <td>
+                <img style="height: 16px;" src="{{ public_path("images/check.jpg") }}">
+            </td>
         </tr>
         <tr>
             <td>Spliter</td>
             <td>: -</td>
+            <td align="center">TEST CALL</td>
+            <td>
+                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+            </td>
         </tr>
         <tr>
             <td>MAC Address</td>
             <td>: {{ $ontMac ?: '-' }}</td>
+            <td align="center">VIDEO/TV</td>
+            <td>
+                <img style="height: 16px;" src="{{ public_path("images/uncheck.jpg") }}">
+            </td>
         </tr>
 
         {{-- SECTION 4  --}}
@@ -185,7 +205,7 @@
             <td colspan="4" align="center"><b>Installation Notes</b></td>
         </tr>
         <tr>
-            <td colspan="4" style="height: 100px"> {{ $lastNote ?: '-'}} </td>
+            <td colspan="4" style="height: 100px"> {{ $OntSN ?: '-'}} </td>
         </tr>
     </table>
 
@@ -259,7 +279,7 @@
             <td width="33%" align="center">
                 @if($ttdCustomer)
                     <img style="height: 100px;" src="{{ storage_path("app/public/uploads/".$ttdCustomer->filename) }}">
-                    <div>{{ $ttdCustomerName }}</div>
+                    <div>{{ $ttdCustomerName ?: $data->site->name }}</div>
                 @else
                     <div style="height: 120px"></div>
                 @endif

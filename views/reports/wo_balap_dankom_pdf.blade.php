@@ -72,7 +72,7 @@
         </tr>
         <tr>
             <td>BAL Date / Tgl BAL</td>
-            <td>: {{ $data->close_date ? date('d/m/Y', strtotime($data->close_date)) : '-' }}</td>
+            <td>: {{ $time_finish ? date('d/m/Y', strtotime($time_finish)) : '-' }}</td>
             <td>Name</td>
             <td>: {{ $data->site->name }}</td>
         </tr>
