@@ -72,7 +72,7 @@
         </tr>
         <tr>
             <td>BAL Date / Tgl BAL</td>
-            <td>: {{ $data->close_date ? date('d/m/Y', strtotime($data->close_date)) : '-' }}</td>
+            <td>: {{ $time_finish ? date('d/m/Y', strtotime($time_finish)) : '-' }}</td>
             <td>Name</td>
             <td>: {{ $data->site->name }}</td>
         </tr>
@@ -241,7 +241,7 @@
                 <img style="height: 16px; vertical-align: middle; margin-left: 20px;" src="{{ public_path("images/uncheck.jpg") }}">
                 <span style="vertical-align: middle;">NOT</span>
             </td>
-            <td colspan="2" rowspan="5"style="height: 100px"> {{ $lastNote ?: '-'}} </td>
+            <td colspan="2" rowspan="5"style="height: 100px"> {{ $OntSN ?: '-'}} </td>
         </tr>
         <tr>
             <td>EQUIPMENT INSTALLATION</td>
@@ -353,7 +353,7 @@
             <td colspan="5">&nbsp;</td>
         </tr>
         <tr>
-            <td colspan="5" align="center" class="tableheadertitle"><b>Installer Cable Drop</b></td>
+            <td colspan="5" align="center" class="tableheadertitle"><b>Installed Equipment</b></td>
         </tr>
         <tr>
             <td align="center" style="width: 15px;">No</td>
