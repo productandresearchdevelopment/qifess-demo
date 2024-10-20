@@ -299,7 +299,7 @@ class WorkOrder extends Controller
         if($date && $fieldtech && $slot){
             $rec = Wo::where('fieldtech_id', $fieldtech)
                     ->where('start_date', $date)
-                    ->where('activity_id', 1)
+                    ->where('activity_id', 0)
                     ->where('slot_id', $slot);
             if($id) $rec->where('id', '<>', $id);
             return $rec->first();
