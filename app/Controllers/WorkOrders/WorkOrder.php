@@ -537,7 +537,10 @@ class WorkOrder extends Controller
         foreach ($wo->actions as $act) {
             foreach ($act->details as $extra) {
                 if (strtoupper($act->status->name) == 'ACTIVATION') {
-                    if (strtolower($extra->detail->name) == 'sn ont') $ont['serialNumber'] = $extra->value;
+                    if (strtolower($extra->detail->name) == 'sn ont') {
+                        $ont['serialNumber'] = $extra->value;
+                        $serialNumber = $extra->value;
+                    }
                     else if (strtolower($extra->detail->name) == 'mac address ont') $ont['macaddressont'] = $extra->value;
                     else if (strtolower($extra->detail->name) == 'tipe stb 1') $stb1['stbType'] = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
                     else if (strtolower($extra->detail->name) == 'sn stb 1') $stb1['serialNumber'] = $extra->value;
