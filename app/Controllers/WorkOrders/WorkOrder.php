@@ -256,7 +256,7 @@ class WorkOrder extends Controller
             // Handle API response
             if ($apiResult->success) {
                 if ($apiResult->status == 200) {
-                    $wo->update(['is_hold' => null]);
+                    $wo->update(['is_hold' => 0]);
                     DB::commit();
                     return response()->json(['success' => true, 'message' => 'Ticket successfully continued', 'status' => 200]);
                 } elseif ($apiResult->status == 206) {
