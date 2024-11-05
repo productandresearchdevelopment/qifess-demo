@@ -613,18 +613,8 @@ class WorkOrder extends Controller
                                     }
 
                                     DB::commit();
+                                    return (array) $pushapi;
                                 }
-
-                                // if($pushapi->success && ($pushapi->status == 200 || ($pushapi->status == 206 && $action->status->name !== 'ACTIVATION'))) {
-                                //     DB::commit();
-                                // } 
-                                // else if ($pushapi->status == 206 && $action->status->name == 'ACTIVATION') {
-                                //     $wo->update(['is_hold' => 1]);
-                                //     DB::commit();
-                                // } 
-                                // else DB::rollback();
-
-                                return (array) $pushapi;
                             }
                             DB::rollback();
                             return ['success' => false, 'message' => 'API ERROR'];
