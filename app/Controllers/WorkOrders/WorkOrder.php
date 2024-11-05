@@ -16,61 +16,67 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Libraries\Query;
-use App\Models\WorkOrders\WorkOrder AS Wo;
+use App\Models\WorkOrders\WorkOrder as Wo;
 use App\Models\WorkOrders\Action;
 use App\Models\WorkOrders\ActionDetail;
 use App\Models\WorkOrders\Masters\StatusDetailOption;
 use App\Models\Sites\Site;
 use App\Models\Clients\Client;
 use App\Models\Vendors\Vendor;
-use App\Models\WorkOrders\Masters AS Master;
+use App\Models\WorkOrders\Masters as Master;
 
 class WorkOrder extends Controller
 {
-    public function index(Request $request, $archive = false){
+    public function index(Request $request, $archive = false)
+    {
         $user   = $request->user();
         $view   = isMobile() ? 'workorders.mobile.main' : 'workorders.main';
         $params = $this->getParams($request, ['archive' => $archive]);
         return view($view, $params);
     }
 
-    public function form(Request $request, $id=null){
+    public function form(Request $request, $id = null)
+    {
         $user = $request->user();
         $view   = 'workorders.form';
         $params = $this->getParams($request);;
         return view($view, $params);
     }
 
-    public function detail(Request $request, $id=null){
+    public function detail(Request $request, $id = null)
+    {
         $params = $this->getParams($request, ['data' => $this->get($request, $id)]);
         return view('workorders.detail', $params);
     }
 
-    private function getParams($request, $params = null){
+    private function getParams($request, $params = null)
+    {
         $user = $request->user();
 
-        if($user->vendors && count($user->vendors)) $vendors = $user->vendors;
+        if ($user->vendors && count($user->vendors)) $vendors = $user->vendors;
         else $vendors = Vendor::orderBy('name')->get();
 
         $result = [
             'user' => $user,
-            'activities' => ($ftr = $user->activities) ? Master\Activity::whereIn('id',$ftr)->get() : Master\Activity::all(),
+            'activities' => ($ftr = $user->activities) ? Master\Activity::whereIn('id', $ftr)->get() : Master\Activity::all(),
             'clients' => Client::all(),
-            'owners' => ($ftr = $user->owners) ? Owner::whereIn('id',$ftr)->get() : Owner::all(),
+            'owners' => ($ftr = $user->owners) ? Owner::whereIn('id', $ftr)->get() : Owner::all(),
             'vendors' => $vendors,
             'services' => Master\Service::all(),
             'slots' => Master\Slot::all(),
             'status' => Master\Status::with('details.options')->get(),
         ];
-        if($params) $result = array_merge($result, $params);
+        if ($params) $result = array_merge($result, $params);
         return $result;
     }
 
-    public function archive(Request $request){
+    public function archive(Request $request)
+    {
         return $this->index($request, true);
     }
 
-    public function data(Request $request, $archive=false){
+    public function data(Request $request, $archive = false)
+    {
         $user = $request->user();
         $query = Wo::with([
             'site.service',
@@ -95,15 +101,13 @@ class WorkOrder extends Controller
         $search = $request->input('query');
 
         // FILTER ON GOING ---------------------------------------------------------------------------------------------
-        if($archive) $query->whereNotNull('close_date');
+        if ($archive) $query->whereNotNull('close_date');
         else {
-            if($request->input('activedOnly') == 1){
+            if ($request->input('activedOnly') == 1) {
                 $query->whereNull('close_date');
-            }
-            else if($request->input('activedOnly') == 2){
+            } else if ($request->input('activedOnly') == 2) {
                 $query->where('close_date', '>', date('Y-m-d', strtotime('-1 days')));
-            }
-            else {
+            } else {
                 $query->where(function ($query) {
                     $query->whereNull('close_date');
                     $query->orWhere('close_date', '>', date('Y-m-d', strtotime('-1 days')));
@@ -112,47 +116,47 @@ class WorkOrder extends Controller
         }
 
         // FILTER BY USER AUTH -----------------------------------------------------------------------------------------
-        if($ftr = $user->owners) $query->whereIn('owner_id', $ftr);
-        if($ftr = $user->activities) $query->whereIn('activity_id', $ftr);
-        if($ftr = $user->client_id) $query->where('client_id', $ftr);
-        if($ftr = $user->vendor_id) $query->where('vendor_id', $ftr);
-        if($ftr = $user->fieldtech_id) $query->where('fieldtech_id', $ftr);
-        if(count($user->vendors)){
+        if ($ftr = $user->owners) $query->whereIn('owner_id', $ftr);
+        if ($ftr = $user->activities) $query->whereIn('activity_id', $ftr);
+        if ($ftr = $user->client_id) $query->where('client_id', $ftr);
+        if ($ftr = $user->vendor_id) $query->where('vendor_id', $ftr);
+        if ($ftr = $user->fieldtech_id) $query->where('fieldtech_id', $ftr);
+        if (count($user->vendors)) {
             $query->whereIn('vendor_id', $user->vendors->pluck('id')->toArray());
         }
 
         // FILTER ------------------------------------------------------------------------------------------------------
-        if($ftr = $request->input('filter-status')){
-            $query->whereHas('lastAction', function($query) use ($ftr){
+        if ($ftr = $request->input('filter-status')) {
+            $query->whereHas('lastAction', function ($query) use ($ftr) {
                 $query->where('status_id', $ftr);
             });
         }
-        if($ftr = $request->input('filter-activity')) $query->where('activity_id', $ftr);
-        if($ftr = $request->input('filter-service')) $query->where('service_id', $ftr);
-        if($ftr = $request->input('filter-client')) $query->where('client_id', $ftr);
-        if($ftr = $request->input('filter-owner')) $query->where('owner_id', $ftr);
-        if($ftr = $request->input('filter-vendor')) $query->where('vendor_id', $ftr);
-        if(($ftr = $request->input('filterDate')) && !$search) {
-            $month = date('Y-m', strtotime("$ftr 00:00:00")).'%';
+        if ($ftr = $request->input('filter-activity')) $query->where('activity_id', $ftr);
+        if ($ftr = $request->input('filter-service')) $query->where('service_id', $ftr);
+        if ($ftr = $request->input('filter-client')) $query->where('client_id', $ftr);
+        if ($ftr = $request->input('filter-owner')) $query->where('owner_id', $ftr);
+        if ($ftr = $request->input('filter-vendor')) $query->where('vendor_id', $ftr);
+        if (($ftr = $request->input('filterDate')) && !$search) {
+            $month = date('Y-m', strtotime("$ftr 00:00:00")) . '%';
             $query->where('start_date', 'LIKE', $month);
         }
         if ($ftr = $request->input('filter-hold')) {
-     if ($ftr == 1) {
-        $query->whereNull('is_hold'); // Perbaikan: gunakan whereNull untuk mencari nilai NULL
-    } else if ($ftr == 2) {
-        $query->where('is_hold', 1); // Cari data dengan is_hold bernilai 1
-    }
-}
+            if ($ftr == 1) {
+                $query->whereNull('is_hold'); // Perbaikan: gunakan whereNull untuk mencari nilai NULL
+            } else if ($ftr == 2) {
+                $query->where('is_hold', 1); // Cari data dengan is_hold bernilai 1
+            }
+        }
 
 
 
         // SEARCH ------------------------------------------------------------------------------------------------------
-        if($search) {
+        if ($search) {
             $query->where(function ($query) use ($search) {
-                $query->orWhereHas('site', function($query) use ($search){
+                $query->orWhereHas('site', function ($query) use ($search) {
                     $query->where('name', 'LIKE', "%$search%");
                 });
-                $query->orWhereHas('fieldtech', function($query) use ($search){
+                $query->orWhereHas('fieldtech', function ($query) use ($search) {
                     $query->where('name', 'LIKE', "%$search%");
                 });
                 $query->orWhere('id', 'LIKE', "%$search");
@@ -162,12 +166,13 @@ class WorkOrder extends Controller
         }
 
         // DEFAULT SORT ------------------------------------------------------------------------------------------------
-        if(!$request->input('sort')) $query->orderBy('updated_at','DESC');
+        if (!$request->input('sort')) $query->orderBy('updated_at', 'DESC');
 
         return Query::open($query);
     }
 
-    public function get(Request $request, $id=null){
+    public function get(Request $request, $id = null)
+    {
         $data = Wo::with([
             'site.service',
             'removeSite',
@@ -178,7 +183,7 @@ class WorkOrder extends Controller
             'lastAction.updatedBy',
             'lastAction.deletedBy',
             'actions.details.files',
-            'actions.details.fieldtech.users',// => function($query){ $query->where('id', 1); },
+            'actions.details.fieldtech.users', // => function($query){ $query->where('id', 1); },
             'actions.createdBy',
             'actions.updatedBy',
             'actions.deletedBy',
@@ -189,25 +194,29 @@ class WorkOrder extends Controller
         ])->find($id);
     }
 
-    public function getPublic(Request $request, $id=null){
+    public function getPublic(Request $request, $id = null)
+    {
         return Wo::find($id);
     }
 
-    public function dataArchive(Request $request){
+    public function dataArchive(Request $request)
+    {
         return $this->data($request, true);
     }
 
-    public function dataSite(Request $request){
+    public function dataSite(Request $request)
+    {
         $query = Site::query();
-        return Query::open($query, ['id','name','link_id'], false);
+        return Query::open($query, ['id', 'name', 'link_id'], false);
     }
 
-    public function dataFieldtech(Request $request){
+    public function dataFieldtech(Request $request)
+    {
         $user = $request->user();
         $startDate = $request->input('start_date');
         $slot = $request->input('slot');
         $query = Fieldtech::where('vendor_id', $request->vendor);
-        if(count($user->vendors)){
+        if (count($user->vendors)) {
             $query->whereIn('vendor_id', $user->vendors->pluck('id')->toArray());
         }
         $query->withCount(['workorders' => function ($query) use ($startDate, $slot) {
@@ -217,53 +226,55 @@ class WorkOrder extends Controller
         return Query::open($query, null, false);
     }
 
-    public function reloadTicket($woId) {
+    public function reloadTicket($woId)
+    {
         DB::beginTransaction();
         try {
             $wo = Wo::find($woId);
+
 
             if (!$wo) {
                 return response()->json(['success' => false, 'message' => 'Work Order not found']);
             }
 
-            // Cek apakah status tiket adalah HOLD (is_hold = 1)
             if (!$wo->is_hold) {
-                return response()->json(['success' => false, 'message' => 'Ticket is not on hold']);
+                return response()->json(['success' => false, 'message' => 'Ticket is Ready. Please continue ONT ACTIVATION.']);
             }
 
-            // Ambil action terakhir dari WO
-            $action = $wo->actions()->latest()->first();
+            // Get the last action from the WO
+            // $action = $wo->actions()->latest()->first();
+            $action =  Action::where('id', $wo->last_action)->first();
+
+
             if (!$action) {
                 return response()->json(['success' => false, 'message' => 'No action found for this Work Order']);
             }
 
-            // Persiapkan data untuk API berdasarkan action dan WO
-            $details = $this->getActionDetails($action); // Ambil details dari action terakhir
+            // Prepare details for API call
+            $details = $this->getActionDetails($action);
             $apiResult = $this->hitExternalApi($wo, $action, $details);
-
-            // Jika response dari API sukses (200), lanjutkan status dan update is_hold
-            if ($apiResult->success && $apiResult->status == 200) {
-                $wo->update(['is_hold' => null]); // Set is_hold menjadi null
-                DB::commit();
-                return response()->json(['success' => true, 'message' => 'Ticket successfully continued', 'status' => 200]);
-            }
-            elseif ($apiResult->status == 206) {
-                // Jika masih dalam status hold (206), tetap commit agar tidak rollback
-                DB::commit();
-                return response()->json(['success' => true, 'message' => 'Hold, waiting from partner acknowledgement', 'status' => 206]);
-            }
-            else {
+            // Handle API response
+            if ($apiResult->success) {
+                if ($apiResult->status == 200) {
+                    $wo->update(['is_hold' => null]);
+                    DB::commit();
+                    return response()->json(['success' => true, 'message' => 'Ticket successfully continued', 'status' => 200]);
+                } elseif ($apiResult->status == 206) {
+                    DB::commit();
+                    return response()->json(['success' => true, 'message' => 'Hold, waiting for partner acknowledgment', 'status' => 206]);
+                }
+            } else {
                 DB::rollback();
                 return response()->json(['success' => false, 'message' => 'API Error: ' . $apiResult->message]);
             }
-        }
-        catch (QueryException $error) {
+        } catch (QueryException $error) {
             DB::rollback();
             return response()->json(['success' => false, 'message' => '500 (Retry Hold Ticket) ' . $error->getMessage()]);
         }
     }
 
-    private function getActionDetails($action) {
+    private function getActionDetails($action)
+    {
         $details = [];
 
         // Iterasi details dari action terakhir
@@ -277,9 +288,11 @@ class WorkOrder extends Controller
         return $details;
     }
 
-    private function hitExternalApi($wo, $action, $details) {
+    private function hitExternalApi($wo, $action, $details)
+    {
         $result = (object) ['success' => false];
 
+        // API Configuration
         $baseUrl = config('site.asianet_api_url');
         $email = config('site.asianet_api_user');
         $password = config('site.asianet_api_password');
@@ -287,7 +300,6 @@ class WorkOrder extends Controller
         $urlLogin = $baseUrl . '/amt/1.1/atm/generateToken';
         $urlPush = $baseUrl . '/amt/1.1/eda/engineerStatus';
 
-        // Ambil token dari cache atau login jika tidak ada
         $token = Cache::get('woaccesstoken', function () use ($urlLogin, $email, $password) {
             $login = Curl::to($urlLogin)
                 ->withData(['email' => $email, 'password' => $password])
@@ -309,60 +321,161 @@ class WorkOrder extends Controller
             return $result;
         }
 
-        // Siapkan data untuk dikirim ke API
+        // Prepare data for the API
+        $serialNumber = null;
+        $additionalUTP = null;
+        $additionalDropCable = null;
+        $fatPort = "";
+        $bastURL = null;
+        $evidenceURL = null;
+
+        $ont  = ["type" => 'ont', "serialNumber" => "", "macaddressont" => ""];
+        $stb1 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
+        $stb2 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
+        $stb3 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
+
+        if ($action->status->name == 'POST ACTIVATION') {
+            $bastURL = route('wo.export.balap', $wo->id);
+            $evidenceURL = route('wo.export.pdf', $wo->id);
+        }
+
+        foreach ($wo->actions as $act) {
+
+
+            foreach ($act->details as $extra) {
+                if (strtoupper($act->status->name) == 'ACTIVATION') {
+                    if (strtolower($extra->detail->name) == 'sn ont') {
+                        $ont['serialNumber'] = $extra->value;
+                        $serialNumber = $extra->value;
+                    } else if (strtolower($extra->detail->name) == 'mac address ont') $ont['macaddressont'] = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'tipe stb 1') $stb1['stbType'] = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
+                    else if (strtolower($extra->detail->name) == 'sn stb 1') $stb1['serialNumber'] = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'mac address stb 1') $stb1['macAddressstb'] = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'tipe stb 2') $stb2['stbType'] = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
+                    else if (strtolower($extra->detail->name) == 'sn stb 2') $stb2['serialNumber'] = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'mac address stb 2') $stb2['macAddressstb'] = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'tipe stb 3') $stb3['stbType'] = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
+                    else if (strtolower($extra->detail->name) == 'sn stb 3') $stb3['serialNumber'] = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'mac address stb 3') $stb3['macAddressstb'] = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'serial number registration') $serialNumber = $extra->value;
+                } else if (strtoupper($act->status->name) == 'INSTALLATION') {
+                    if (strtolower($extra->detail->name) == 'fat port') {
+                        $fatPort = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
+                    }
+                } else if (strtoupper($act->status->name) == 'DE-ACTIVATION') {
+                    if (strtolower($extra->detail->name) == 'serial number unregistration') $serialNumber = $extra->value;
+                } else if (strtoupper($act->status->name) == 'PREPARATION') {
+                    if (strtolower($extra->detail->name) == 'ont serial number') $serialNumber = $extra->value;
+                } else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
+                    if (strtolower($extra->detail->name) == 'kelebihan kabel dw') $additionalDropCable = $extra->value;
+                    else if (strtolower($extra->detail->name) == 'kelebihan kabel utp') $additionalUTP = $extra->value;
+                }
+            }
+        }
+
+        $cpe = [$ont, $stb1, $stb2, $stb3];
+
         $data = [
-            'activityName' => $wo->activity->name,
-            'orderNumber' => $wo->no_wo,
-            'workFlowNumber' => $wo->id,
+            'activityName' => (string) $action->wo->activity->name,
+            'orderNumber' => (string) $action->wo->no_wo,
+            'workFlowNumber' => (string) $action->wo->id,
             'orderStatus' => $action->status->name,
-            'teamID' => $wo->fieldtech_id,
+            'teamID' =>  $action->wo->fieldtech_id * 1,
+            'serialNumber' => (string) $serialNumber,
             'longitude' => (float) $action->long,
             'latitude' => (float) $action->lat,
-            'cpe' => $details,
+            'fatLongitude' => (float) $action->long,
+            'fatLatitude' => (float) $action->lat,
+            'additionalUTP' => (float) $additionalUTP,
+            'additionalDropCable' => (float) $additionalDropCable,
+            'bastURL' => $bastURL,
+            'evidenceURL' => $evidenceURL,
+            'fatport' => (string) $fatPort,
+            'cpe' => $cpe
         ];
 
         // Hit API
-        $response = Curl::to($urlPush)
-            ->withData($data)
-            ->withBearer($token)
-            ->asJson()
-            ->returnResponseObject()
-            ->post();
+        $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
 
-        if ($response->status == 200) {
-            $result->success = true;
-            $result->status = 200;
+        // $response = new \stdClass(); // Inisialisasi objek
+        // $response->status = 200; // Mengatur status menjadi 200
+
+        // $response->content = new \stdClass();
+        // $response->content->statusCode = 200;
+        // $response->content->data = $data;
+
+        // Tangani respons API
+        if ($response->status >= 200 && $response->status <= 490) {
+            if ($content = $response->content) {
+                if (isset($content->statusCode)) {
+                    if ($response->status == 200) {
+                        $result->success = true;
+                        $result->status = 200;
+                        $result->message = "Success";
+                    } else if ($response->status == 206) {
+                        $result->success = true;
+                        $result->status = 206;
+                        $result->message = 'Hold, waiting for partner acknowledgment';
+                    } else {
+                        $responseContent =
+                            json_encode($response);
+                        $responseArray = json_decode($responseContent, true);
+
+                        $returnMessage
+                            = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+
+                        $result->message = $returnMessage;
+                        $result->status = $response->status ?? 500;
+                    }
+                }
+            } else {
+                $responseContent =
+                    json_encode($response);
+                $responseArray = json_decode($responseContent, true);
+
+                $returnMessage
+                    = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+
+                $result->message = $returnMessage;
+                $result->status = $response->status ?? 500;
+            }
+        } else {
+            // Tangani kesalahan respons
+            $responseContent =
+                json_encode($response);
+            $responseArray = json_decode($responseContent, true);
+
+            $returnMessage
+                = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+
+            $result->message = $returnMessage;
+            $result->status = $response->status ?? 500;
         }
-        elseif ($response->status == 206) {
-            $result->success = true;
-            $result->status = 206;
-            $result->message = 'Hold, waiting from partner acknowledgement';
-        }
-        else {
-            $result->message = 'API Error: ' . json_encode($response);
-        }
+
+        // dd($result);
 
         return $result;
     }
 
 
-    public function push(Request $request, $id = null){
+    public function push(Request $request, $id = null)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $startDate = $request->input('start_date');
             $fieldtechId = $request->input('fieldtech_id');
             $slotId = $request->input('slot_id');
             $activityId = $request->input('activity_id');
 
-            if(!$request->input('remove_site_id') && !$request->input('site_id')) return ['success' => false, 'message' => 'site_id OR remove_site_id Is Null'];
-            if(!$request->input('activity_id')) return ['success' => false, 'message' => 'activity_id Is Null'];
-            if(!$request->input('client_id')) return ['success' => false, 'message' => 'client_id Is Null'];
+            if (!$request->input('remove_site_id') && !$request->input('site_id')) return ['success' => false, 'message' => 'site_id OR remove_site_id Is Null'];
+            if (!$request->input('activity_id')) return ['success' => false, 'message' => 'activity_id Is Null'];
+            if (!$request->input('client_id')) return ['success' => false, 'message' => 'client_id Is Null'];
             //if(!$request->input('service_id')) return ['success' => false, 'message' => 'service_id Is Null'];
             //if(!$request->input('owner_id')) return ['success' => false, 'message' => 'owner_id Is Null'];
-            if(!$request->input('description')) return ['success' => false, 'message' => 'description Is Null'];
+            if (!$request->input('description')) return ['success' => false, 'message' => 'description Is Null'];
             //if(!$request->input('no_wo')) return ['success' => false, 'message' => 'no_wo Is Null'];
-            if($startDate && $fieldtechId && $slotId){
-                if($err = $this->fieldtechCheck ($fieldtechId, $startDate, $slotId)) {
+            if ($startDate && $fieldtechId && $slotId) {
+                if ($err = $this->fieldtechCheck($fieldtechId, $startDate, $slotId)) {
                     return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $err];
                 }
             }
@@ -383,14 +496,12 @@ class WorkOrder extends Controller
                 'expire_date' => $request->input('expire_date'),
             ];
 
-            if($id){
-                if($wo = Wo::find($id)) {
+            if ($id) {
+                if ($wo = Wo::find($id)) {
                     $wo->update($input);
                     $actionId = $wo->actions()->first()->id;
-                }
-                else return ['success' => false, 'message' => "Undefined WorkOrder"];
-            }
-            else {
+                } else return ['success' => false, 'message' => "Undefined WorkOrder"];
+            } else {
                 $wo = Wo::create($input);
                 $actionId = null;
             }
@@ -404,16 +515,16 @@ class WorkOrder extends Controller
             ];
 
             // CREATE DETAIL ON API -----------------------------------------------------------------------------------
-            if(!$details = $request->input('details')){
+            if (!$details = $request->input('details')) {
                 $details = [];
-                if($statusDetails = Master\StatusDetail::where('status_id', $status->id)->get()){
-                    foreach($statusDetails as $detail){
-                        if($detail->name == "Team") $details[] = (object) ['id' => $detail->id, 'value' => $fieldtechId];
-                        else if($detail->name == "Date") $details[] = (object) ['id' => $detail->id, 'value' => $startDate];
-                        else if($detail->name == "Slot") $details[] = (object) ['id' => $detail->id, 'value' => $slotId];
-                        else if($detail->name == "ONT Type") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('ontType')];
-                        else if($detail->name == "Total STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('totalSTB')];
-                        else if($detail->name == "Tipe STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('deviceDetailType')];
+                if ($statusDetails = Master\StatusDetail::where('status_id', $status->id)->get()) {
+                    foreach ($statusDetails as $detail) {
+                        if ($detail->name == "Team") $details[] = (object) ['id' => $detail->id, 'value' => $fieldtechId];
+                        else if ($detail->name == "Date") $details[] = (object) ['id' => $detail->id, 'value' => $startDate];
+                        else if ($detail->name == "Slot") $details[] = (object) ['id' => $detail->id, 'value' => $slotId];
+                        else if ($detail->name == "ONT Type") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('ontType')];
+                        else if ($detail->name == "Total STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('totalSTB')];
+                        else if ($detail->name == "Tipe STB") $details[] = (object) ['id' => $detail->id, 'value' => $request->input('deviceDetailType')];
                     }
                 }
             }
@@ -421,31 +532,32 @@ class WorkOrder extends Controller
 
             $action = $this->actionPush($wo, $inputAction, $details, $actionId);
 
-            if(!is_array($action)) return ['success' => false, 'message' => $action];
-            elseif(!$action['success']) return ['success' => false, 'message' => $action];
+            if (!is_array($action)) return ['success' => false, 'message' => $action];
+            elseif (!$action['success']) return ['success' => false, 'message' => $action];
 
             DB::commit();
             return ['success' => true, 'message' => 'Success...', 'data' => $wo];
-        }
-        catch(QueryException $error){
+        } catch (QueryException $error) {
             DB::rollback();
-            return ['success' => false, 'message' => '500 (Create WO)'.$error->getMessage()];
+            return ['success' => false, 'message' => '500 (Create WO)' . $error->getMessage()];
         }
     }
 
-    private function fieldtechCheck ($fieldtech, $date, $slot, $id=null){
-        if($date && $fieldtech && $slot){
+    private function fieldtechCheck($fieldtech, $date, $slot, $id = null)
+    {
+        if ($date && $fieldtech && $slot) {
             $rec = Wo::where('fieldtech_id', $fieldtech)
-                    ->where('start_date', $date)
-                    ->where('activity_id', 0)
-                    ->where('slot_id', $slot);
-            if($id) $rec->where('id', '<>', $id);
+                ->where('start_date', $date)
+                ->where('activity_id', 0)
+                ->where('slot_id', $slot);
+            if ($id) $rec->where('id', '<>', $id);
             return $rec->first();
         }
         return null;
     }
 
-    public function pushAction(Request $request, $wo=null, $status=null){
+    public function pushAction(Request $request, $wo = null, $status = null)
+    {
         $user = $request->user();
         $wo = Wo::find($wo);
         $status = Master\Status::find($status);
@@ -464,45 +576,43 @@ class WorkOrder extends Controller
         return ['success' => false, 'message' => $error];
     }
 
-    private function actionPush($wo, $input, $details, $id=null){
-        if(!$wo) return 'Undefined WorkOrder';
-        else{
+    private function actionPush($wo, $input, $details, $id = null)
+    {
+        if (!$wo) return 'Undefined WorkOrder';
+        else {
             DB::beginTransaction();
-            try{
+            try {
                 $input['wo_id'] = $wo->id;
-                if($id){
-                    if($action = Action::find($id)){
+                if ($id) {
+                    if ($action = Action::find($id)) {
                         $action->update($input);
-                    }
-                    else return "Undefined Action Id";
-                }
-                else {
+                    } else return "Undefined Action Id";
+                } else {
                     $action = Action::create($input);
                     $wo->update(['last_action' => $action->id]);
                 }
 
-                if($pushdetail = $this->actionDetailPush($wo, $action, $details)){
+                if ($pushdetail = $this->actionDetailPush($wo, $action, $details)) {
                     DB::rollback();
                     return $pushdetail;
                 }
 
 
                 // SET CLOSING WO -------------------------------------------
-                if($action->status->type > 1){
+                if ($action->status->type > 1) {
                     $wo->update(['close_date' => $action->created_at]);
                 }
 
-                if(strtoupper(substr($wo->no_wo, 0, 2)) == 'OH') {
+                if (strtoupper(substr($wo->no_wo, 0, 2)) == 'OH') {
                     if (in_array($wo->activity->name, ['INSTALLATION', 'SERVICE UPDATE', 'RELOCATION', 'DEVICE MOVING', 'TERMINATION'])) {
-                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION', 'ACTIVATION', 'POST ACTIVATION', 'DE-INSTALLATION', 'DE-ACTIVATION', 'TESTING'])) {
+                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION', 'ACTIVATION', 'ONT ACTIVATION', 'NOC VALIDATION', 'POST ACTIVATION', 'DE-INSTALLATION', 'DE-ACTIVATION', 'TESTING'])) {
                             if ($pushapi = $this->pushApi($wo, $action, $details)) {
-                                if ($pushapi->success && $pushapi->status == 200) {
+                                if ($pushapi->success && ($pushapi->status == 200 || $pushapi->status == 206 && $action->status->name !== 'ACTIVATION')) {
                                     DB::commit();
-                                } else if ($pushapi->status == 206) {
+                                } else if ($pushapi->status == 206 && $action->status->name == 'ACTIVATION') {
                                     $wo->update(['is_hold' => 1]);
                                     DB::commit();
-                                }
-                                else DB::rollback();
+                                } else DB::rollback();
                                 return (array) $pushapi;
                             }
                             DB::rollback();
@@ -517,24 +627,24 @@ class WorkOrder extends Controller
                 // SEND EMAIL ----------------------------------------------------------------
                 // dispatch(new NotifJob($wo->id));
 
-            }
-            catch(QueryException $error){
+            } catch (QueryException $error) {
                 DB::rollback();
-                return ['success' => false, 'message' => '500 (Action WO) '.$error->getMessage()];
+                return ['success' => false, 'message' => '500 (Action WO) ' . $error->getMessage()];
             }
         }
     }
 
-    public function testApi(Request $request){
+    public function testApi(Request $request)
+    {
         $result = (object) ['success' => false];
 
         $baseUrl = 'http://103.66.38.238'; //config('site.asianet_api_url');
-        $email = 'QA.Asianet+C52@gmail.com';//config('site.asianet_api_user');
+        $email = 'QA.Asianet+C52@gmail.com'; //config('site.asianet_api_user');
         $password = 'odm'; //config('site.asianet_api_password');
 
-        $urlLogin = $baseUrl.'/amt/1.1/atm/generate-token';
+        $urlLogin = $baseUrl . '/amt/1.1/atm/generate-token';
         //$urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
-        $urlPush = $baseUrl.'/amt/1.1/apm/engineerstatus';
+        $urlPush = $baseUrl . '/amt/1.1/apm/engineerstatus';
 
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
@@ -545,12 +655,11 @@ class WorkOrder extends Controller
                 ->returnResponseObject()
                 ->post();
 
-            if(isset($login->content) && isset($login->content->body->accessToken)) {
+            if (isset($login->content) && isset($login->content->body->accessToken)) {
                 $token = $login->content->body->accessToken;
                 Cache::put('woaccesstoken', $token, 10);
-            }
-            else {
-                $result->message = "ERROR API LOGIN (".$login->status.") ". ($login->content ? json_encode($login->content) : '');
+            } else {
+                $result->message = "ERROR API LOGIN (" . $login->status . ") " . ($login->content ? json_encode($login->content) : '');
                 return (array) $result;
             }
         }
@@ -559,10 +668,10 @@ class WorkOrder extends Controller
 
         $data = [
             'activityName' => $request->input('activityName') ?: 'INSTALLATION',
-            'orderNumber' => 'OH1093851648341319601',//$request->input('orderNumber') ?: '0',
-            'workFlowNumber' => '202408000041',//$request->input('workFlowNumber') ?: '0',
+            'orderNumber' => 'OH1093851648341319601', //$request->input('orderNumber') ?: '0',
+            'workFlowNumber' => '202408000041', //$request->input('workFlowNumber') ?: '0',
             'orderStatus' => $request->input('orderStatus') ?: 'PREPARED',
-            'teamID' => 42,//$request->input('teamId') ?: 0,
+            'teamID' => 42, //$request->input('teamId') ?: 0,
             'serialNumber' => $request->input('serialNumber') ?: null,
             'longitude' => $request->input('longitude') ?: 0,
             'latitude' => $request->input('latitude') ?: 0,
@@ -601,14 +710,13 @@ class WorkOrder extends Controller
         // PUSH API ----------------------------------------------------------------------------------------------------
 
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
-        if($response->status == 200 || $response->status == 400){
-            if($content = $response->content){
-                if(isset($content->statusCode)){
-                    if(!$content->statusCode){
+        if ($response->status == 200 || $response->status == 400) {
+            if ($content = $response->content) {
+                if (isset($content->statusCode)) {
+                    if (!$content->statusCode) {
                         $result->success = true;
                         $result->message = "Success";
-                    }
-                    else {
+                    } else {
                         $result->message = "Error API engineer status response failed";
                         $result->result = json_encode($content);
                     }
@@ -618,12 +726,9 @@ class WorkOrder extends Controller
                         'dataPush' => $data,
                         'response' => (array) $content,
                     ];
-                }
-                else $result->message = "Error API engineer status statusCode Not Found";
-            }
-            else $result->message = "Error API engineer status (response is null)";
-        }
-        else {
+                } else $result->message = "Error API engineer status statusCode Not Found";
+            } else $result->message = "Error API engineer status (response is null)";
+        } else {
             $result->message = "ERROR API ENGINEERSTATUS ($response->status)";
             $result->result = $response->content ? json_encode($response->content) : null;
         }
@@ -631,15 +736,16 @@ class WorkOrder extends Controller
         return (array) $result;
     }
 
-    private function pushApi($wo, $action, $details){
+    private function pushApi($wo, $action, $details)
+    {
         $result = (object) ['success' => false];
 
         $baseUrl = config('site.asianet_api_url');
         $email = config('site.asianet_api_user');
         $password = config('site.asianet_api_password');
 
-        $urlLogin = $baseUrl.'/amt/1.1/atm/generateToken';
-        $urlPush = $baseUrl.'/amt/1.1/eda/engineerStatus';
+        $urlLogin = $baseUrl . '/amt/1.1/atm/generateToken';
+        $urlPush = $baseUrl . '/amt/1.1/eda/engineerStatus';
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
         else {
@@ -649,12 +755,11 @@ class WorkOrder extends Controller
                 ->returnResponseObject()
                 ->post();
 
-            if(isset($login->content) && isset($login->content->body->accessToken)) {
+            if (isset($login->content) && isset($login->content->body->accessToken)) {
                 $token = $login->content->body->accessToken;
                 Cache::put('woaccesstoken', $token, 10);
-            }
-            else {
-                $result->message = "ERROR API LOGIN (".$login->status.") ". ($login->content ? json_encode($login->content) : '');
+            } else {
+                $result->message = "ERROR API LOGIN (" . $login->status . ") " . ($login->content ? json_encode($login->content) : '');
                 return $result;
             }
         }
@@ -672,7 +777,7 @@ class WorkOrder extends Controller
         $stb2 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
         $stb3 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
 
-        if($action->status->name == 'POST ACTIVATION'){
+        if ($action->status->name == 'POST ACTIVATION') {
             $bastURL = route('wo.export.balap', $wo->id);
             $evidenceURL = route('wo.export.pdf', $wo->id);
         }
@@ -683,8 +788,7 @@ class WorkOrder extends Controller
                     if (strtolower($extra->detail->name) == 'sn ont') {
                         $ont['serialNumber'] = $extra->value;
                         $serialNumber = $extra->value;
-                    }
-                    else if (strtolower($extra->detail->name) == 'mac address ont') $ont['macaddressont'] = $extra->value;
+                    } else if (strtolower($extra->detail->name) == 'mac address ont') $ont['macaddressont'] = $extra->value;
                     else if (strtolower($extra->detail->name) == 'tipe stb 1') $stb1['stbType'] = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
                     else if (strtolower($extra->detail->name) == 'sn stb 1') $stb1['serialNumber'] = $extra->value;
                     else if (strtolower($extra->detail->name) == 'mac address stb 1') $stb1['macAddressstb'] = $extra->value;
@@ -695,19 +799,15 @@ class WorkOrder extends Controller
                     else if (strtolower($extra->detail->name) == 'sn stb 3') $stb3['serialNumber'] = $extra->value;
                     else if (strtolower($extra->detail->name) == 'mac address stb 3') $stb3['macAddressstb'] = $extra->value;
                     else if (strtolower($extra->detail->name) == 'serial number registration') $serialNumber = $extra->value;
-                }
-                else if (strtoupper($act->status->name) == 'INSTALLATION') {
+                } else if (strtoupper($act->status->name) == 'INSTALLATION') {
                     if (strtolower($extra->detail->name) == 'fat port') {
                         $fatPort = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
                     }
-                }
-                else if (strtoupper($act->status->name) == 'DE-ACTIVATION') {
+                } else if (strtoupper($act->status->name) == 'DE-ACTIVATION') {
                     if (strtolower($extra->detail->name) == 'serial number unregistration') $serialNumber = $extra->value;
-                }
-                else if (strtoupper($act->status->name) == 'PREPARATION') {
+                } else if (strtoupper($act->status->name) == 'PREPARATION') {
                     if (strtolower($extra->detail->name) == 'ont serial number') $serialNumber = $extra->value;
-                }
-                else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
+                } else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
                     if (strtolower($extra->detail->name) == 'kelebihan kabel dw') $additionalDropCable = $extra->value;
                     else if (strtolower($extra->detail->name) == 'kelebihan kabel utp') $additionalUTP = $extra->value;
                 }
@@ -792,55 +892,78 @@ class WorkOrder extends Controller
         // PUSH API ----------------------------------------------------------------------------------------------------
 
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
-        if($response->status >= 200 && $response->status <= 490){
-            if($content = $response->content){
-                if(isset($content->statusCode)){
-                    if($response->status == 200){
+
+        if ($response->status >= 200 && $response->status <= 490) {
+            if ($content = $response->content) {
+                if (isset($content->statusCode)) {
+                    if ($response->status == 200 || ($response->status == 206 && $action->status->name != "ACTIVATION")) {
                         $result->success = true;
                         $result->status = 200;
                         $result->message = "Success";
-                    }
-                    else if($response->status == 206){
+                    } else if ($response->status == 206 && $action->status->name == "ACTIVATION") {
                         $result->success = true;
                         $result->status = 206;
-                        $result->message = "Hold, waiting from partner acknowledgement";
-                    }
-                    else {
-                        $result->message = "Error API engineer status response failed (".json_encode($content).")";
+                        $result->message = "Hold, waiting from partner acknowledgements";
+                    } else {
+                        // Extract only the returnMessage for error cases
+                        $responseContent =
+                            json_encode($response);
+                        $responseArray = json_decode($responseContent, true);
+
+                        $returnMessage
+                            = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+
+                        $result->message = 'Error API engineer status response failed: ' . $returnMessage;
+
+                        $result->status = $response->status ?? 500;
                         $result->data = [
                             'url' => $urlPush,
                             'dataPush' => $data,
                             'response' => (array) $content,
                         ];
                     }
+                } else {
+                    $result->message = "Error: statusCode not found in response";
+                    $result->status = $response->status ?? 500;
                 }
-                else {
-                    $result->message = "Error API engineer status statusCode Not Found";
-                }
+            } else {
+                $result->message = "Error: API response is null";
+                $result->status = $response->status ?? 500;
             }
-            else $result->message = "Error API engineer status (response is null)";
+        } else {
+            // Only return the error message if available
+            $responseContent =
+                json_encode($response);
+            $responseArray = json_decode($responseContent, true);
+
+            $returnMessage
+                = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+
+            $result->message = $returnMessage;
+            $result->status = $response->status ?? 500;
         }
-        else {
-            $result->message = "ERROR API ENGINEERSTATUS (".$response->status.") ". ($response->content ? json_encode($response->content) : '');
-        }
+
         $result->data = [
             'url' => $urlPush,
             'dataPush' => $data,
-            //'response' => (array) $content,
+            'response' => (array) $content,
         ];
+
+        // dd($result);
 
         return $result;
     }
 
-    private function pushApi2($action, $details){
+    private function pushApi2($action, $details)
+    {
         $result = (object) ['success' => false];
 
         $baseUrl = config('site.asianet_api_url');
         $email = config('site.asianet_api_user');
         $password = config('site.asianet_api_password');
 
-        $urlLogin = $baseUrl.'/amt/1.0/security/login';
-        $urlPush = $baseUrl.'/amt/1.0/wfm/engineerstatus';
+        $urlLogin = $baseUrl . '/amt/1.0/security/login';
+        $urlPush = $baseUrl . '/amt/1.0/wfm/engineerstatus';
 
 
         if (Cache::has('token')) $token = Cache::get('woaccesstoken');
@@ -850,12 +973,11 @@ class WorkOrder extends Controller
                 ->asJson()
                 ->returnResponseObject()
                 ->post();
-            if(isset($login->content) && isset($login->content->accessToken)) {
+            if (isset($login->content) && isset($login->content->accessToken)) {
                 $token = $login->content->accessToken;
                 Cache::put('woaccesstoken', $token, 10);
-            }
-            else {
-                $result->message = "ERROR API LOGIN (".$login->status.") ". ($login->content ? json_encode($login->content) : '');
+            } else {
+                $result->message = "ERROR API LOGIN (" . $login->status . ") " . ($login->content ? json_encode($login->content) : '');
                 return $result;
             }
         }
@@ -871,8 +993,8 @@ class WorkOrder extends Controller
             Excess Material - UTP
          */
 
-        foreach (json_decode($details) AS $extra){
-            if($extra && isset($extra->id)) {
+        foreach (json_decode($details) as $extra) {
+            if ($extra && isset($extra->id)) {
                 if ($detail = Master\StatusDetail::find($extra->id)) {
                     if ($detail->type != 'file') {
                         if (strtolower($detail->name) == 'ont serial number') $serialNumber = $extra->value;
@@ -885,14 +1007,14 @@ class WorkOrder extends Controller
             }
         }
 
-        if($action->status->name == "PREPARATION") $status = 'PREPARED';
-        else if($action->status->name == "IN PROGRESS") $status = 'ONGOING';
-        else if($action->status->name == "ARRIVED") $status = 'ARRIVED';
-        else if($action->status->name == "INSTALLATION") $status = 'TAGGED';
-        else if($action->status->name == "DE-INSTALLATION") $status = 'TAGGED';
-        else if($action->status->name == "ACTIVATION") $status = 'ACTIVATED';
-        else if($action->status->name == "DE-ACTIVATION") $status = 'ACTIVATED';
-        else if($action->status->name == "POST ACTIVATION") $status = 'COMPLETED';
+        if ($action->status->name == "PREPARATION") $status = 'PREPARED';
+        else if ($action->status->name == "IN PROGRESS") $status = 'ONGOING';
+        else if ($action->status->name == "ARRIVED") $status = 'ARRIVED';
+        else if ($action->status->name == "INSTALLATION") $status = 'TAGGED';
+        else if ($action->status->name == "DE-INSTALLATION") $status = 'TAGGED';
+        else if ($action->status->name == "ACTIVATION") $status = 'ACTIVATED';
+        else if ($action->status->name == "DE-ACTIVATION") $status = 'ACTIVATED';
+        else if ($action->status->name == "POST ACTIVATION") $status = 'COMPLETED';
 
         $data = [
             'activityName' => (string) $action->wo->activity->name,
@@ -912,72 +1034,69 @@ class WorkOrder extends Controller
         // PUSH API ----------------------------------------------------------------------------------------------------
 
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
-        if($response->status == 200 || $response->status == 400){
-            if($content = $response->content){
-                if(isset($content->statusCode)){
-                    if(!$content->statusCode){
+        if ($response->status == 200 || $response->status == 400) {
+            if ($content = $response->content) {
+                if (isset($content->statusCode)) {
+                    if (!$content->statusCode) {
                         $result->success = true;
                         $result->message = "Success";
-                    }
-                    else $result->message = "Error API engineer status response failed (".json_encode($content).")";
+                    } else $result->message = "Error API engineer status response failed (" . json_encode($content) . ")";
 
                     $result->data = [
                         'url' => $urlPush,
                         'dataPush' => $data,
                         'response' => (array) $content,
                     ];
-                }
-                else $result->message = "Error API engineer status statusCode Not Found";
-            }
-            else $result->message = "Error API engineer status (response is null)";
-        }
-        else {
-            $result->message = "ERROR API ENGINEERSTATUS (".$response->status.") ". ($response->content ? json_encode($response->content) : '');
+                } else $result->message = "Error API engineer status statusCode Not Found";
+            } else $result->message = "Error API engineer status (response is null)";
+        } else {
+            $result->message = "ERROR API ENGINEERSTATUS (" . $response->status . ") " . ($response->content ? json_encode($response->content) : '');
         }
 
         return $result;
     }
 
-    private function actionValid($wo, $status, $user){
-        if(!$wo) return "WorkOrder Not Found!";
-        if(!$status) return "Status Not Found!";
-        if(!in_array($user->role_id, $status->roles) && $user->role_id != 20) return "Update Status ($status->name) Denied!";
-        if(!in_array($wo->activity_id, $status->activities)) return $wo->activity->name." ($status->name) Not Found!";
-        if(!$status->show_on || !in_array($wo->lastAction->status_id, $status->show_on)) return "Not Show On $status->name";
+    private function actionValid($wo, $status, $user)
+    {
+        if (!$wo) return "WorkOrder Not Found!";
+        if (!$status) return "Status Not Found!";
+        if (!in_array($user->role_id, $status->roles) && $user->role_id != 20) return "Update Status ($status->name) Denied!";
+        if (!in_array($wo->activity_id, $status->activities)) return $wo->activity->name . " ($status->name) Not Found!";
+        if (!$status->show_on || !in_array($wo->lastAction->status_id, $status->show_on)) return "Not Show On $status->name";
 
         return null;
     }
 
-    private function actionDetailPush($wo, $action, $details){
+    private function actionDetailPush($wo, $action, $details)
+    {
         $details = is_string($details) ? json_decode($details) : $details;
-        if(is_array($details)){
+        if (is_array($details)) {
             DB::beginTransaction();
-            try{
+            try {
                 $fieldtechId = null;
                 $startDate = null;
                 $slotId = null;
 
                 ActionDetail::where('action_id', $action->id)->delete();
-                foreach ($details AS $detail){
+                foreach ($details as $detail) {
                     $statusDetail = Master\StatusDetail::where('status_id', $action->status_id)->where('id', $detail->id)->first();
-                    if($statusDetail){
-                        if($statusDetail->type == 'file'){
-                            if($detail->value && count($detail->value)) {
+                    if ($statusDetail) {
+                        if ($statusDetail->type == 'file') {
+                            if ($detail->value && count($detail->value)) {
                                 $actionDetail = ActionDetail::create(['action_id' => $action->id, 'detail_id' => $statusDetail->id]);
-                                $watermark  = "ASIANET (WO: $action->wo_id) - (".strtoupper(date('d M Y H:i')).")";
-                                $watermark .= "\n".$action->status->name;
-                                $watermark .= "\n".$statusDetail->name;
-                                if($action->lat && $action->long) $watermark .= "\nCoordinate ($action->lat, $action->long)";
-                                foreach ($detail->value AS $file) {
+                                $watermark  = "ASIANET (WO: $action->wo_id) - (" . strtoupper(date('d M Y H:i')) . ")";
+                                $watermark .= "\n" . $action->status->name;
+                                $watermark .= "\n" . $statusDetail->name;
+                                if ($action->lat && $action->long) $watermark .= "\nCoordinate ($action->lat, $action->long)";
+                                foreach ($detail->value as $file) {
                                     if (is_object($file)) $actionDetail->files()->attach($file->id);
-                                    else if($fileid = FileUpload::push($file, 'action-detail-file', $watermark)){
+                                    else if ($fileid = FileUpload::push($file, 'action-detail-file', $watermark)) {
                                         $actionDetail->files()->attach($fileid);
                                     }
                                 }
                             }
-                        }
-                        else if($statusDetail->type == 'signature'){
-                            if($detail->value) {
+                        } else if ($statusDetail->type == 'signature') {
+                            if ($detail->value) {
                                 $fileid = FileUpload::push($detail->value, 'action-detail-signature');
                                 ActionDetail::create([
                                     'action_id' => $action->id,
@@ -985,8 +1104,7 @@ class WorkOrder extends Controller
                                     'value' => $fileid,
                                 ]);
                             }
-                        }
-                        else{
+                        } else {
                             $value = ActionDetail::create([
                                 'action_id' => $action->id,
                                 'detail_id' => $statusDetail->id,
@@ -994,9 +1112,9 @@ class WorkOrder extends Controller
                             ]);
                         }
 
-                        if($statusDetail->triger){
+                        if ($statusDetail->triger) {
                             $value = isset($detail->value) ? $detail->value : null;
-                            switch ($statusDetail->triger){
+                            switch ($statusDetail->triger) {
                                 case 'wo.fieldtech':
                                     $fieldtechId = $value;
                                     break;
@@ -1014,30 +1132,30 @@ class WorkOrder extends Controller
                     }
                 }
 
-                if($err = $this->fieldtechCheck($fieldtechId, $startDate, $slotId, $wo->id)) {
+                if ($err = $this->fieldtechCheck($fieldtechId, $startDate, $slotId, $wo->id)) {
                     DB::rollback();
                     return ['success' => false, 'message' => "Team already have installation ticket", 'data' => $err];
                 }
 
-                if($fieldtechId) $wo->update(['fieldtech_id' => $fieldtechId]);
-                if($startDate) $wo->update(['start_date' => $startDate]);
-                if($slotId) $wo->update(['slot_id' => $slotId]);
+                if ($fieldtechId) $wo->update(['fieldtech_id' => $fieldtechId]);
+                if ($startDate) $wo->update(['start_date' => $startDate]);
+                if ($slotId) $wo->update(['slot_id' => $slotId]);
 
                 DB::commit();
                 return false;
-            }
-            catch(QueryException $error){
+            } catch (QueryException $error) {
                 DB::rollback();
-                return '500 (WO Action Detail) '.$error->getMessage();
+                return '500 (WO Action Detail) ' . $error->getMessage();
             }
         }
 
         return 'Error Action Details';
     }
 
-    public function pushPart(Request $request, $id=null){
+    public function pushPart(Request $request, $id = null)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $input = [
                 'wo_id' => $request->input('wo_id'),
                 'type' => $request->input('type'),
@@ -1047,20 +1165,18 @@ class WorkOrder extends Controller
                 'model' => $request->input('model'),
                 'description' => $request->input('description'),
             ];
-            if($id){
-                if($data = Part::find($id)) {
+            if ($id) {
+                if ($data = Part::find($id)) {
                     $data->update($input);
-                }
-                else return ['success' => false, 'message' => 'Update Part Notfound...'];
-            }
-            else $data = Part::create($input);
+                } else return ['success' => false, 'message' => 'Update Part Notfound...'];
+            } else $data = Part::create($input);
 
             $data->files()->detach();
-            if($data && $files = $request->input('files')){
+            if ($data && $files = $request->input('files')) {
                 $files = json_decode($files);
-                foreach ($files AS $file) {
+                foreach ($files as $file) {
                     if (is_object($file)) $data->files()->attach($file->id);
-                    else if($fid = FileUpload::push($file, 'part')){
+                    else if ($fid = FileUpload::push($file, 'part')) {
                         $data->files()->attach($fid);
                     }
                 }
@@ -1068,31 +1184,31 @@ class WorkOrder extends Controller
 
             DB::commit();
             return ['success' => true, 'message' => 'Success...'];
-        }
-        catch(QueryException $error){
+        } catch (QueryException $error) {
             DB::rollback();
-            return ['success' => false, 'message' => '500 (Create WO)'.$error->getMessage()];
+            return ['success' => false, 'message' => '500 (Create WO)' . $error->getMessage()];
         }
     }
 
-    public function rebooking(Request $request, $id=null){
-        if($wo = Wo::find($id)){
+    public function rebooking(Request $request, $id = null)
+    {
+        if ($wo = Wo::find($id)) {
             $laststs = $wo->lastAction->status_id;
-            $status = Master\Status::whereIn('id', [1214,2214,3214,4214,5214,6214,7214])->get();
-            foreach ($status AS $sts){
-                foreach ($sts->show_on AS $sid){
-                    if($sid == $laststs){
-                        if(!$date = $request->input('date')) return ['success' => false, 'message' => 'date is empty'];
-                        if(!$slot = $request->input('slot_id')) return ['success' => false, 'message' => 'slot_id is empty'];
-                        if(!$fieldtech = $request->input('fieldtech_id')) return ['success' => false, 'message' => 'fieldtech_id is empty'];
-                        if(!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
+            $status = Master\Status::whereIn('id', [1214, 2214, 3214, 4214, 5214, 6214, 7214])->get();
+            foreach ($status as $sts) {
+                foreach ($sts->show_on as $sid) {
+                    if ($sid == $laststs) {
+                        if (!$date = $request->input('date')) return ['success' => false, 'message' => 'date is empty'];
+                        if (!$slot = $request->input('slot_id')) return ['success' => false, 'message' => 'slot_id is empty'];
+                        if (!$fieldtech = $request->input('fieldtech_id')) return ['success' => false, 'message' => 'fieldtech_id is empty'];
+                        if (!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
 
-                        if($err = $this->fieldtechCheck($fieldtech, $date, $slot, $wo->id)) {
+                        if ($err = $this->fieldtechCheck($fieldtech, $date, $slot, $wo->id)) {
                             return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $err];
                         }
 
-                        if(!Master\Slot::find($slot)) return ['success' => false, 'message' => 'slot_id not found'];
-                        if(!Fieldtech::find($fieldtech)) return ['success' => false, 'message' => 'fieldtech_id not found'];
+                        if (!Master\Slot::find($slot)) return ['success' => false, 'message' => 'slot_id not found'];
+                        if (!Fieldtech::find($fieldtech)) return ['success' => false, 'message' => 'fieldtech_id not found'];
 
                         $action = Action::create([
                             'wo_id' => $wo->id,
@@ -1100,11 +1216,11 @@ class WorkOrder extends Controller
                             'note' => $notes,
                         ]);
 
-                        foreach ($sts->details AS $detail){
+                        foreach ($sts->details as $detail) {
                             $value = null;
-                            if($detail->property == 'fieldtech') $value = $fieldtech;
-                            else if($detail->property == 'startdate') $value = $date;
-                            else if($detail->property == 'slot') $value = $slot;
+                            if ($detail->property == 'fieldtech') $value = $fieldtech;
+                            else if ($detail->property == 'startdate') $value = $date;
+                            else if ($detail->property == 'slot') $value = $slot;
 
                             ActionDetail::create([
                                 'action_id' => $action->id,
@@ -1130,14 +1246,15 @@ class WorkOrder extends Controller
         return ['success' => false, 'message' => 'Undefined WO ID!'];
     }
 
-    public function cancel(Request $request, $id=null){
-        if($wo = Wo::find($id)){
+    public function cancel(Request $request, $id = null)
+    {
+        if ($wo = Wo::find($id)) {
             $laststs = $wo->lastAction->status_id;
-            $status = Master\Status::whereIn('id', [1910,2910, 3910, 4910, 5910, 6910, 7910])->get();
-            foreach ($status AS $sts){
-                foreach ($sts->show_on AS $sid){
-                    if($sid == $laststs){
-                        if(!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
+            $status = Master\Status::whereIn('id', [1910, 2910, 3910, 4910, 5910, 6910, 7910])->get();
+            foreach ($status as $sts) {
+                foreach ($sts->show_on as $sid) {
+                    if ($sid == $laststs) {
+                        if (!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
                         $action = Action::create([
                             'wo_id' => $wo->id,
                             'status_id' => $sts->id,
@@ -1157,8 +1274,9 @@ class WorkOrder extends Controller
         return ['success' => false, 'message' => 'Undefined WO ID!'];
     }
 
-    public function delete(Request $request){
-        if($data = json_decode($request->data)) {
+    public function delete(Request $request)
+    {
+        if ($data = json_decode($request->data)) {
             $user = $request->user();
             Wo::whereIn('id', $data)->update(['deleted_by' => $user->id, 'deleted_at' => date('Y-m-d H:i:s')]);
             return ['success' => true, 'message' => 'Success!'];
@@ -1166,59 +1284,60 @@ class WorkOrder extends Controller
         return ['success' => false, 'message' => 'No Data!'];
     }
 
-    public function deletePart(Request $request){
-        if($id = $request->input('id')) {
+    public function deletePart(Request $request)
+    {
+        if ($id = $request->input('id')) {
             Part::find($id)->delete();
             return ['success' => true, 'message' => 'Success!'];
         }
         return ['success' => false, 'message' => 'No Data!'];
     }
 
-    public function exportExcel(Request $request){
+    public function exportExcel(Request $request)
+    {
         $user = $request->user();
 
-        $titles = [ ["WORKORDER", 'h2'], ["Asianet", 'h3'] ];
+        $titles = [["WORKORDER", 'h2'], ["Asianet", 'h3']];
 
         $query = [];
 
-        if($search = $request->input('query')) {
+        if ($search = $request->input('query')) {
             $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%' OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
         }
 
-        if($request->input('archive')) {
+        if ($request->input('archive')) {
             $query[] = "(A.close_date IS NOT NULL)";
-            array_push($titles, ['Archive Data','h4']);
-        }
-        else {
+            array_push($titles, ['Archive Data', 'h4']);
+        } else {
             $mindate = date('Y-m-d', strtotime('-0 days'));
             $query[] = "(A.close_date IS NULL OR A.close_date >= '$mindate')";
-            array_push($titles, ['Data On Going','h4']);
+            array_push($titles, ['Data On Going', 'h4']);
         }
 
         // FILTER ------------------------------------------------------------------------------------------------------
-        if(!$search && ($filter = $request->input('filterDate'))) {
-            $m = date('Y-m', strtotime("$filter 00:00:00")).'%';
+        if (!$search && ($filter = $request->input('filterDate'))) {
+            $m = date('Y-m', strtotime("$filter 00:00:00")) . '%';
             $query[] = "(A.start_date LIKE '$m')";
 
             $month = date('F Y', strtotime("$filter 00:00:00"));
-            array_push($titles, [$month,'h4']);
+            array_push($titles, [$month, 'h4']);
         }
-        if($filter = $request->input('filter-status')) if($filter != 'null') $query[] = "(B.status_id = '$filter')";
-        if($filter = $request->input('filter-activity')) $query[] = "(A.activity_id = '$filter')";
-        if($filter = $request->input('filter-service')) $query[] = "(A.service_id = '$filter')";
-        if($filter = $request->input('filter-vendor')) $query[] = "(A.vendor_id = '$filter')";
-        if($filter = $request->input('filter-client')) $query[] = "(A.client_id = '$filter')";
-        if($filter = $request->input('filter-owner')) $query[] = "(A.owner_id = '$filter')";
+        if ($filter = $request->input('filter-status')) if ($filter != 'null') $query[] = "(B.status_id = '$filter')";
+        if ($filter = $request->input('filter-activity')) $query[] = "(A.activity_id = '$filter')";
+        if ($filter = $request->input('filter-service')) $query[] = "(A.service_id = '$filter')";
+        if ($filter = $request->input('filter-vendor')) $query[] = "(A.vendor_id = '$filter')";
+        if ($filter = $request->input('filter-client')) $query[] = "(A.client_id = '$filter')";
+        if ($filter = $request->input('filter-owner')) $query[] = "(A.owner_id = '$filter')";
 
         // FILTER BY USER AUTH -----------------------------------------------------------------------------------------
-        if($ftr = $user->owners) $query[] = "(A.owner_id = '$ftr') ";
-        if($ftr = $user->activities) $query[] = "(A.activity_id = '$ftr') ";
-        if($ftr = $user->client_id) $query[] = "(A.client_id = '$ftr') ";
-        if($ftr = $user->vendor_id) $query[] = "(A.vendor_id = '$ftr') ";
-        if($ftr = $user->fieldtech_id) $query[] = "(A.fieldtech_id = '$ftr') ";
+        if ($ftr = $user->owners) $query[] = "(A.owner_id = '$ftr') ";
+        if ($ftr = $user->activities) $query[] = "(A.activity_id = '$ftr') ";
+        if ($ftr = $user->client_id) $query[] = "(A.client_id = '$ftr') ";
+        if ($ftr = $user->vendor_id) $query[] = "(A.vendor_id = '$ftr') ";
+        if ($ftr = $user->fieldtech_id) $query[] = "(A.fieldtech_id = '$ftr') ";
 
         $where = '';
-        if(count($query)){
+        if (count($query)) {
             $query = implode(" AND ", $query);
             $where = "WHERE $query";
         }
@@ -1263,52 +1382,52 @@ class WorkOrder extends Controller
 
         $data = DB::select(DB::raw($sql));
         $columns = [
-            ["text"=> "ID", "dataIndex"=> "id", "width"=> 115],
-            ["text"=> "TICKET ID", "dataIndex"=> "no_wo", "width"=> 115],
-            ["text"=> "SERVICE", "dataIndex"=> "service_name", "width"=> 100, "align"=> "center"],
-            ["text"=> "ACTIVITY", "dataIndex"=> "activity_name", "width"=> 150, "align"=> "center"],
-            ["text"=> "CLIENT", "dataIndex"=> "client_name", "width"=> 150],
+            ["text" => "ID", "dataIndex" => "id", "width" => 115],
+            ["text" => "TICKET ID", "dataIndex" => "no_wo", "width" => 115],
+            ["text" => "SERVICE", "dataIndex" => "service_name", "width" => 100, "align" => "center"],
+            ["text" => "ACTIVITY", "dataIndex" => "activity_name", "width" => 150, "align" => "center"],
+            ["text" => "CLIENT", "dataIndex" => "client_name", "width" => 150],
             [
-                "text"=> "SITE",
-                "columns"=> [
-                    ["text"=> "SITE", "dataIndex"=> "site_name", "width"=> 200],
-                    ["text"=> "ADDRESS", "dataIndex"=> "site_address", "width"=> 250],
-                    ["text"=> "PHONE", "dataIndex"=> "site_phone", "width"=> 150],
+                "text" => "SITE",
+                "columns" => [
+                    ["text" => "SITE", "dataIndex" => "site_name", "width" => 200],
+                    ["text" => "ADDRESS", "dataIndex" => "site_address", "width" => 250],
+                    ["text" => "PHONE", "dataIndex" => "site_phone", "width" => 150],
                 ]
             ],
-            ["text"=> "AREA", "dataIndex"=> "vendor_name", "width"=> 200],
-            ["text"=> "TEAM", "dataIndex"=> "fieldtech_name", "width"=> 250],
-            ["text"=> "DURATION (DAY)", "dataIndex"=> "duration", "align"=> "center", "width"=> 100, 'type' => 'int'],
+            ["text" => "AREA", "dataIndex" => "vendor_name", "width" => 200],
+            ["text" => "TEAM", "dataIndex" => "fieldtech_name", "width" => 250],
+            ["text" => "DURATION (DAY)", "dataIndex" => "duration", "align" => "center", "width" => 100, 'type' => 'int'],
             [
-                "text"=> "BOOKING",
-                "columns"=> [
-                    ["text"=> "DATE", "dataIndex"=> "start_date", "type"=> "date", "align"=> "center", "width"=> 100],
-                    ["text"=> "SLOT", "dataIndex"=> "slot", "align"=> "center", "width"=> 150],
-                ]
-            ],
-            [
-                "text"=> "CREATED",
-                "columns"=> [
-                    ["text"=> "CREATED BY", "dataIndex"=> "created_by_name", "width"=> 200],
-                    ["text"=> "DATE", "dataIndex"=> "created_at", "type"=> "date", "align"=> "center", "width"=> 100]
+                "text" => "BOOKING",
+                "columns" => [
+                    ["text" => "DATE", "dataIndex" => "start_date", "type" => "date", "align" => "center", "width" => 100],
+                    ["text" => "SLOT", "dataIndex" => "slot", "align" => "center", "width" => 150],
                 ]
             ],
             [
-                "text"=> "LAST STATUS",
-                "columns"=> [
-                    ["text"=> "STATUS", "dataIndex"=> "status_name", "width"=> 200],
-                    ["text"=> "DATE", "dataIndex"=> "lastupdate_at", "type"=> "date", "align"=> "center", "width"=> 100]
+                "text" => "CREATED",
+                "columns" => [
+                    ["text" => "CREATED BY", "dataIndex" => "created_by_name", "width" => 200],
+                    ["text" => "DATE", "dataIndex" => "created_at", "type" => "date", "align" => "center", "width" => 100]
                 ]
             ],
-            ["text"=> "ONT SERIALNUMBER", "dataIndex"=> "ont_serial", "width"=> 200],
-            ["text"=> "DESCRIPTION", "dataIndex"=> "description", "width"=> 500],
+            [
+                "text" => "LAST STATUS",
+                "columns" => [
+                    ["text" => "STATUS", "dataIndex" => "status_name", "width" => 200],
+                    ["text" => "DATE", "dataIndex" => "lastupdate_at", "type" => "date", "align" => "center", "width" => 100]
+                ]
+            ],
+            ["text" => "ONT SERIALNUMBER", "dataIndex" => "ont_serial", "width" => 200],
+            ["text" => "DESCRIPTION", "dataIndex" => "description", "width" => 500],
         ];
 
-        $footers = ['Total Count: '.count($data).' Row', ' ', 'Asianet', 'Downloaded (QFEST)` ('.date('d F Y H:i:s').')'];
+        $footers = ['Total Count: ' . count($data) . ' Row', ' ', 'Asianet', 'Downloaded (QFEST)` (' . date('d F Y H:i:s') . ')'];
         $params = array(
             'title' => $titles,
             'columns' => $columns,
-            'filename' => 'WO '.date("YmdHis"),
+            'filename' => 'WO ' . date("YmdHis"),
             'data' => $data,
             'footer' => $footers,
         );
@@ -1317,7 +1436,8 @@ class WorkOrder extends Controller
         $excel->run($params);
     }
 
-    public function exportPdf(Request $request, $id = null){
+    public function exportPdf(Request $request, $id = null)
+    {
         $user = $request->user();
         $view = 'reports.wo_pdf';
         $data = Wo::find($id);
@@ -1328,13 +1448,14 @@ class WorkOrder extends Controller
         return $pdf->stream("WO ($data->id).pdf");
     }
 
-    public function exportBalapPdf(Request $request, $id = null){
+    public function exportBalapPdf(Request $request, $id = null)
+    {
         $user = $request->user();
-        if(!$data = Wo::where('no_wo', $id)->first()) {
+        if (!$data = Wo::where('no_wo', $id)->first()) {
             $data = Wo::find($id);
         }
 
-        if($data) {
+        if ($data) {
 
             $params = [
                 'user' => $user,
@@ -1397,17 +1518,13 @@ class WorkOrder extends Controller
 
                             if (strtoupper($detail->detail->name) == 'QOS REGISTRATION') {
                                 $params['internet'] = $detail->valueOption ? $detail->valueOption->option : null;
-                            }
-                            else if (strtoupper($detail->detail->name) == 'TOTAL STB') {
+                            } else if (strtoupper($detail->detail->name) == 'TOTAL STB') {
                                 $params['totalStb'] = $detail->value;
-                            }
-                            else if (strtoupper($detail->detail->name) == 'MAC ADDRESS ONT') {
+                            } else if (strtoupper($detail->detail->name) == 'MAC ADDRESS ONT') {
                                 $params['ontMac'] = $detail->value;
-                            }
-                            else if (strtoupper($detail->detail->name) == 'SN STB 1') {
+                            } else if (strtoupper($detail->detail->name) == 'SN STB 1') {
                                 $params['stbSN1'] = $detail->value;
-                            }
-                            else if (strtoupper($detail->detail->name) == 'TIPE STB 1') {
+                            } else if (strtoupper($detail->detail->name) == 'TIPE STB 1') {
                                 $params['stbType1'] = $detail->valueOption ? $detail->valueOption->option : null;
                             } else if (strtoupper($detail->detail->name) == 'TIPE STB 2') {
                                 $params['stbType2'] = $detail->valueOption ? $detail->valueOption->option : null;
@@ -1457,6 +1574,3 @@ class WorkOrder extends Controller
         return abort(404);
     }
 }
-
-
-
