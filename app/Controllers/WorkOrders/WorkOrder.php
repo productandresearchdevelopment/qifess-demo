@@ -605,7 +605,7 @@ class WorkOrder extends Controller
 
                 if (strtoupper(substr($wo->no_wo, 0, 2)) == 'OH') {
                     if (in_array($wo->activity->name, ['INSTALLATION', 'SERVICE UPDATE', 'RELOCATION', 'DEVICE MOVING', 'TERMINATION'])) {
-                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION', 'ACTIVATION', 'ONT ACTIVATION', 'NOC VALIDATION', 'POST ACTIVATION', 'DE-INSTALLATION', 'DE-ACTIVATION', 'TESTING'])) {
+                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION','ACTIVATION', 'POST ACTIVATION', 'TESTING'])) {
                             if ($pushapi = $this->pushApi($wo, $action, $details)) {
                                 if ($pushapi->success && ($pushapi->status == 200 || $pushapi->status == 206 && $action->status->name !== 'ACTIVATION')) {
                                     DB::commit();
