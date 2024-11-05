@@ -946,7 +946,7 @@ class WorkOrder extends Controller
         $result->data = [
             'url' => $urlPush,
             'dataPush' => $data,
-            'response' => (array) $content,
+            'response' => isset($content) ? ((array) $content) : null,
         ];
 
         // dd($result);
