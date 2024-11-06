@@ -622,7 +622,7 @@ class WorkOrder extends Controller
                                 }
                             }
                             DB::rollback();
-                            return ['success' => false, 'message' => 'API Error: ' .$pushapi->message];
+                            return ['success' => false, 'message' => 'API Error: ' . $pushapi->message];
                         }
                     }
                 }
