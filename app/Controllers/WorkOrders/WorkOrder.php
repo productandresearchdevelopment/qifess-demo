@@ -1292,7 +1292,7 @@ class WorkOrder extends Controller
             $laststs = $wo->lastAction->status_id;
 
             if ($user->role_id == 20) {
-                $allowedStatus = Master\Status::whereIn('id', [1910, 2910, 3910, 4910, 5910, 6910, 7910])->get();
+                $allowedStatus = Master\Status::whereIn('id', [1914, 2910, 3910, 4910, 5910, 6910, 7910])->get();
             } elseif ($user->role_id == 10) {
                 $allowedStatus = Master\Status::whereIn('id', [1914, 2914, 3914, 4914, 5914, 6914, 7914])->get();
             } else {
