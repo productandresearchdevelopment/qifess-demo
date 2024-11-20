@@ -611,7 +611,7 @@ class WorkOrder extends Controller
 
                 if (strtoupper(substr($wo->no_wo, 0, 2)) == 'OH') {
                     if (in_array($wo->activity->name, ['INSTALLATION', 'SERVICE UPDATE', 'RELOCATION', 'DEVICE MOVING', 'TERMINATION'])) {
-                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION','ACTIVATION', 'POST ACTIVATION', 'TESTING'])) {
+                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION','ACTIVATION', 'POST ACTIVATION', 'TESTING', 'ADDITIONAL MATERIAL'])) {
                             if ($pushapi = $this->pushApi($wo, $action, $details)) {
                                 if($pushapi->success && ($pushapi->status == 200 || $pushapi->status == 206)){
                                     if($pushapi->status == 206 && $action->status->name == 'ACTIVATION'){
@@ -817,10 +817,14 @@ class WorkOrder extends Controller
                     if (strtolower($extra->detail->name) == 'serial number unregistration') $serialNumber = $extra->value;
                 } else if (strtoupper($act->status->name) == 'PREPARATION') {
                     if (strtolower($extra->detail->name) == 'ont serial number') $serialNumber = $extra->value;
-                } else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
+                } else if (strtoupper($act->status->name) == 'ADDITIONAL MATERIAL') {
                     if (strtolower($extra->detail->name) == 'kelebihan kabel dw') $additionalDropCable = $extra->value;
                     else if (strtolower($extra->detail->name) == 'kelebihan kabel utp') $additionalUTP = $extra->value;
                 }
+                // else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
+                //     if (strtolower($extra->detail->name) == 'kelebihan kabel dw') $additionalDropCable = $extra->value;
+                //     else if (strtolower($extra->detail->name) == 'kelebihan kabel utp') $additionalUTP = $extra->value;
+                // } 
             }
         }
 
@@ -1544,13 +1548,21 @@ class WorkOrder extends Controller
                             }
                         }
                         $params['time_start'] = $action->created_at;
+                    } else if (str_contains(strtoupper($action->status->name), 'ADDITIONAL MATERIAL')) {
+                        foreach ($action->details as $detail) {
+                            if (strtoupper($detail->detail->name) == 'KELEBIHAN KABEL DW') {
+                                $params['emWire'] = $detail->value;
+                            } else if (strtoupper($detail->detail->name) == 'KELEBIHAN KABEL UTP') {
+                                $params['emUtp'] = $detail->value;
+                            }
+                        }
                     } else if (str_contains(strtoupper($action->status->name), 'POST ACTIVATION')) {
                         $params['lastNote'] = $action->note;
                         $params['time_finish'] = $action->created_at;
                         foreach ($action->details as $detail) {
-                            if (strtoupper($detail->detail->name) == 'EXCESS MATERIAL - DROP WIRE') {
+                            if (strtoupper($detail->detail->name) == 'KELEBIHAN KABEL DW') {
                                 $params['emWire'] = $detail->value;
-                            } else if (strtoupper($detail->detail->name) == 'EXCESS MATERIAL - UTP') {
+                            } else if (strtoupper($detail->detail->name) == 'KELEBIHAN KABEL UTP') {
                                 $params['emUtp'] = $detail->value;
                             } else if (strtoupper($detail->detail->name) == 'SIGNATURE INSTALLER') {
                                 $params['ttdFieldtech'] = Upload::find($detail->value);
