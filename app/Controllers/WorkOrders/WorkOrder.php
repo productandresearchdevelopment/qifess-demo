@@ -1422,47 +1422,51 @@ class WorkOrder extends Controller
         $where = '';
         if (count($query)) {
             $query = implode(" AND ", $query);
-            $where = "WHERE $query";
+            $where = " AND $query";
         }
 
-        $sql = "SELECT A.*, X.ont_serial,
-                       B.created_at lastupdate_at,
-                       B1.`name` status_name,
-                       C.`name` activity_name,
-                       D.`name` service_name,
-                       E.`name` owner_name,
-                       F.`name` client_name,
-                       G1.`name` site_name,
-                       G1.`address` site_address,
-                       G1.`pic_phone` site_phone,
-                       G2.`name` remove_site_name,
-                       H.`name` vendor_name,
-                       I.`name` fieldtech_name,
-                       J.`name` created_by_name,
-                       K.`name` slot,
-                       DATEDIFF(DATE(NOW()), A.start_date) duration,
-                       Y.total_stb,
-                       Z.alamat_instalasi
+        // Query utama
+        $sql = "SELECT A.*,
+                    X.ont_serial,
+                    B.created_at AS lastupdate_at,
+                    B1.`name` AS status_name,
+                    C.`name` AS activity_name,
+                    D.`name` AS service_name,
+                    E.`name` AS owner_name,
+                    F.`name` AS client_name,
+                    G1.`name` AS site_name,
+                    G1.`address` AS site_address,
+                    G1.`pic_phone` AS site_phone,
+                    G2.`name` AS remove_site_name,
+                    H.`name` AS vendor_name,
+                    I.`name` AS fieldtech_name,
+                    J.`name` AS created_by_name,
+                    K.`name` AS slot,
+                    DATEDIFF(DATE(NOW()), A.start_date) AS duration,
+                    Y.total_stb,
+                    Z.alamat_instalasi
                 FROM po_wo A
-                     LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
-                     LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
-                     LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
-                     LEFT JOIN po_m_owner E ON A.owner_id = E.id
-                     LEFT JOIN po_m_client F ON A.client_id = F.id
-                     LEFT JOIN po_m_site G1 ON A.site_id = G1.id
-                     LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
-                     LEFT JOIN po_wo_m_service D ON G1.service_id = D.id
-                     LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
-                     LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
-                     LEFT JOIN auth_user J ON A.created_by = J.id
-                     LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
-                     LEFT JOIN (
-                         SELECT X2.wo_id, MIN(REPLACE(X1.`value`,'\"','')) ont_serial
-                             FROM po_wo_action_detail X1 INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                             WHERE X1.detail_id IN (281010,281011,281166,281167,281168,281169,281272,281273) AND X1.`value` IS NOT NULL
-                         GROUP BY X2.wo_id
-                     ) X ON A.id = X.wo_id
-                     LEFT JOIN (
+                    LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
+                    LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
+                    LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
+                    LEFT JOIN po_m_owner E ON A.owner_id = E.id
+                    LEFT JOIN po_m_client F ON A.client_id = F.id
+                    LEFT JOIN po_m_site G1 ON A.site_id = G1.id
+                    LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
+                    LEFT JOIN po_wo_m_service D ON G1.service_id = D.id
+                    LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
+                    LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
+                    LEFT JOIN auth_user J ON A.created_by = J.id
+                    LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
+                    LEFT JOIN (
+                        SELECT X2.wo_id, MIN(REPLACE(X1.`value`, '\"', '')) AS ont_serial
+                        FROM po_wo_action_detail X1
+                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
+                        WHERE X1.detail_id IN (281010, 281011, 281166, 281167, 281168, 281169, 281272, 281273)
+                        AND X1.`value` IS NOT NULL
+                        GROUP BY X2.wo_id
+                    ) X ON A.id = X.wo_id
+                    LEFT JOIN (
                         SELECT X2.wo_id, SUM(CAST(X1.`value` AS UNSIGNED)) AS total_stb
                         FROM po_wo_action_detail X1
                         INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
@@ -1482,7 +1486,7 @@ class WorkOrder extends Controller
                         AND SD.status_id = 1330
                         GROUP BY X2.wo_id
                     ) Z ON A.id = Z.wo_id
-                    WHERE A.deleted_at IS NULL
+                WHERE A.deleted_at IS NULL
                 $where";
 
 
@@ -1537,6 +1541,7 @@ class WorkOrder extends Controller
             ["text" => "ONT SERIALNUMBER", "dataIndex" => "ont_serial", "width" => 200],
             ["text" => "DESCRIPTION", "dataIndex" => "description", "width" => 500],
             ["text" => "ALAMAT INSTALASI", "dataIndex" => "alamat_instalasi", "width" => 500],
+
         ];
 
         $footers = ['Total Count: ' . count($data) . ' Row', ' ', 'Asianet', 'Downloaded (QFEST)` (' . date('d F Y H:i:s') . ')'];
