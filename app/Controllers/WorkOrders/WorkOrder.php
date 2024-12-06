@@ -968,6 +968,8 @@ class WorkOrder extends Controller
 
         // dd($result);
 
+        Log::info('Response dari API:', $result->data);
+
         return $result;
     }
 
