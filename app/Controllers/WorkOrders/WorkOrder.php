@@ -581,6 +581,13 @@ class WorkOrder extends Controller
         $wo = Wo::find($wo);
         $status = Master\Status::find($status);
 
+        if($wo->action->status->name == 'ACTIVATION' && $wo->is_hold == 1){
+            return [
+                'success' => false, 
+                'message' => "Hold, waiting from partner acknowledgements"
+            ];
+        }
+
         if (!$error = $this->actionValid($wo, $status, $user)) {
             $input = [
                 "status_id" => $status->id,
@@ -616,13 +623,6 @@ class WorkOrder extends Controller
                 if ($pushdetail = $this->actionDetailPush($wo, $action, $details)) {
                     DB::rollback();
                     return $pushdetail;
-                }
-
-                if($action->status->name == 'ACTIVATION' && $wo->is_hold == 1){
-                    return [
-                        'success' => false, 
-                        'message' => "Hold, waiting from partner acknowledgements"
-                    ];
                 }
 
                 $wo->update(['is_hold' => 0]);
