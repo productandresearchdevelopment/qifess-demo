@@ -146,9 +146,9 @@ class WorkOrder extends Controller
         }
         if ($ftr = $request->input('filter-hold')) {
             if ($ftr == 1) {
-                $query->whereNull('is_hold'); // Perbaikan: gunakan whereNull untuk mencari nilai NULL
+                $query->whereNull('is_hold'); 
             } else if ($ftr == 2) {
-                $query->where('is_hold', 1); // Cari data dengan is_hold bernilai 1
+                $query->where('is_hold', 1); 
             }
         }
 
@@ -581,10 +581,6 @@ class WorkOrder extends Controller
         $wo = Wo::find($wo);
         $status = Master\Status::find($status);
 
-        // if ($wo->is_hold) {
-        //     return ['success' => false, 'message' => "ticket is hold"];
-        // }
-
         if (!$error = $this->actionValid($wo, $status, $user)) {
             $input = [
                 "status_id" => $status->id,
@@ -609,8 +605,10 @@ class WorkOrder extends Controller
                 if ($id) {
                     if ($action = Action::find($id)) {
                         $action->update($input);
-                    } else return "Undefined Action Id";
-                } else {
+                    } 
+                    else return "Undefined Action Id";
+                } 
+                else {
                     $action = Action::create($input);
                     $wo->update(['last_action' => $action->id]);
                 }
@@ -618,6 +616,13 @@ class WorkOrder extends Controller
                 if ($pushdetail = $this->actionDetailPush($wo, $action, $details)) {
                     DB::rollback();
                     return $pushdetail;
+                }
+
+                if($action->status->name == 'ACTIVATION' && $wo->is_hold == 1){
+                    return [
+                        'success' => false, 
+                        'message' => "Hold, waiting from partner acknowledgements"
+                    ];
                 }
 
                 $wo->update(['is_hold' => 0]);
@@ -633,12 +638,8 @@ class WorkOrder extends Controller
                         if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION','ACTIVATION', 'POST ACTIVATION', 'TESTING', 'ADDITIONAL MATERIAL'])) {
                             if ($pushapi = $this->pushApi($wo, $action, $details)) {
                                 if($pushapi->success && ($pushapi->status == 200 || $pushapi->status == 206)){
-                                    if($pushapi->status == 206 && $action->status->name == 'ACTIVATION'){
-                                        $wo->update(['is_hold' => 1]);
-                                    }
-                                    else {
-                                        $wo->update(['is_hold' => 0]);
-                                    }
+                                    if($pushapi->status == 206 && $action->status->name == 'ACTIVATION') $wo->update(['is_hold' => 1]);
+                                    else $wo->update(['is_hold' => 0]);
 
                                     DB::commit();
                                     return (array) $pushapi;
