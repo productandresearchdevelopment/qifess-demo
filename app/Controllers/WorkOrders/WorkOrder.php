@@ -525,6 +525,7 @@ class WorkOrder extends Controller
         $result->data = [
             'url' => $urlPush,
             'dataPush' => $data,
+            'statusCode' => ($response && isset($response->status)) ? $response->status : 'null',
             'response' => isset($content) ? ((array) $content) : null,
         ];
 
@@ -1078,7 +1079,7 @@ class WorkOrder extends Controller
         $result->data = [
             'url' => $urlPush,
             'dataPush' => $data,
-            'responseStatus' => ($response && isset($response->status)) ? $response->status : 'null',
+            'statusCode' => ($response && isset($response->status)) ? $response->status : 'null',
             'response' => isset($content) ? ((array) $content) : null,
         ];
 
