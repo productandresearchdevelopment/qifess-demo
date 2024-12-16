@@ -452,8 +452,20 @@ class WorkOrder extends Controller
                 json_encode($response);
             $responseArray = json_decode($responseContent, true);
 
-            $returnMessage
-                = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+            // $returnMessage
+            //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+            $returnMessage = 'Unknown error';
+            if($responseArray && is_array($responseArray)){
+                if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+                    $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                }
+                else {
+                    Log::info("Cek Response Status" . $responseArray)
+                }
+            }
+            else {
+                Log::info("Cek Response" . $responseArray)
+            }
 
             $result->message = $returnMessage;
             $result->status = $response->status ?? 500;
@@ -975,6 +987,13 @@ class WorkOrder extends Controller
                 if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
                     $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
                 }
+                else {
+                    Log::info("Cek Response Status" . $responseArray)
+                }
+            }
+
+            else {
+                Log::info("Cek Response" . $responseArray)
             }
             $result->message = $returnMessage;
             $result->status = $response->status ?? 500;
