@@ -461,11 +461,18 @@ class WorkOrder extends Controller
                     $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
                 }
                 else {
-                    Log::info("Cek Response Status" . $responseArray);
+                    Log::info("Cek Response Status Return Message: " . 
+                    (isset($responseArray['content']['returnMessage']) 
+                        ? $responseArray['content']['returnMessage'] 
+                        : 'returnMessage not found'));
+                    Log::info("Cek Response Status Status Code: " . 
+                    (isset($responseArray['content']['statusCode']) 
+                        ? $responseArray['content']['statusCode'] 
+                        : 'statusCode not found'));
                 }
             }
             else {
-                Log::info("Cek Response" . $responseArray);
+                Log::info("Cek Response" . json_encode($responseArray));
             }
             
             
@@ -990,11 +997,18 @@ class WorkOrder extends Controller
                     $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
                 }
                 else {
-                    Log::info("Cek Response Status" . $responseArray);
+                    Log::info("Cek Response Status Return Message: " . 
+                    (isset($responseArray['content']['returnMessage']) 
+                        ? $responseArray['content']['returnMessage'] 
+                        : 'returnMessage not found'));
+                    Log::info("Cek Response Status Status Code: " . 
+                    (isset($responseArray['content']['statusCode']) 
+                        ? $responseArray['content']['statusCode'] 
+                        : 'statusCode not found'));
                 }
             }
             else {
-                Log::info("Cek Response" . $responseArray);
+                Log::info("Cek Response" . json_encode($responseArray));
             }
             $result->message = $returnMessage;
             $result->status = $response->status ?? 500;
