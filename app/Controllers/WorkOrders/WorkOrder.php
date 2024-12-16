@@ -428,8 +428,28 @@ class WorkOrder extends Controller
                             json_encode($response);
                         $responseArray = json_decode($responseContent, true);
 
-                        $returnMessage
-                            = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                        // $returnMessage
+                        //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+
+                        $returnMessage = 'Unknown error';
+                        if($responseArray && is_array($responseArray)){
+                            if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+                                $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                            }
+                            else {
+                                Log::info("Cek Response Status Return Message (RELOAD) Mobile: " . 
+                                (isset($responseArray['content']['returnMessage']) 
+                                    ? $responseArray['content']['returnMessage'] 
+                                    : 'returnMessage not found'));
+                                Log::info("Cek Response Status Status Code (RELOAD) Mobile: " . 
+                                (isset($responseArray['content']['statusCode']) 
+                                    ? $responseArray['content']['statusCode'] 
+                                    : 'statusCode not found'));
+                            }
+                        }
+                        else {
+                            Log::info("Cek Response RELOAD Mobile" . json_encode($responseArray));
+                        }
 
                         $result->message = $returnMessage;
                         $result->status = $response->status ?? 500;
@@ -440,8 +460,28 @@ class WorkOrder extends Controller
                     json_encode($response);
                 $responseArray = json_decode($responseContent, true);
 
-                $returnMessage
-                    = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                // $returnMessage
+                //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+
+                $returnMessage = 'Unknown error';
+                if($responseArray && is_array($responseArray)){
+                    if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+                        $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                    }
+                    else {
+                        Log::info("Cek Response Status Return Message (RELOAD) Mobile : " . 
+                        (isset($responseArray['content']['returnMessage']) 
+                            ? $responseArray['content']['returnMessage'] 
+                            : 'returnMessage not found'));
+                        Log::info("Cek Response Status Status Code (RELOAD) Mobile : " . 
+                        (isset($responseArray['content']['statusCode']) 
+                            ? $responseArray['content']['statusCode'] 
+                            : 'statusCode not found'));
+                    }
+                }
+                else {
+                    Log::info("Cek Response RELOAD Mobile (Tidak ada response array)" . json_encode($responseArray));
+                }
 
                 $result->message = $returnMessage;
                 $result->status = $response->status ?? 500;
@@ -461,18 +501,18 @@ class WorkOrder extends Controller
                     $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
                 }
                 else {
-                    Log::info("Cek Response Status Return Message (RELOAD): " . 
+                    Log::info("Cek Response Status Return Message (RELOAD) SELAIN STATUS 200-490 : " . 
                     (isset($responseArray['content']['returnMessage']) 
                         ? $responseArray['content']['returnMessage'] 
                         : 'returnMessage not found'));
-                    Log::info("Cek Response Status Status Code (RELOAD): " . 
+                    Log::info("Cek Response Status Status Code (RELOAD) SELAIN STATUS 200-490 : " . 
                     (isset($responseArray['content']['statusCode']) 
                         ? $responseArray['content']['statusCode'] 
                         : 'statusCode not found'));
                 }
             }
             else {
-                Log::info("Cek Response RELOAD" . json_encode($responseArray));
+                Log::info("Cek Response RELOAD (SELAIN STATUS 200-490 & TIDAK ADA RESPON ARRAY)" . json_encode($responseArray));
             }
             
             
@@ -965,9 +1005,30 @@ class WorkOrder extends Controller
                             json_encode($response);
                         $responseArray = json_decode($responseContent, true);
 
-                        $returnMessage
-                            = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                        // $returnMessage
+                        //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
 
+                        $returnMessage = 'Unknown error';
+                        if($responseArray && is_array($responseArray)){
+                            if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+                                $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                            }
+                            else {
+                                Log::info("Cek Response Status Return Message FC PushApi: " . 
+                                (isset($responseArray['content']['returnMessage']) 
+                                    ? $responseArray['content']['returnMessage'] 
+                                    : 'returnMessage not found'));
+                                Log::info("Cek Response Status Status Code FC PushApi: " . 
+                                (isset($responseArray['content']['statusCode']) 
+                                    ? $responseArray['content']['statusCode'] 
+                                    : 'statusCode not found'));
+                            }
+                        }
+                        else {
+                            Log::info("Cek Response FC PushApi tidak ada respon array" . json_encode($responseArray));
+                        }
+
+                    
                         $result->message = 'Error API engineer status response failed: ' . $returnMessage;
 
                         $result->status = $response->status ?? 500;
