@@ -404,12 +404,15 @@ class WorkOrder extends Controller
         // Hit API
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
 
-        // $response = new \stdClass(); // Inisialisasi objek
-        // $response->status = 200; // Mengatur status menjadi 200
-
-        // $response->content = new \stdClass();
-        // $response->content->statusCode = 200;
-        // $response->content->data = $data;
+        if ($response->status == 0) {
+            Log::error("Curl Status 0 - Debug Info", [
+                'url' => $urlPush,
+                'data' => $data,
+                'token' => $token,
+                'response_raw' => json_encode($response),
+                'curl_error' => curl_error($response->curl), // Tangkap error jika ada
+            ]);
+        }
 
         // Tangani respons API
         if ($response->status >= 200 && $response->status <= 490) {
@@ -988,6 +991,16 @@ class WorkOrder extends Controller
         // PUSH API ----------------------------------------------------------------------------------------------------
 
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
+
+        if ($response->status == 0) {
+            Log::error("Curl Status 0 - Debug Info", [
+                'url' => $urlPush,
+                'data' => $data,
+                'token' => $token,
+                'response_raw' => json_encode($response),
+                'curl_error' => curl_error($response->curl), // Tangkap error jika ada
+            ]);
+        }
 
         if ($response->status >= 200 && $response->status <= 490) {
             if ($content = $response->content) {
