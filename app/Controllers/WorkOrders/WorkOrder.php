@@ -404,18 +404,14 @@ class WorkOrder extends Controller
         // Hit API
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
 
-        if ($response->status == 0) {
-            Log::error("Curl Status 0 - Debug Info", [
-                'url' => $urlPush,
-                'data' => $data,
-                'token' => $token,
-                'response_raw' => json_encode($response),
-                'curl_error' => curl_error($response->curl), // Tangkap error jika ada
-            ]);
-        }
+       
 
         // Tangani respons API
-        if ($response->status >= 200 && $response->status <= 490) {
+        if ($response->status === 0) {
+            $result->message = "Error: No response from server. Please check your network connection.";
+            $result->status = 500; 
+            Log::info('No response from API', ['data' => $data]);
+        }elseif ($response->status >= 200 && $response->status <= 490) {
             if ($content = $response->content) {
                 if (isset($content->statusCode)) {
                     if ($response->status == 200) {
@@ -992,17 +988,12 @@ class WorkOrder extends Controller
 
         $response = Curl::to($urlPush)->withData($data)->withBearer($token)->asJson()->returnResponseObject()->post();
 
-        if ($response->status == 0) {
-            Log::error("Curl Status 0 - Debug Info", [
-                'url' => $urlPush,
-                'data' => $data,
-                'token' => $token,
-                'response_raw' => json_encode($response),
-                'curl_error' => curl_error($response->curl), // Tangkap error jika ada
-            ]);
-        }
-
-        if ($response->status >= 200 && $response->status <= 490) {
+        
+        if ($response->status === 0) {
+            $result->message = "Error: No response from server. Please check your network connection.";
+            $result->status = 500; 
+            Log::info('No response from API', ['data' => $data]);
+        }elseif ($response->status >= 200 && $response->status <= 490) {
             if ($content = $response->content) {
                 if (isset($content->statusCode)) {
                     if ($response->status == 200 || ($response->status == 206 && $action->status->name != "ACTIVATION")) {
