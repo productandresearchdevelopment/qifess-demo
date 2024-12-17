@@ -150,58 +150,100 @@
                 listeners:[
                     {
                         target: '.popup-action',
-                        action: function(rec){
+                        // action: function(rec){
+                        //     let actions = [];
+                        //     statusAction.forEach(function (status) {
+                        //         if(find(status.activities, rec.activity_id)){
+                        //             if(status.show_on && find(status.show_on, rec.last_action.status_id)){
+                        //                 if(find(status.roles, {{ $user->role_id }})) {
+                        //                     actions.push({
+                        //                         text: status.name,
+                        //                         value: status,
+                        //                         handler: function (val) {
+                        //                             forms.createAction(val, rec);
+                        //                         }
+                        //                     });
+                        //                 }
+                        //             }
+                        //         }
+                        //     });
+
+                        //     actions.push({
+                        //         text: 'VIEW (WO)',
+                        //         value: 'OK',
+                        //         handler: function(){
+                        //             showDetail(rec);
+                        //         }
+                        //     });
+
+                        //     // actions.push({
+                        //     //     text: 'ADD EQUIPMENT',
+                        //     //     handler: function(){
+                        //     //         formPart.create('EQUIPMENT', rec);
+                        //     //     }
+                        //     // });
+                        //     //
+                        //     // actions.push({
+                        //     //     text: 'ADD MATERIAL',
+                        //     //     handler: function(){
+                        //     //         formPart.create('MATERIAL',rec);
+                        //     //     }
+                        //     // });
+                        //     //
+                        //     // actions.push({
+                        //     //     text: 'DOWNLOAD BAST (PDF)',
+                        //     //     value: 'OK',
+                        //     //     handler: function(){
+                        //     //         console.error("ERROR PAGES INCREMENT");
+                        //     //         //showDetail(rec);
+                        //     //     }
+                        //     // });
+
+
+                        //     let popup = ai.popupModal({items: actions});
+                        //     popup.show();
+                        // }
+
+                        action: function(rec) {
                             let actions = [];
-                            statusAction.forEach(function (status) {
-                                if(find(status.activities, rec.activity_id)){
-                                    if(status.show_on && find(status.show_on, rec.last_action.status_id)){
-                                        if(find(status.roles, {{ $user->role_id }})) {
-                                            actions.push({
-                                                text: status.name,
-                                                value: status,
-                                                handler: function (val) {
-                                                    forms.createAction(val, rec);
-                                                }
-                                            });
+
+                            if (rec.is_hold == 1) {
+                            actions.push({
+                                text: 'HOLD, WAITING FROM PARTNER ACKNOWLEDGEMENT',
+                            });
+                            } else {
+                            statusAction.forEach(function(status) {
+                                if (find(status.activities, rec.activity_id)) {
+                                if (status.show_on && find(status.show_on, rec.last_action.status_id)) {
+                                    if (find(status.roles, {{ $user->role_id }})) {
+                                    actions.push({
+                                        text: status.name,
+                                        value: status,
+                                        handler: function(val) {
+                                        forms.createAction(val, rec);
                                         }
+                                    });
                                     }
                                 }
+                                }
                             });
+                            }
+
 
                             actions.push({
                                 text: 'VIEW (WO)',
                                 value: 'OK',
-                                handler: function(){
+                                handler: function() {
                                     showDetail(rec);
                                 }
                             });
 
-                            // actions.push({
-                            //     text: 'ADD EQUIPMENT',
-                            //     handler: function(){
-                            //         formPart.create('EQUIPMENT', rec);
-                            //     }
-                            // });
-                            //
-                            // actions.push({
-                            //     text: 'ADD MATERIAL',
-                            //     handler: function(){
-                            //         formPart.create('MATERIAL',rec);
-                            //     }
-                            // });
-                            //
-                            // actions.push({
-                            //     text: 'DOWNLOAD BAST (PDF)',
-                            //     value: 'OK',
-                            //     handler: function(){
-                            //         console.error("ERROR PAGES INCREMENT");
-                            //         //showDetail(rec);
-                            //     }
-                            // });
-
-
-                            let popup = ai.popupModal({items: actions});
-                            popup.show();
+                            if (actions.length > 0) {
+                                let popup = ai.popupModal({
+                                    items: actions
+                                });
+                                popup.show();
+                            }
                         }
                     }
                 ],
