@@ -28,6 +28,11 @@ use Illuminate\Support\Facades\Log;
 
 class WorkOrder extends Controller
 {
+    public function __construct()
+    {
+        set_time_limit(120); // Set time limit to 2 minutes
+    }
+    
     public function index(Request $request, $archive = false)
     {
         $user   = $request->user();
