@@ -410,7 +410,7 @@ class WorkOrder extends Controller
 
         // Tangani respons API
         if ($response->status === 0) {
-            $result->message = "Error: No response from server. Please check your network connection.";
+            $result->message = "Connection to the API timed out. Please try again";
             $result->status = 500; 
             Log::info('No response from API', ['data' => $data]);
         }elseif ($response->status >= 200 && $response->status <= 490) {
@@ -992,7 +992,7 @@ class WorkOrder extends Controller
 
         
         if ($response->status === 0) {
-            $result->message = "Error: No response from server. Please check your network connection.";
+            $result->message = "Connection to the API timed out. Please try again";
             $result->status = 500; 
             Log::info('No response from API', ['data' => $data]);
         }elseif ($response->status >= 200 && $response->status <= 490) {
