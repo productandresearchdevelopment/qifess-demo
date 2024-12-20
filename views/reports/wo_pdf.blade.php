@@ -163,7 +163,7 @@
                     <div style="margin-bottom: 10px;">
                         <div style="font-weight: 600; font-size: 10px;">{{ $statusDetail->name }} : </div>
                         @if ($isAllowedToShow && !empty($statusDetail->property))
-                        <div style="font-size: 12px;">
+                        <!-- <div style="font-size: 12px;">
                             @if ($detail)
                             @foreach ($detail->files as $file)
                                 @if ($file->type == 'image' || $statusDetail->type == 'hide')
@@ -177,7 +177,47 @@
                             <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
                                 src="{{ asset('images/no_image.png') }}">
                             @endif
+                        </div> -->
+
+                        <div style="font-size: 12px;">
+                            @if ($detail)
+                                @php
+                                    \Log::info('Detail found for statusDetail', ['statusDetail_id' => $statusDetail->id]);
+                                @endphp
+                                @foreach ($detail->files as $file)
+                                    @if ($file->type == 'image' || $statusDetail->type == 'hide')
+                                        @php
+                                            $filePath = storage_path('app/public/uploads/' . $file->filename);
+                                            \Log::info('Checking image path', ['path' => $filePath]);
+
+                                            if (file_exists($filePath)) {
+                                                \Log::info('Image file exists', ['path' => $filePath]);
+                                            } else {
+                                                \Log::warning('Image file does not exist', ['path' => $filePath]);
+                                            }
+                                        @endphp
+                                        <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
+                                            src="{{ $filePath }}">
+                                    @endif
+                                @endforeach
+                            @elseif ($statusDetail->type == 'hide')
+                                @php
+                                    \Log::info('StatusDetail is of type hide', [
+                                        'statusDetail_id' => $statusDetail->id,
+                                        'detail_value' => $detail ? $detail->value : 'No detail available',
+                                    ]);
+                                @endphp
+                                <div style="font-size: 12px;">{{ $detail ? ($detail->value ?: '-') : '-' }}</div>
+                            @else
+                                @php
+                                    \Log::info('No detail or image found, displaying placeholder image');
+                                @endphp
+                                <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
+                                    src="{{ asset('images/no_image.png') }}">
+                            @endif
                         </div>
+
+
                         @elseif ($statusDetail->triger == 'wo.fieldtech')
                         <div style="font-size: 12px;">{{ $detail ? $detail->fieldtech->name : '-' }}</div>
                         @elseif($statusDetail->triger == 'wo.startdate')
@@ -185,7 +225,7 @@
                         @elseif($statusDetail->triger == 'wo.slot')
                         <div style="font-size: 12px;">{{ $detail ? $detail->slot->name : '-' }}</div>
                         @elseif($statusDetail->type == 'file')
-                        <div style="font-size: 12px;">
+                        <!-- <div style="font-size: 12px;">
                             @if ($detail)
                             @foreach ($detail->files as $file)
                                 @if ($file->type == 'image')
@@ -197,9 +237,42 @@
                             <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
                                 src="{{ public_path('images/no_image.png') }}">
                             @endif
-                        </div>
-                        @elseif($statusDetail->type == 'signature')
+                        </div> -->
+
+
                         <div style="font-size: 12px;">
+                            @if ($detail)
+                                @php
+                                    \Log::info('Detail ditemukan.', ['detail_id' => $detail->id]);
+                                @endphp
+                                @foreach ($detail->files as $file)
+                                    @if ($file->type == 'image')
+                                        @php
+                                            $filePath = storage_path('app/public/uploads/' . $file->filename);
+                                            \Log::info('Memeriksa file gambar.', ['path' => $filePath]);
+
+                                            if (file_exists($filePath)) {
+                                                \Log::info('File gambar ditemukan.', ['path' => $filePath]);
+                                            } else {
+                                                \Log::warning('File gambar tidak ditemukan.', ['path' => $filePath]);
+                                            }
+                                        @endphp
+                                        <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
+                                            src="{{ $filePath }}">
+                                    @endif
+                                @endforeach
+                            @else
+                                @php
+                                    \Log::info('Tidak ada detail, menggunakan placeholder image.');
+                                @endphp
+                                <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
+                                    src="{{ public_path('images/no_image.png') }}">
+                            @endif
+                        </div>
+
+
+                        @elseif($statusDetail->type == 'signature')
+                        <!-- <div style="font-size: 12px;">
                             @if ($detail)
                             @if ($fsign = \App\SystemModels\Globals\Upload::find($detail->value))
                                 <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
@@ -208,7 +281,41 @@
                             @else
                             'No signature'
                             @endif
+                        </div> -->
+
+                        <div style="font-size: 12px;">
+                            @if ($detail)
+                                @php
+                                    \Log::info('Detail ditemukan.', ['detail_id' => $detail->id]);
+                                @endphp
+                                @if ($fsign = \App\SystemModels\Globals\Upload::find($detail->value))
+                                    @php
+                                        $filePath = storage_path('app/public/uploads/' . $fsign->filename);
+                                        \Log::info('Memeriksa file tanda tangan.', ['path' => $filePath]);
+
+                                        if (file_exists($filePath)) {
+                                            \Log::info('File tanda tangan ditemukan.', ['path' => $filePath]);
+                                        } else {
+                                            \Log::warning('File tanda tangan tidak ditemukan.', ['path' => $filePath]);
+                                        }
+                                    @endphp
+                                    <img style="height: 200px; border: 1px solid #CCC; margin: 10px;"
+                                        src="{{ $filePath }}">
+                                @else
+                                    @php
+                                        \Log::warning('Tidak ada tanda tangan untuk detail.', ['detail_id' => $detail->id]);
+                                    @endphp
+                                    'No signature'
+                                @endif
+                            @else
+                                @php
+                                    \Log::info('Detail tidak ditemukan.');
+                                @endphp
+                                'No signature'
+                            @endif
                         </div>
+
+
                         @elseif($statusDetail->type == 'date')
                         <div style="font-size: 12px;">{{ $detail ? date('d/m/Y', strtotime($detail->value)) : '-' }}</div>
                         @elseif($statusDetail->type == 'datetime')
