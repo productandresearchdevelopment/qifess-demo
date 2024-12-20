@@ -512,25 +512,21 @@
                         </td>
                     </tr>
                     <tr>
-                    <td style="height: 110px">
-                        @if (!empty($ttdFieldtech) && file_exists(storage_path('app/public/uploads/' . $ttdFieldtech->filename)))
-                            @php
-                                \Log::info('Field Admin signature file found: ' . storage_path('app/public/uploads/' . $ttdFieldtech->filename));
-                            @endphp
-                            <img style="height: 100px; margin-top: 15px;"
-                                src="{{ asset('storage/uploads/' . $ttdFieldtech->filename) }}">
-                            <div style="height: 20px; padding: 0px; text-align: center">
+                        <td style="height: 110px">
+                            @if ($ttdFieldtech)
+                                @php
+                                    $fileUrl = route('upload.file', ['id' => $ttdFieldtech]);
+                                @endphp
+                                <img style="height: 100px; margin-top: 15px;" src="{{ $fileUrl }}">
+                                <div style="height: 20px; padding: 0px; text-align: center">
                                 {{ $ttdFieldtechName ?: '-' }}
-                            </div>
-                        @else
-                            @php
-                                \Log::warning('Field Admin signature file not found. File: ' . ($ttdFieldtech->filename ?? 'N/A'));
-                            @endphp
-                            <div style="height: 110px; text-align: center;">
-                                <span>-</span>
-                            </div>
-                        @endif
-                    </td>
+                                </div>
+                            @else
+                                <div style="height: 110px; text-align: center;">
+                                    <span>-</span>
+                                </div>
+                            @endif
+                        </td>
                     </tr>
                     <tr>
                         <td style="height: 16px; text-align: center;">
@@ -539,19 +535,15 @@
                     </tr>
                     <tr>
                         <td style="height: 110px">
-                            @if (!empty($ttdCustomer) && file_exists(storage_path('app/public/uploads/' . $ttdCustomer->filename)))
+                            @if ($ttdCustomer)
                                 @php
-                                    \Log::info('Technician signature file found: ' . storage_path('app/public/uploads/' . $ttdCustomer->filename) . '. Name: ' . ($ttdCustomerName ?: $data->site->name));
+                                    $fileUrl = route('upload.file', ['id' => $ttdCustomer]);
                                 @endphp
-                                <img style="height: 100px; margin-top: 15px;"
-                                    src="{{ asset('storage/uploads/' . $ttdCustomer->filename) }}">
+                                <img style="height: 100px; margin-top: 15px;" src="{{ $fileUrl }}">
                                 <div style="height: 20px; padding: 0px; text-align: center">
-                                    {{ $ttdCustomerName ?: $data->site->name }}
+                                {{ $ttdCustomerName ?: '-' }}
                                 </div>
                             @else
-                                @php
-                                    \Log::warning('Technician signature file not found. File: ' . ($ttdCustomer->filename ?? 'N/A') . '. Name: ' . ($ttdCustomerName ?: $data->site->name));
-                                @endphp
                                 <div style="height: 110px; text-align: center;">
                                     <span>-</span>
                                 </div>

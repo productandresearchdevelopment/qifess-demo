@@ -1796,9 +1796,9 @@ class WorkOrder extends Controller
                             } else if (strtoupper($detail->detail->name) == 'KELEBIHAN KABEL UTP') {
                                 $params['emUtp'] = $detail->value;
                             } else if (strtoupper($detail->detail->name) == 'SIGNATURE INSTALLER') {
-                                $params['ttdFieldtech'] = Upload::find($detail->value);
+                                $params['ttdFieldtech'] = $detail->value;
                             } else if (strtoupper($detail->detail->name) == 'SIGNATURE CUSTOMER') {
-                                $params['ttdCustomer'] = Upload::find($detail->value);
+                                $params['ttdCustomer'] = $detail->value;
                             } else if (strtoupper($detail->detail->name) == 'CUSTOMER NAME') {
                                 $params['ttdCustomerName'] = $detail->value;
                             } else if (strtoupper($detail->detail->name) == 'TECHNICIAN NAME') {
