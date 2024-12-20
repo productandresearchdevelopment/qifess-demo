@@ -512,19 +512,25 @@
                         </td>
                     </tr>
                     <tr>
-                        <td style="height: 110px">
-                            @if (!empty($ttdFieldtech) && file_exists(storage_path('app/public/uploads/' . $ttdFieldtech->filename)))
-                                <img style="height: 100px; margin-top: 15px;"
-                                    src="{{ storage_path('app/public/uploads/' . $ttdFieldtech->filename) }}">
-                                <div style="height: 20px; padding: 0px; text-align: center">
-                                    {{ $ttdFieldtechName ?: '-' }}
-                                </div>
-                            @else
-                                <div style="height: 110px; text-align: center;">
-                                    <span>-</span>
-                                </div>
-                            @endif
-                        </td>
+                    <td style="height: 110px">
+                        @if (!empty($ttdFieldtech) && file_exists(storage_path('app/public/uploads/' . $ttdFieldtech->filename)))
+                            @php
+                                \Log::info('Field Admin signature file found: ' . storage_path('app/public/uploads/' . $ttdFieldtech->filename));
+                            @endphp
+                            <img style="height: 100px; margin-top: 15px;"
+                                src="{{ asset('storage/uploads/' . $ttdFieldtech->filename) }}">
+                            <div style="height: 20px; padding: 0px; text-align: center">
+                                {{ $ttdFieldtechName ?: '-' }}
+                            </div>
+                        @else
+                            @php
+                                \Log::warning('Field Admin signature file not found. File: ' . ($ttdFieldtech->filename ?? 'N/A'));
+                            @endphp
+                            <div style="height: 110px; text-align: center;">
+                                <span>-</span>
+                            </div>
+                        @endif
+                    </td>
                     </tr>
                     <tr>
                         <td style="height: 16px; text-align: center;">
@@ -534,12 +540,18 @@
                     <tr>
                         <td style="height: 110px">
                             @if (!empty($ttdCustomer) && file_exists(storage_path('app/public/uploads/' . $ttdCustomer->filename)))
+                                @php
+                                    \Log::info('Technician signature file found: ' . storage_path('app/public/uploads/' . $ttdCustomer->filename) . '. Name: ' . ($ttdCustomerName ?: $data->site->name));
+                                @endphp
                                 <img style="height: 100px; margin-top: 15px;"
-                                    src="{{ storage_path('app/public/uploads/' . $ttdCustomer->filename) }}">
+                                    src="{{ asset('storage/uploads/' . $ttdCustomer->filename) }}">
                                 <div style="height: 20px; padding: 0px; text-align: center">
                                     {{ $ttdCustomerName ?: $data->site->name }}
                                 </div>
                             @else
+                                @php
+                                    \Log::warning('Technician signature file not found. File: ' . ($ttdCustomer->filename ?? 'N/A') . '. Name: ' . ($ttdCustomerName ?: $data->site->name));
+                                @endphp
                                 <div style="height: 110px; text-align: center;">
                                     <span>-</span>
                                 </div>
