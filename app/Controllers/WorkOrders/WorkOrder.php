@@ -1063,7 +1063,7 @@ class WorkOrder extends Controller
                     
                         $result->message = 'Error API engineer status response failed: ' . $returnMessage;
 
-                        Log::info("Cek result Message : " . $result->message);
+                        Log::info("Cek result Message: " . $result->message . ", Status: " . ($result->status ?? 'Unknown'));
                         Log::info("Cek Response Array : " . json_encode($responseArray));
 
                         $result->status = $response->status ?? 500;
