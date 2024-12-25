@@ -1505,15 +1505,24 @@ class WorkOrder extends Controller
 
         $action = Action::find($id);
 
-        if ($action = Action::find($id)) {
+        if ($action) {
             DB::beginTransaction();
 
             try {
+                $workOrder = Wo::find($action->wo_id);
 
-                Action::where('wo_id', $action->wo_id)->where('created_at', '>=', $action->created_at)->orderBy('created_at')->delete();
+                if ($workOrder && $workOrder->is_hold == 1) {
+                    $workOrder->update(['is_hold' => 0]);
+                }
 
-                // UPDATE LAST ACTION ------------------------------------------------------------------------------
-                Wo::find($action->wo_id)->updateLastAction();
+                Action::where('wo_id', $action->wo_id)
+                    ->where('created_at', '>=', $action->created_at)
+                    ->orderBy('created_at')
+                    ->delete();
+
+                if ($workOrder) {
+                    $workOrder->updateLastAction();
+                }
 
                 DB::commit();
                 return ['success' => true, 'message' => 'Success!'];
@@ -1522,6 +1531,7 @@ class WorkOrder extends Controller
                 return ['success' => false, 'message' => '500 ' . $error->getMessage()];
             }
         }
+
         return ['success' => false, 'message' => 'Undefined Action ID'];
     }
 
