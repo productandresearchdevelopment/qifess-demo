@@ -592,6 +592,8 @@ class WorkOrder extends Controller
 
             if ($id) {
                 if ($wo = Wo::find($id)) {
+                    $input['is_hold'] = $wo->is_hold;
+
                     $wo->update($input);
                     $actionId = $wo->actions()->first()->id;
                 } else return ['success' => false, 'message' => "Undefined WorkOrder"];
@@ -699,8 +701,10 @@ class WorkOrder extends Controller
                     DB::rollback();
                     return $pushdetail;
                 }
-
-                $wo->update(['is_hold' => 0]);
+                
+                if ($wo->is_hold == 0) {
+                    $wo->update(['is_hold' => 0]);
+                }
 
 
                 // SET CLOSING WO -------------------------------------------
