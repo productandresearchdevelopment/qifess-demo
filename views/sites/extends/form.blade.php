@@ -121,7 +121,7 @@
         me.create = function(){
             me.show();
             me.reset();
-            me.form.url = '{{ route('site.push') }}';
+            me.form.url = '{{ route('site.create') }}';
             map = L.map('mapid').setView([lat, lng], 3);
             L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
                 maxZoom: 18,
@@ -148,7 +148,7 @@
             if(rec){
                 me.show();
                 me.reset();
-                me.form.url = '{{ route('site.push') }}/' + rec.id;
+                me.form.url = '{{ route('site.edit') }}/' + rec.id;
                 me.setField('name', rec.name);
                 me.setField('client_id', rec.client_id);
                 me.setField('vendor_id', rec.vendor_id);

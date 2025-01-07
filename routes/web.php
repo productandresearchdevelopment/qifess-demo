@@ -66,7 +66,9 @@ Route::group(['middleware' => ['auth', 'roles']], function () {
         Route::get('/export/excel', 'Sites\Site@exportExcel')->name('site.export.excel');
         Route::get('/export/format/import', 'Sites\Site@importFormat')->name('site.export.excel.format.import');
         Route::post('/import', 'Sites\Site@importData')->name('site.import');
-        Route::post('/push/{id?}', 'Sites\Site@push')->name('site.push');
+        // Route::post('/push/{id?}', 'Sites\Site@push')->name('site.push');
+        Route::post('/push', 'Sites\Site@push')->name('site.create');
+        Route::post('/push/{id?}', 'Sites\Site@push')->name('site.edit');
         Route::put('/restore', 'Sites\Site@restore')->name('site.restore');
         Route::delete('/delete', 'Sites\Site@delete')->name('site.delete');
         Route::delete('/forcedelete', 'Sites\Site@forceDelete')->name('site.forcedelete');

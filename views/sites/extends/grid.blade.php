@@ -122,19 +122,25 @@
 
       me.menus = Ext.create('Ext.menu.Menu', {
         items: [
-          @if ($user->hasRoute('site.push'))
+          @if ($user->hasRoute('site.create'))
             {
               text: 'Create',
               iconCls: 'icon-add',
               handler: forms.create
-            }, {
-              text: 'Edit',
-              iconCls: 'icon-edit',
-              handler: forms.edit
-            },
+            }
           @endif
 
-          @if ($user->hasRoute('site.push'))
+          @if ($user->hasRoute('site.edit'))
+            {
+              text: 'Edit',
+              iconCls: 'icon-edit',
+              handler: function() {
+                forms.edit(me.getRec(true));
+              }
+            }
+          @endif
+
+          @if ($user->hasRoute('site.delete'))
             {
               text: 'Delete',
               iconCls: 'icon-remove',
