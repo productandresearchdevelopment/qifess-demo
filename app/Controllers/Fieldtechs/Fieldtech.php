@@ -77,7 +77,8 @@ class Fieldtech extends Controller
         $data = [
             'id' => $fieldtech->id,
             'name' => $fieldtech->name,
-            'vendor_name' => $fieldtech->vendor,
+            'vendor_name' => $fieldtech->vendor_name,
+            'vendor_details' => $fieldtech->vendor,
             'users' => $fieldtech->users,
             'workorders_count' => $fieldtech->workorders_count,
         ];
