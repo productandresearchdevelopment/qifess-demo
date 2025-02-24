@@ -57,7 +57,8 @@ class WorkOrder extends Controller
 
     private function getParams($request, $params = null)
     {
-        $user = $request->user()->load('fieldtech', 'fieldtech.workorders', 'fieldtech.workorders.client', 'fieldtech.workorders.activity');
+        // $user = $request->user()->load('fieldtech', 'fieldtech.workorders', 'fieldtech.workorders.client', 'fieldtech.workorders.activity');
+        $user = $request->user();
 
         if ($user->vendors && count($user->vendors)) $vendors = $user->vendors;
         else $vendors = Vendor::orderBy('name')->get();

@@ -26,14 +26,14 @@
     var vendors = @json($vendors);
     var statusAction = @json($status);
     var slots = @json($slots);
-    var user = @json($user);
+    // var user = @json($user);
 
 
     var detailWo = null;
 
-    var uniqueClients = Array.from(
-      new Map(user?.fieldtech?.workorders?.map(wo => [wo.client?.id, wo.client]) || []).values()
-    ) || [];
+    // var uniqueClients = Array.from(
+    //   new Map(user?.fieldtech?.workorders?.map(wo => [wo.client?.id, wo.client]) || []).values()
+    // ) || [];
 
     ai.require = '*';
     ai.ready(function() {
