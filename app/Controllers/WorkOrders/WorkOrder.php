@@ -57,7 +57,7 @@ class WorkOrder extends Controller
 
     private function getParams($request, $params = null)
     {
-        $user = $request->user();
+        $user = $request->user()->load('fieldtech', 'fieldtech.workorders', 'fieldtech.workorders.client', 'fieldtech.workorders.activity');
 
         if ($user->vendors && count($user->vendors)) $vendors = $user->vendors;
         else $vendors = Vendor::orderBy('name')->get();
@@ -65,7 +65,7 @@ class WorkOrder extends Controller
         $result = [
             'user' => $user,
             'activities' => ($ftr = $user->activities) ? Master\Activity::whereIn('id', $ftr)->get() : Master\Activity::all(),
-            'clients' => Client::all(),
+            'clients' => Client::orderBy('name', 'asc')->get(),
             'owners' => ($ftr = $user->owners) ? Owner::whereIn('id', $ftr)->get() : Owner::all(),
             'vendors' => $vendors,
             'services' => Master\Service::all(),
