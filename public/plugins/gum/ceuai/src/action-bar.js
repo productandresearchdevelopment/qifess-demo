@@ -21,23 +21,33 @@ ai.ActionBar = function (option) {
             if (!isNull(option.menu)) me.menu = option.menu;
             if (!isNull(option.renderTo)) me.renderTo = option.renderTo;
             if (!isNull(option.page)) me.page = option.page;
-            // if (!isNull(option.topFilter)) me.topFilter = option.topFilter;
+            if (!isNull(option.topFilter)) me.topFilter = option.topFilter;
 
-            // let topFilterTpl = `<div id="{0}-topFilterContainer" class="ai-topfilter-container"></div>`;
+            let topFilterTpl = `<div id="{0}-topFilterContainer" class="ai-topfilter-container"></div>`;
 
-            // let toolbarTpl = `<ons-toolbar  modifier="material" id="{0}" class="ai-actionbar" style="height: 110px;">
-            //                 <div class="left" style="position: relative; top: 50px"></div>
-            //                 <div class="center" style="position: relative; top: 50px"> <div id="{0}-title" class="ai-actionbar-title"></div> </div>
-            //                 <div class="right" style="position: relative; top: 50px"></div>
-            //            </ons-toolbar>`;
+            let toolbarTpl = `<ons-toolbar  modifier="material" id="{0}" class="ai-actionbar" style="height: 110px;">
+                            <div class="left" style="position: relative; top: 50px"></div>
+                            <div class="center" style="position: relative; top: 50px"> <div id="{0}-title" class="ai-actionbar-title"></div> </div>
+                            <div class="right" style="position: relative; top: 50px"></div>
+                       </ons-toolbar>`;
 
-            let tpl = `<ons-toolbar  modifier="material" id="{0}" class="ai-actionbar">
-                            <div class="left"></div>
-                            <div class="center"> <div id="{0}-title" class="ai-actionbar-title"></div> </div>
-                            <div class="right"></div>
-                        </ons-toolbar>`;
+            let container = $('#' + me.renderTo);
+            container.prepend(String.format(toolbarTpl, me.id));
 
-            $('#' + me.renderTo).prepend(String.format(tpl, me.id));
+            setTimeout(() => {
+                let mainPage = $('#main-page');
+                mainPage.prepend(String.format(topFilterTpl, me.id));
+
+                if (me.topFilter) me.createTopFilter(me.topFilter);
+            }, 100);
+
+            // let tpl = `<ons-toolbar  modifier="material" id="{0}" class="ai-actionbar">
+            //                 <div class="left"></div>
+            //                 <div class="center"> <div id="{0}-title" class="ai-actionbar-title"></div> </div>
+            //                 <div class="right"></div>
+            //             </ons-toolbar>`;
+
+            // $('#' + me.renderTo).prepend(String.format(tpl, me.id));
 
             // let container = $('#' + me.renderTo);
             // container.prepend(String.format(toolbarTpl, me.id));
@@ -80,84 +90,83 @@ ai.ActionBar = function (option) {
     }
 
 
-    // me.createTopFilter = function (topFilter) {
-    // let container = $('#' + me.id + '-topFilterContainer');
+    me.createTopFilter = function (topFilter) {
+        let container = $('#' + me.id + '-topFilterContainer');
+        container.css({
+            "white-space": "nowrap",
+            "overflow-x": "scroll", // Ganti "auto" jadi "scroll"
+            "display": "flex",
+            "gap": "5px",
+            "padding": "5px",
+            "scrollbar-width": "auto", // Paksa scrollbar muncul
+            "-webkit-overflow-scrolling": "touch"
+        });
 
+        container.empty();
 
-    // container.css({
-    //     "white-space": "nowrap",
-    //     "overflow-x": "auto",
-    //     "display": "flex",
-    //     "gap": "5px",
-    //     "padding": "5px",
-    //     "scrollbar-width": "thin",
-    //     "-webkit-overflow-scrolling": "touch"
-    // });
+        if (topFilter.items && Array.isArray(topFilter.items)) {
+            topFilter.items.forEach(function (filter) {
+                let btnId = me.id + '-filter-' + filter.id;
+                let isActive = filter.id === "all";
 
-    // container.empty();
+                let background = isActive ? '#0066cc' : `#${filter.color}`;
+                let textColor = '#fff';
 
-    // if (topFilter.items && Array.isArray(topFilter.items)) {
-    //     topFilter.items.forEach(function (filter) {
-    //         let btnId = me.id + '-filter-' + filter.id;
-    //         let isActive = filter.id === "all";
+                let btn = `
+                    <ons-button id="${btnId}" modifier="quiet"
+                        class="ai-actionbar-filter-badge"
+                        data-id="${filter.id}"
+                        data-original-color="#${filter.color}">
+                        ${filter.text}
+                    </ons-button>
+                `;
 
-    //         let background = isActive ? '#0066cc' : '#dedede';
-    //         let textColor = isActive ? '#FFFFFF' : '#000000';
+                container.append(btn);
 
-    //         let btn = `
-    //             <ons-button id="${btnId}" modifier="quiet"
-    //                 class="ai-actionbar-filter-badge">
-    //                 ${filter.text}
-    //             </ons-button>
-    //         `;
-    //         container.append(btn);
+                $('#' + btnId).css({
+                    "background": background,
+                    "color": textColor,
+                    "border-radius": "8px",
+                    "font-size": "10px",
+                    "font-weight": "bold",
+                    "padding": "1px 8px",
+                    "min-width": "100px",
+                    "width": "auto",
+                    "display": "inline-flex",
+                    "justify-content": "center",
+                    "align-items": "center",
+                    "margin": "2px",
+                    "white-space": "nowrap",
+                    "flex-shrink": "0"
+                });
 
-    //         $('#' + btnId).css({
-    //             "background": background,
-    //             "color": textColor,
-    //             "border-radius": "8px",
-    //             "font-size": "10px",
-    //             "font-weight": "bold",
-    //             "padding": "1px 8px",
-    //             "width": "120px",
-    //             "display": "inline-block",
-    //             "margin": "2px",
-    //             "white-space": "nowrap",
-    //             "flex-shrink": "0"
-    //         });
+                $(document).on('click', '#' + btnId, function () {
+                    let clickedId = $(this).attr('data-id');
 
-    //         $(document).on('click', '#' + btnId, function () {
-    //             $('.ai-actionbar-filter-badge').css({
-    //                 "background": "#dedede",
-    //                 "color": "#000000",
-    //             });
-    //             $(this).css({
-    //                 "background": "#0066cc",
-    //                 "color": "#FFFFFF",
-    //             });
+                    $('.ai-actionbar-filter-badge').each(function () {
+                        let id = $(this).attr('data-id');
+                        let originalColor = $(this).attr('data-original-color');
 
-    //             if (filter.handler) filter.handler(filter.id);
-    //         });
-    //     });
-    // }
-    // };
+                        if (id === clickedId) {
+                            $(this).css({
+                                "background": "#0066cc",
+                                "color": "#FFFFFF",
+                                "opacity": "1"
+                            });
+                        } else {
+                            $(this).css({
+                                "background": originalColor,
+                                "color": "#FFFFFF",
+                            });
+                        }
+                    });
 
-    // function getRandomColor() {
-    //     let letters = '89ABCDEF';
-    //     let color = '#';
-    //     for (let i = 0; i < 6; i++) {
-    //         color += letters[Math.floor(Math.random() * letters.length)];
-    //     }
-    //     return color;
-    // }
+                    if (filter.handler) filter.handler(filter.id);
+                });
+            });
+        }
 
-    // function getContrastColor(bgColor) {
-    //     let r = parseInt(bgColor.substr(1, 2), 16);
-    //     let g = parseInt(bgColor.substr(3, 2), 16);
-    //     let b = parseInt(bgColor.substr(5, 2), 16);
-    //     let brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    //     return brightness > 128 ? "#000000" : "#FFFFFF"
-    // }
+    };
 
     me.actionButton = function (parent, option) {
         let me = this;

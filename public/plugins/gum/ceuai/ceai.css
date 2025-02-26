@@ -30,6 +30,28 @@ ons-popover .popover{overflow-y: auto; max-height: 80%}
     background-position: 0px center;
 }
 
+.ai-topfilter-container {
+    position: relative;
+    z-index: 100000;
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    overflow-x: scroll !important; /* Paksa scrollbar muncul */
+    scrollbar-width: thin; /* Untuk Firefox */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling di Android */
+}
+
+/* Untuk browser berbasis WebKit (Chrome, Android WebView) */
+.ai-topfilter-container::-webkit-scrollbar {
+    height: 6px; /* Atur tinggi scrollbar */
+    background: rgba(0, 0, 0, 0.1); /* Warna latar belakang scrollbar */
+}
+
+.ai-topfilter-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.5); /* Warna scrollbar */
+    border-radius: 3px;
+}
+
 .ai-popup-list .popup-line{border-bottom: 1px solid #eeeeee}
 .ai-popup-list .ai-popup-item{padding: 0px 0px; border-bottom: 0px solid #ffffff}
 .ai-popup-list .ai-popup-item .popup-text{padding: 0px 5px;}
