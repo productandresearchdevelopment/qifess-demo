@@ -68,7 +68,7 @@ ons-popover .popover{overflow-y: auto; max-height: 80%}
 .ai-load-more{text-align: center; padding: 10px 10px 15px 10px; background: #efeff4}
 .ai-load-more .ai-load-more-icon{font-size: 20px !important; color: #333}
 
-.ai-list-node{padding: 5px 0px; background-color: #efeff4}
+.ai-list-node{padding: 70px 5px 0px;; background-color: #efeff4}
 .ai-list-node .ai-list-item{padding: 0px !important;}
 .ai-list-node .ai-list-item .center {padding: 0px !important;}
 .ai-list-node .ai-list-item .card {border-radius: 5px; margin: 7px 10px}
