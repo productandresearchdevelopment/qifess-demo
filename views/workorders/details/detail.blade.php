@@ -502,7 +502,7 @@
         attachmentAction.long = null;
         attachmentAction.actionDetails = "";
         attachmentAction.view_map = "";
-        console.log(attachmentAction, 'attachmentAction');
+        // console.log(attachmentAction, 'attachmentAction');
         return attachmentAction;
       }
 
@@ -549,7 +549,7 @@
                 method: 'POST',
                 data: formData,
                 success: function(response) {
-                    console.log(response, 'clicked reload');
+                    // console.log(response, 'clicked reload');
 
                     if (response.status == 206) {
                         Ext.example.msg('<span style="color: red">Hold!</span>', response.message);
