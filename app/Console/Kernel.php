@@ -7,12 +7,11 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    protected $commands = [
-    ];
+    protected $commands = [];
 
     protected function schedule(Schedule $schedule){
         $schedule->command('database:backup')->daily();
-        $schedule->command('clean:woongoing')->dailyAt(00:00);
+        $schedule->command('clean:woongoing')->dailyAt('00:00');
     }
 
     protected function commands()
