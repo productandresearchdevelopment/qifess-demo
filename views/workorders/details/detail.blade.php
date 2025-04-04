@@ -301,7 +301,7 @@
       dataTpl.last_action.duration_color = (dataTpl.duration_target < dataTpl.last_action.duration) ? 'DD0000' :
         '333333'
 
-      dataTpl.last_action.form_delete = dataTpl.last_action_status.type !== 0 ? String.format(
+      dataTpl.last_action.form_delete = dataTpl.last_action_status.type === 1 ? String.format(
         `<td width="10" style="padding-left: 10px; color: ${dataTpl.last_action.duration_color};">
           @if ($user->hasRoute('wo.delete.action'))
               <div type="btn" style="background:#CC0000; padding:4px 10px; color:#fff; font-weight:500; cursor:pointer; border-radius: 4px;" class="delete-last-action" id="delete-last-action-${dataTpl.last_action.id}">

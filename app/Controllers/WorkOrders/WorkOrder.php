@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Libraries\Query;
 use App\Models\WorkOrders\WorkOrder as Wo;
+use App\Models\WorkOrders\WorkOrderOngoing as WoOngoing;
 use App\Models\WorkOrders\Action;
 use App\Models\WorkOrders\ActionDetail;
 use App\Models\WorkOrders\Masters\StatusDetailOption;
@@ -85,7 +86,10 @@ class WorkOrder extends Controller
     public function data(Request $request, $archive = false)
     {
         $user = $request->user();
-        $query = Wo::with([
+
+        $query = $archive ? Wo::query() : WoOngoing::query();
+
+        $query->with([
             'site.service',
             'client',
             'removeSite',
@@ -110,22 +114,22 @@ class WorkOrder extends Controller
 
         $search = $request->input('query');
 
-        // FILTER ON GOING ---------------------------------------------------------------------------------------------
-        if ($archive) $query->whereNotNull('close_date');
-        else {
+        if ($archive) {
+            $query->whereNotNull('close_date');
+        } else {
             if ($request->input('activedOnly') == 1) {
                 $query->whereNull('close_date');
             } else if ($request->input('activedOnly') == 2) {
                 $query->where('close_date', '>', date('Y-m-d', strtotime('-1 days')));
             } else {
                 $query->where(function ($query) {
-                    $query->whereNull('close_date');
-                    $query->orWhere('close_date', '>', date('Y-m-d', strtotime('-1 days')));
+                    $query->whereNull('close_date')
+                        ->orWhere('close_date', '>', date('Y-m-d', strtotime('-1 days')));
                 });
             }
         }
 
-        // FILTER BY USER AUTH -----------------------------------------------------------------------------------------
+        // FILTER BY USER AUTH
         if ($ftr = $user->owners) $query->whereIn('owner_id', $ftr);
         if ($ftr = $user->activities) $query->whereIn('activity_id', $ftr);
         if ($ftr = $user->client_id) $query->where('client_id', $ftr);
@@ -135,7 +139,7 @@ class WorkOrder extends Controller
             $query->whereIn('vendor_id', $user->vendors->pluck('id')->toArray());
         }
 
-        // FILTER ------------------------------------------------------------------------------------------------------
+        // FILTER
         if ($ftr = $request->input('filter-status')) {
             $query->whereHas('lastAction', function ($query) use ($ftr) {
                 $query->where('status_id', $ftr);
@@ -152,17 +156,15 @@ class WorkOrder extends Controller
         }
         if ($ftr = $request->input('filter-hold')) {
             if ($ftr == 1) {
-                $query->where('is_hold',0); 
+                $query->where('is_hold', 0);
             } else if ($ftr == 2) {
-                $query->where('is_hold',1); 
-            } else{
-                $query->whereNull('is_hold'); 
+                $query->where('is_hold', 1);
+            } else {
+                $query->whereNull('is_hold');
             }
         }
 
-
-
-        // SEARCH ------------------------------------------------------------------------------------------------------
+        // SEARCH
         if ($search) {
             $query->where(function ($query) use ($search) {
                 $query->orWhereHas('site', function ($query) use ($search) {
@@ -177,7 +179,7 @@ class WorkOrder extends Controller
             });
         }
 
-        // DEFAULT SORT ------------------------------------------------------------------------------------------------
+        // DEFAULT SORT
         if (!$request->input('sort')) $query->orderBy('updated_at', 'DESC');
 
         return Query::open($query);
@@ -242,8 +244,9 @@ class WorkOrder extends Controller
     {
         DB::beginTransaction();
         try {
+            // Cari Work Order di kedua tabel
             $wo = Wo::find($woId);
-
+            $woOngoing = WoOngoing::where('no_wo', optional($wo)->no_wo)->first();
 
             if (!$wo) {
                 return response()->json(['success' => false, 'message' => 'Work Order not found']);
@@ -253,30 +256,32 @@ class WorkOrder extends Controller
                 return response()->json(['success' => false, 'message' => 'Ticket is Ready. Please continue ONT ACTIVATION.']);
             }
 
-            // Get the last action from the WO
-            // $action = $wo->actions()->latest()->first();
-            $action =  Action::where('id', $wo->last_action)->first();
-
+            // Ambil last_action dari WO
+            $action = Action::where('id', $wo->last_action)->first();
 
             if (!$action) {
                 return response()->json(['success' => false, 'message' => 'No action found for this Work Order']);
             }
 
-            // Prepare details for API call
+            // Siapkan detail untuk API
             $details = $this->getActionDetails($action);
             $apiResult = $this->hitExternalApi($wo, $action, $details);
-            // Handle API response
+
+            // Handle response API
             if ($apiResult->success) {
                 if ($apiResult->status == 200) {
                     $wo->update(['is_hold' => 0]);
+                    if ($woOngoing) {
+                        $woOngoing->update(['is_hold' => 0]);
+                    }
+
                     DB::commit();
                     return response()->json(['success' => true, 'message' => 'Ticket successfully continued', 'status' => 200]);
                 } elseif ($apiResult->status == 206) {
                     DB::commit();
                     return response()->json(['success' => true, 'message' => 'Hold, waiting for partner acknowledgment', 'status' => 206]);
-                }
-                else {
-                    return response()->json(['success' => false, 'message' => 'Unknown status ', 'status' => $apiResult->status]);
+                } else {
+                    return response()->json(['success' => false, 'message' => 'Unknown status', 'status' => $apiResult->status]);
                 }
             } else {
                 DB::rollback();
@@ -561,10 +566,8 @@ class WorkOrder extends Controller
             if (!$request->input('remove_site_id') && !$request->input('site_id')) return ['success' => false, 'message' => 'site_id OR remove_site_id Is Null'];
             if (!$request->input('activity_id')) return ['success' => false, 'message' => 'activity_id Is Null'];
             if (!$request->input('client_id')) return ['success' => false, 'message' => 'client_id Is Null'];
-            //if(!$request->input('service_id')) return ['success' => false, 'message' => 'service_id Is Null'];
-            //if(!$request->input('owner_id')) return ['success' => false, 'message' => 'owner_id Is Null'];
             if (!$request->input('description')) return ['success' => false, 'message' => 'description Is Null'];
-            //if(!$request->input('no_wo')) return ['success' => false, 'message' => 'no_wo Is Null'];
+
             if ($startDate && $fieldtechId && $slotId) {
                 if ($err = $this->fieldtechCheck($fieldtechId, $startDate, $slotId)) {
                     return ['success' => false, 'message' => 'Team already have installation ticket', 'data' => $err];
@@ -589,18 +592,35 @@ class WorkOrder extends Controller
                 'start_date' => $startDate,
                 'fieldtech_id' => $fieldtechId,
                 'expire_date' => $request->input('expire_date'),
+                'is_hold' => 0,
+                'close_date' => null,
+                'last_action' => null,
+                'created_by' => auth()->user()->id,
+                'updated_by' => auth()->user()->id
             ];
 
             if ($id) {
                 if ($wo = Wo::find($id)) {
                     $input['is_hold'] = $wo->is_hold;
 
+                    if (!isset($input['last_action'])) {
+                        $input['last_action'] = $wo->last_action;
+                    }
+
                     $wo->update($input);
-                    $actionId = $wo->actions()->first()->id;
-                } else return ['success' => false, 'message' => "Undefined WorkOrder"];
+                    $actionId = optional($wo->actions()->first())->id;
+
+                    $lastAction = $wo->last_action;
+
+                    WoOngoing::where('no_wo', $wo->no_wo)->update(array_merge($input, ['last_action' => $lastAction]));
+                } else {
+                    return ['success' => false, 'message' => "Undefined WorkOrder"];
+                }
             } else {
                 $wo = Wo::create($input);
                 $actionId = null;
+
+                WoOngoing::create(array_merge($input, ['last_action' => null]));
             }
 
             $status = Master\Status::getStatusOpen($input['activity_id']);
@@ -611,7 +631,6 @@ class WorkOrder extends Controller
                 "long" => $request->input('long')
             ];
 
-            // CREATE DETAIL ON API -----------------------------------------------------------------------------------
             if (!$details = $request->input('details')) {
                 $details = [];
                 if ($statusDetails = Master\StatusDetail::where('status_id', $status->id)->get()) {
@@ -626,17 +645,20 @@ class WorkOrder extends Controller
                 }
             }
 
-
             $action = $this->actionPush($wo, $inputAction, $details, $actionId);
 
             if (!is_array($action)) return ['success' => false, 'message' => $action];
             elseif (!$action['success']) return ['success' => false, 'message' => $action];
 
+            $wo->refresh();
+
+            WoOngoing::where('no_wo', $wo->no_wo)->update(['last_action' => $wo->last_action]);
+
             DB::commit();
             return ['success' => true, 'message' => 'Success...', 'data' => $wo];
         } catch (QueryException $error) {
             DB::rollback();
-            return ['success' => false, 'message' => '500 (Create WO)' . $error->getMessage()];
+            return ['success' => false, 'message' => '500 (Create WO) ' . $error->getMessage()];
         }
     }
 
@@ -655,18 +677,30 @@ class WorkOrder extends Controller
 
     public function pushAction(Request $request, $wo = null, $status = null)
     {
-        $user = $request->user();
-        $wo = Wo::find($wo);
-        $status = Master\Status::find($status);
+        DB::beginTransaction();
+        try {
+            $user = $request->user();
+            $wo = Wo::find($wo);
+            $status = Master\Status::find($status);
 
-        if($wo->lastAction->status->name == 'ACTIVATION' && $wo->is_hold == 1){
-            return [
-                'success' => false, 
-                'message' => "Hold, waiting from partner acknowledgements"
-            ];
-        }
+            if (!$wo || !$status) {
+                return [
+                    'success' => false,
+                    'message' => 'Work Order or Status not found'
+                ];
+            }
 
-        if (!$error = $this->actionValid($wo, $status, $user)) {
+            if ($wo->lastAction->status->name == 'ACTIVATION' && $wo->is_hold == 1) {
+                return [
+                    'success' => false,
+                    'message' => "Hold, waiting from partner acknowledgements"
+                ];
+            }
+
+            if ($error = $this->actionValid($wo, $status, $user)) {
+                return ['success' => false, 'message' => $error];
+            }
+
             $input = [
                 "status_id" => $status->id,
                 "note" => $request->input('note'),
@@ -674,10 +708,26 @@ class WorkOrder extends Controller
                 "long" => $request->input('long')
             ];
             $details = $request->input('details');
-            return $this->actionPush($wo, $input, $details);
-        }
 
-        return ['success' => false, 'message' => $error];
+            $actionResult = $this->actionPush($wo, $input, $details);
+
+            if (!is_array($actionResult) || !$actionResult['success']) {
+                DB::rollback();
+                return ['success' => false, 'message' => $actionResult];
+            }
+
+            WoOngoing::where('no_wo', $wo->no_wo)->update([
+                'last_action' => $wo->last_action,
+                'is_hold' => $wo->is_hold,
+                'close_date' => $wo->close_date
+            ]);
+
+            DB::commit();
+            return ['success' => true, 'message' => 'Action updated successfully'];
+        } catch (QueryException $error) {
+            DB::rollback();
+            return ['success' => false, 'message' => '500 (Push Action) ' . $error->getMessage()];
+        }
     }
 
     private function actionPush($wo, $input, $details, $id = null)
@@ -1376,6 +1426,7 @@ class WorkOrder extends Controller
         if ($wo = Wo::find($id)) {
             $laststs = $wo->lastAction->status_id;
             $status = Master\Status::whereIn('id', [1214, 2214, 3214, 4214, 5214, 6214, 7214])->get();
+
             foreach ($status as $sts) {
                 foreach ($sts->show_on as $sid) {
                     if ($sid == $laststs) {
@@ -1391,33 +1442,52 @@ class WorkOrder extends Controller
                         if (!Master\Slot::find($slot)) return ['success' => false, 'message' => 'slot_id not found'];
                         if (!Fieldtech::find($fieldtech)) return ['success' => false, 'message' => 'fieldtech_id not found'];
 
-                        $action = Action::create([
-                            'wo_id' => $wo->id,
-                            'status_id' => $sts->id,
-                            'note' => $notes,
-                        ]);
-
-                        foreach ($sts->details as $detail) {
-                            $value = null;
-                            if ($detail->property == 'fieldtech') $value = $fieldtech;
-                            else if ($detail->property == 'startdate') $value = $date;
-                            else if ($detail->property == 'slot') $value = $slot;
-
-                            ActionDetail::create([
-                                'action_id' => $action->id,
-                                'detail_id' => $detail->id,
-                                'value' => $value,
+                        DB::beginTransaction();
+                        try {
+                            $action = Action::create([
+                                'wo_id' => $wo->id,
+                                'status_id' => $sts->id,
+                                'note' => $notes,
                             ]);
+
+                            foreach ($sts->details as $detail) {
+                                $value = null;
+                                if ($detail->property == 'fieldtech') $value = $fieldtech;
+                                else if ($detail->property == 'startdate') $value = $date;
+                                else if ($detail->property == 'slot') $value = $slot;
+
+                                ActionDetail::create([
+                                    'action_id' => $action->id,
+                                    'detail_id' => $detail->id,
+                                    'value' => $value,
+                                ]);
+                            }
+
+                            // Update WO
+                            $wo->update([
+                                'last_action' => $action->id,
+                                'start_date' => $date,
+                                'slot_id' => $slot,
+                                'fieldtech_id' => $fieldtech,
+                            ]);
+
+                            // Update atau buat data di WO Ongoing
+                            $woOngoing = WoOngoing::updateOrCreate(
+                                ['no_wo' => $wo->no_wo], // Mencari berdasarkan no_wo
+                                [
+                                    'last_action' => $action->id,
+                                    'start_date' => $date,
+                                    'slot_id' => $slot,
+                                    'fieldtech_id' => $fieldtech,
+                                ]
+                            );
+
+                            DB::commit();
+                            return ['success' => true, 'message' => 'Success!'];
+                        } catch (Exception $e) {
+                            DB::rollback();
+                            return ['success' => false, 'message' => '500 ' . $e->getMessage()];
                         }
-
-                        $wo->update([
-                            'last_action' => $action->id,
-                            'start_date' => $date,
-                            'slot_id' => $slot,
-                            'fieldtech_id' => $fieldtech,
-                        ]);
-
-                        return ['success' => true, 'message' => 'Success!'];
                     }
                 }
             }
@@ -1426,34 +1496,6 @@ class WorkOrder extends Controller
         }
         return ['success' => false, 'message' => 'Undefined WO ID!'];
     }
-
-    // public function cancel(Request $request, $id = null)
-    // {
-    //     if ($wo = Wo::find($id)) {
-    //         $laststs = $wo->lastAction->status_id;
-    //         $status = Master\Status::whereIn('id', [1910, 2910, 3910, 4910, 5910, 6910, 7910])->get();
-    //         foreach ($status as $sts) {
-    //             foreach ($sts->show_on as $sid) {
-    //                 if ($sid == $laststs) {
-    //                     if (!$notes = $request->input('notes')) return ['success' => false, 'message' => 'notes is empty'];
-    //                     $action = Action::create([
-    //                         'wo_id' => $wo->id,
-    //                         'status_id' => $sts->id,
-    //                         'note' => $notes,
-    //                     ]);
-
-    //                     $wo->update([
-    //                         'last_action' => $action->id,
-    //                     ]);
-
-    //                     return ['success' => true, 'message' => 'Success!'];
-    //                 }
-    //             }
-    //         }
-    //         return ['success' => false, 'message' => 'Cancel not permitted!'];
-    //     }
-    //     return ['success' => false, 'message' => 'Undefined WO ID!'];
-    // }
 
     public function cancel(Request $request, $id = null)
     {
@@ -1476,17 +1518,35 @@ class WorkOrder extends Controller
                         return ['success' => false, 'message' => 'Notes is empty'];
                     }
 
-                    $action = Action::create([
-                        'wo_id' => $wo->id,
-                        'status_id' => $sts->id,
-                        'note' => $notes,
-                    ]);
+                    DB::beginTransaction();
+                    try {
+                        $action = Action::create([
+                            'wo_id' => $wo->id,
+                            'status_id' => $sts->id,
+                            'note' => $notes,
+                        ]);
 
-                    $wo->update([
-                        'last_action' => $action->id,
-                    ]);
+                        $updateData = [
+                            'last_action' => $action->id,
+                        ];
 
-                    return ['success' => true, 'message' => 'Success!'];
+                        if (!is_null($wo->close_date)) {
+                            $updateData['close_date'] = null;
+                        }
+
+                        $wo->update($updateData);
+
+                        $woOngoing = WoOngoing::updateOrCreate(
+                            ['no_wo' => $wo->no_wo],
+                            ['last_action' => $action->id, 'close_date' => $updateData['close_date'] ?? $wo->close_date]
+                        );
+
+                        DB::commit();
+                        return ['success' => true, 'message' => 'Success!'];
+                    } catch (Exception $e) {
+                        DB::rollback();
+                        return ['success' => false, 'message' => '500 ' . $e->getMessage()];
+                    }
                 }
             }
 
@@ -1500,15 +1560,35 @@ class WorkOrder extends Controller
     {
         if ($data = json_decode($request->data)) {
             $user = $request->user();
-            Wo::whereIn('id', $data)->update(['deleted_by' => $user->id, 'deleted_at' => date('Y-m-d H:i:s')]);
-            return ['success' => true, 'message' => 'Success!'];
+            $timestamp = date('Y-m-d H:i:s');
+
+            DB::beginTransaction();
+            try {
+                $woNumbers = Wo::whereIn('id', $data)->pluck('no_wo');
+
+                Wo::whereIn('id', $data)->update([
+                    'deleted_by' => $user->id,
+                    'deleted_at' => $timestamp
+                ]);
+
+                WoOngoing::whereIn('no_wo', $woNumbers)->update([
+                    'deleted_by' => $user->id,
+                    'deleted_at' => $timestamp
+                ]);
+
+                DB::commit();
+                return ['success' => true, 'message' => 'Success!'];
+            } catch (Exception $e) {
+                DB::rollback();
+                return ['success' => false, 'message' => '500 ' . $e->getMessage()];
+            }
         }
+
         return ['success' => false, 'message' => 'No Data!'];
     }
 
     public function deleteAction(Request $request, $id)
     {
-
         $action = Action::find($id);
 
         if ($action) {
@@ -1516,9 +1596,21 @@ class WorkOrder extends Controller
 
             try {
                 $workOrder = Wo::find($action->wo_id);
+                $woOngoing = WoOngoing::where('no_wo', optional($workOrder)->no_wo)->first();
 
                 if ($workOrder && $workOrder->is_hold == 1) {
                     $workOrder->update(['is_hold' => 0]);
+                    if ($woOngoing) {
+                        $woOngoing->update(['is_hold' => 0]);
+                    }
+                }
+
+                if ($workOrder && $workOrder->close_date) {
+                    $workOrder->update(['close_date' => null]);
+                }
+
+                if ($woOngoing && $woOngoing->close_date) {
+                    $woOngoing->update(['close_date' => null]);
                 }
 
                 Action::where('wo_id', $action->wo_id)
@@ -1528,6 +1620,9 @@ class WorkOrder extends Controller
 
                 if ($workOrder) {
                     $workOrder->updateLastAction();
+                    if ($woOngoing) {
+                        $woOngoing->update(['last_action' => $workOrder->last_action]);
+                    }
                 }
 
                 DB::commit();
@@ -1597,6 +1692,13 @@ class WorkOrder extends Controller
                             $wo->update([
                                 'last_action' => $action->id,
                             ]);
+
+                            WoOngoing::updateOrCreate(
+                                ['no_wo' => $wo->no_wo],
+                                [
+                                    'last_action' => $action->id,
+                                ]
+                            );
 
                             DB::commit();
                             return ['success' => true, 'message' => 'Success!'];
