@@ -13,7 +13,7 @@ class CleanWoOngoing extends Command
 
     public function handle()
     {
-        Log::info('clean:woongoing dijalankan pada ' . now());
+        // Log::info('clean:woongoing dijalankan pada ' . now());
 
         $workOrders = WorkOrderOngoing::whereNotNull('close_date')->get();
 
@@ -24,6 +24,6 @@ class CleanWoOngoing extends Command
         }
 
         $this->info("Data close_date not null sebanyak {$count} telah dihapus dari WoOngoing.");
-        Log::info("clean:woongoing menghapus {$count} data pada " . now());
+        // Log::info("clean:woongoing menghapus {$count} data pada " . now());
     }
 }
