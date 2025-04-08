@@ -246,7 +246,7 @@ class WorkOrder extends Controller
         try {
             // Cari Work Order di kedua tabel
             $wo = Wo::find($woId);
-            $woOngoing = WoOngoing::where('no_wo', optional($wo)->no_wo)->first();
+            $woOngoing = WoOngoing::where('wo_id', $wo->id)->first();
 
             if (!$wo) {
                 return response()->json(['success' => false, 'message' => 'Work Order not found']);
@@ -563,7 +563,8 @@ class WorkOrder extends Controller
             $slotId = $request->input('slot_id');
             $activityId = $request->input('activity_id');
 
-            if (!$request->input('remove_site_id') && !$request->input('site_id')) return ['success' => false, 'message' => 'site_id OR remove_site_id Is Null'];
+            if (!$request->input('remove_site_id') && !$request->input('site_id'))
+                return ['success' => false, 'message' => 'site_id OR remove_site_id Is Null'];
             if (!$request->input('activity_id')) return ['success' => false, 'message' => 'activity_id Is Null'];
             if (!$request->input('client_id')) return ['success' => false, 'message' => 'client_id Is Null'];
             if (!$request->input('description')) return ['success' => false, 'message' => 'description Is Null'];
@@ -609,10 +610,12 @@ class WorkOrder extends Controller
 
                     $wo->update($input);
                     $actionId = optional($wo->actions()->first())->id;
-
                     $lastAction = $wo->last_action;
 
-                    WoOngoing::where('no_wo', $wo->no_wo)->update(array_merge($input, ['last_action' => $lastAction]));
+                    WoOngoing::where('wo_id', $wo->id)
+                        ->update(array_merge($input, [
+                            'last_action' => $lastAction
+                        ]));
                 } else {
                     return ['success' => false, 'message' => "Undefined WorkOrder"];
                 }
@@ -620,7 +623,10 @@ class WorkOrder extends Controller
                 $wo = Wo::create($input);
                 $actionId = null;
 
-                WoOngoing::create(array_merge($input, ['last_action' => null]));
+                WoOngoing::create(array_merge($input, [
+                    'last_action' => null,
+                    'wo_id' => $wo->id
+                ]));
             }
 
             $status = Master\Status::getStatusOpen($input['activity_id']);
@@ -652,11 +658,11 @@ class WorkOrder extends Controller
 
             $wo->refresh();
 
-            WoOngoing::where('no_wo', $wo->no_wo)->update(['last_action' => $wo->last_action]);
+            WoOngoing::where('wo_id', $wo->id)->update(['last_action' => $wo->last_action]);
 
             DB::commit();
 
-            // ubah id menjadi string
+            //ubah id menjadi string
             $wo->id = (string) $wo->id;
 
             return ['success' => true, 'message' => 'Success...', 'data' => $wo];
@@ -720,7 +726,7 @@ class WorkOrder extends Controller
                 return ['success' => false, 'message' => $actionResult];
             }
 
-            WoOngoing::where('no_wo', $wo->no_wo)->update([
+            WoOngoing::where('wo_id', $wo->id)->update([
                 'last_action' => $wo->last_action,
                 'is_hold' => $wo->is_hold,
                 'close_date' => $wo->close_date
@@ -1454,6 +1460,8 @@ class WorkOrder extends Controller
                                 'note' => $notes,
                             ]);
 
+                            // dd($sts->details);
+
                             foreach ($sts->details as $detail) {
                                 $value = null;
                                 if ($detail->property == 'fieldtech') $value = $fieldtech;
@@ -1467,6 +1475,7 @@ class WorkOrder extends Controller
                                 ]);
                             }
 
+
                             // Update WO
                             $wo->update([
                                 'last_action' => $action->id,
@@ -1476,8 +1485,8 @@ class WorkOrder extends Controller
                             ]);
 
                             // Update atau buat data di WO Ongoing
-                            $woOngoing = WoOngoing::updateOrCreate(
-                                ['no_wo' => $wo->no_wo], // Mencari berdasarkan no_wo
+                            WoOngoing::updateOrCreate(
+                                ['wo_id' => $wo->id],
                                 [
                                     'last_action' => $action->id,
                                     'start_date' => $date,
@@ -1540,8 +1549,8 @@ class WorkOrder extends Controller
 
                         $wo->update($updateData);
 
-                        $woOngoing = WoOngoing::updateOrCreate(
-                            ['no_wo' => $wo->no_wo],
+                        WoOngoing::updateOrCreate(
+                            ['wo_id' => $wo->id],
                             ['last_action' => $action->id, 'close_date' => $updateData['close_date'] ?? $wo->close_date]
                         );
 
@@ -1568,14 +1577,14 @@ class WorkOrder extends Controller
 
             DB::beginTransaction();
             try {
-                $woNumbers = Wo::whereIn('id', $data)->pluck('no_wo');
-
+                // Update di tabel utama (po_wo)
                 Wo::whereIn('id', $data)->update([
                     'deleted_by' => $user->id,
                     'deleted_at' => $timestamp
                 ]);
 
-                WoOngoing::whereIn('no_wo', $woNumbers)->update([
+                // Update di tabel mirror (wo_ongoing) berdasarkan wo_id
+                WoOngoing::whereIn('wo_id', $data)->update([
                     'deleted_by' => $user->id,
                     'deleted_at' => $timestamp
                 ]);
@@ -1600,7 +1609,7 @@ class WorkOrder extends Controller
 
             try {
                 $workOrder = Wo::find($action->wo_id);
-                $woOngoing = WoOngoing::where('no_wo', optional($workOrder)->no_wo)->first();
+                $woOngoing = WoOngoing::where('wo_id', $action->wo_id)->first();
 
                 if ($workOrder && $workOrder->is_hold == 1) {
                     $workOrder->update(['is_hold' => 0]);
@@ -1698,7 +1707,7 @@ class WorkOrder extends Controller
                             ]);
 
                             WoOngoing::updateOrCreate(
-                                ['no_wo' => $wo->no_wo],
+                                ['wo_id' => $wo->id],
                                 [
                                     'last_action' => $action->id,
                                 ]
