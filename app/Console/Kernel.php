@@ -10,7 +10,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [];
 
     protected function schedule(Schedule $schedule){
-        $schedule->command('database:backup')->daily();
+        // $schedule->command('database:backup')->daily();
         $schedule->command('clean:woongoing')->dailyAt('02:00');
     }
 
