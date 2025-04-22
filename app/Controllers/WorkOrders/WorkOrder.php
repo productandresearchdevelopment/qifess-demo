@@ -1549,10 +1549,18 @@ class WorkOrder extends Controller
 
                         $wo->update($updateData);
 
-                        WoOngoing::updateOrCreate(
-                            ['wo_id' => $wo->id],
-                            ['last_action' => $action->id, 'close_date' => $updateData['close_date'] ?? $wo->close_date]
-                        );
+                        // WoOngoing::updateOrCreate(
+                        //     ['wo_id' => $wo->id],
+                        //     ['last_action' => $action->id, 'close_date' => $updateData['close_date'] ?? $wo->close_date]
+                        // );
+
+                        $ongoing = WoOngoing::where('wo_id', $wo->id)->first();
+                        if ($ongoing) {
+                            $ongoing->update([
+                                'last_action' => $action->id,
+                                'close_date' => $updateData['close_date'] ?? $wo->close_date,
+                            ]);
+                        }
 
                         DB::commit();
                         return ['success' => true, 'message' => 'Success!'];
