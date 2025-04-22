@@ -1485,15 +1485,16 @@ class WorkOrder extends Controller
                             ]);
 
                             // Update atau buat data di WO Ongoing
-                            WoOngoing::updateOrCreate(
-                                ['wo_id' => $wo->id],
-                                [
+                            $woOngoing = WoOngoing::where('wo_id', $wo->id)->first();
+
+                            if ($woOngoing) {
+                                $woOngoing->update([
                                     'last_action' => $action->id,
                                     'start_date' => $date,
                                     'slot_id' => $slot,
                                     'fieldtech_id' => $fieldtech,
-                                ]
-                            );
+                                ]);
+                            }
 
                             DB::commit();
                             return ['success' => true, 'message' => 'Success!'];
@@ -1714,12 +1715,23 @@ class WorkOrder extends Controller
                                 'last_action' => $action->id,
                             ]);
 
-                            WoOngoing::updateOrCreate(
-                                ['wo_id' => $wo->id],
-                                [
+                            // WoOngoing::updateOrCreate(
+                            //     ['wo_id' => $wo->id],
+                            //     [
+                            //         'last_action' => $action->id,
+                            //     ]
+                            // );
+
+                            $woOngoing = WoOngoing::where('wo_id', $wo->id)->first();
+
+                            if ($woOngoing) {
+                                $woOngoing->update([
                                     'last_action' => $action->id,
-                                ]
-                            );
+                                ]);
+                            } else {
+                                DB::rollback();
+                                return ['success' => false, 'message' => 'WO Ongoing not found for update'];
+                            }
 
                             DB::commit();
                             return ['success' => true, 'message' => 'Success!'];
