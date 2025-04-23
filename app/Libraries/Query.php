@@ -4,7 +4,7 @@ namespace App\Libraries;
 use Illuminate\Support\Facades\DB;
 
 class Query{
-    public static function open($query, $searchfield = null, $withCounter = true, $take=false) {
+    public static function open($query, $searchfield = null, $withCounter = true, $take=false, $exactFields = []) {
         $request = app('request');
         $search  = $request->input('query') ? $request->input('query') : ($request->input('q') ? $request->input('q') : null);
         $sort    = $request->input('sort');
@@ -20,19 +20,23 @@ class Query{
 
         if($searchfield && count($searchfield)){
             if($search){
-                $query->where(function($query) use ($search, $searchfield){
+                $query->where(function($query) use ($search, $searchfield,$exactFields){
                     foreach ($searchfield as $field) {
                         $relation = explode('.', $field);
-                        if(count($relation) > 1){
-                            $query->orWhereHas(count($relation)>2?$relation[0].'.'.$relation[1]:$relation[0], function($q) use ($search, $relation){
-                                $q->where(end($relation), 'LIKE', '%'.$search.'%');
-                            });
-                        }
-                        else{
-                            if($field == 'id') {
-                                $query->orWhere($field, $search);
-                            }
-                            else $query->orWhere($field, 'LIKE', '%'.$search.'%');
+                        $isExact = in_array($field, $exactFields);
+                        $operator = $isExact ? '=' : 'LIKE';
+                        $value = $isExact ? $search : '%' . $search . '%';
+
+                        if (count($relation) > 1) {
+                            $query->orWhereHas(
+                                count($relation) > 2 ? $relation[0] . '.' . $relation[1] : $relation[0],
+                                function ($q) use ($value, $operator, $relation) {
+                                    $q->where(end($relation), $operator, $value);
+                                }
+                            );
+                        } else {
+                            if ($field == 'id') $query->orWhere($field, $search);
+                            else $query->orWhere($field, $operator, $value);
                         }
                     }
                 });

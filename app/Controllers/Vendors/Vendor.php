@@ -38,6 +38,7 @@ class Vendor extends Controller
     public function data(Request $request, $counter = true)
     {
         $search = ['name', 'address'];
+        $exactFields = ['name'];
         $query = Mod::with(['files']);
         $query->withCount(['workorders']);
         $query->withCount(['fieldteches']);
@@ -45,7 +46,7 @@ class Vendor extends Controller
         if (!$request->trash) $query->withTrashed();
         if ($request->trash == 2) $query->onlyTrashed();
 
-        return Query::open($query, $search, $counter);
+        return Query::open($query, $search, $counter, false, $exactFields);
     }
 
     public function push(Request $request, $id = null)
