@@ -151,5 +151,13 @@ Route::group(['middleware' => ['auth', 'roles']], function () {
         Route::get('/', 'Dashboards\Dashboard@index')->name('dashboard');
     });
 
-    
+    Route::group(['prefix' => 'maps'], function () {
+        Route::get('/', 'Maps\Map@index')->name('map');
+        Route::get('/wo/{site_id}', 'Maps\Map@getWorkOrders')->name('map.workorders');
+        Route::get('/sites', 'Maps\Map@getSites')->name('map.sites');
+        Route::get('/summary', 'Maps\Map@summary')->name('map.summary');
+        Route::get('/summary/site/{site_id}', 'Maps\Map@siteSummary')->name('map.summary.site');
+        Route::get('/export/excel', 'Maps\Map@exportExcel')->name('map.export.excel');
+        Route::get('/export/raw/excel', 'Maps\Map@exportRawExcel')->name('map.export.raw.excel');
+    });
 });
