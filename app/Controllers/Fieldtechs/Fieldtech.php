@@ -207,17 +207,12 @@ class Fieldtech extends Controller
                     return $e ? $e : '-';
                 }
             ],
-            [
-                'text' => 'FIELDTECH',
-                'columns' => [
-                    ['text' => 'SATU', 'dataIndex' => 'fieldtech1', 'width' => 200, 'renderer' => function ($e) {
-                        return $e ? $e : '-';
-                    }],
-                    ['text' => 'DUA', 'dataIndex' => 'fieldtech2', 'width' => 200, 'renderer' => function ($e) {
-                        return $e ? $e : '-';
-                    }],
-                ]
-            ],
+            ['text' => 'FIELDTECH SATU', 'dataIndex' => 'fieldtech1', 'width' => 200, 'renderer' => function ($e) {
+                return $e ? $e : '-';
+            }],
+            ['text' => 'FIELDTECH DUA', 'dataIndex' => 'fieldtech2', 'width' => 200, 'renderer' => function ($e) {
+                return $e ? $e : '-';
+            }],
             [
                 'text' => 'VENDOR NAME',
                 'dataIndex' => 'vendor_name',
@@ -238,7 +233,7 @@ class Fieldtech extends Controller
         ];
 
         $params = [
-            'title' => $title,
+            // 'title' => $title,
             'columns' => $columns,
             'data' => $data,
             'filename' => 'Team' . '-' . date('YmdHi'),

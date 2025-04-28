@@ -216,14 +216,9 @@ class Site extends Controller
                 }
             ],
             ['text' => 'NAME', 'dataIndex' => 'name', 'width' => 200],
-            [
-                'text' => 'PIC',
-                'columns' => [
-                    ['text' => 'NAME', 'dataIndex' => 'name', 'width' => 220],
-                    ['text' => 'PHONE', 'dataIndex' => 'pic_phone', 'width' => 120],
-                    ['text' => 'EMAIL', 'dataIndex' => 'pic_email', 'width' => 180],
-                ]
-            ],
+            ['text' => 'PIC NAME', 'dataIndex' => 'name', 'width' => 220],
+            ['text' => 'PIC PHONE', 'dataIndex' => 'pic_phone', 'width' => 120],
+            ['text' => 'PIC EMAIL', 'dataIndex' => 'pic_email', 'width' => 180],
             [
                 'text' => 'STATUS',
                 'dataIndex' => 'is_active',
@@ -239,7 +234,7 @@ class Site extends Controller
         ];
 
         $params = array(
-            'title' => $title,
+            // 'title' => $title,
             'columns' => $columns,
             'data' => $data,
             'filename' => 'Site' . '-' . date('YmdHi'),

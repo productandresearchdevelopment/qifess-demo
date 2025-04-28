@@ -167,7 +167,7 @@ class Client extends Controller
         ];
 
         $params = [
-            'title' => $title,
+            // 'title' => $title,
             'columns' => $columns,
             'data' => $data,
             'filename' => 'Client' . '-' . date('YmdHi'),

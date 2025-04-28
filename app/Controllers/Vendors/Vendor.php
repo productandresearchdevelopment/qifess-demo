@@ -171,7 +171,7 @@ class Vendor extends Controller
         ];
 
         $params = [
-            'title' => $title,
+            // 'title' => $title,
             'columns' => $columns,
             'data' => $data,
             'filename' => 'Area' . '-' . date('YmdHi'),

@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Log;
 
 class WorkOrder extends Controller
 {
-     public function __construct()
+    public function __construct()
     {
         set_time_limit(120); // Set time limit to 2 minutes
     }
@@ -417,21 +417,21 @@ class WorkOrder extends Controller
 
         // Hit API
         $response = Curl::to($urlPush)
-        ->withData($data)
-        ->withTimeout(120)
-        ->withBearer($token)
-        ->asJson()
-        ->returnResponseObject()
-        ->post();
+            ->withData($data)
+            ->withTimeout(120)
+            ->withBearer($token)
+            ->asJson()
+            ->returnResponseObject()
+            ->post();
 
-       
+
 
         // Tangani respons API
         if ($response->status === 0) {
             $result->message = "Connection to the API timed out. Please try again";
-            $result->status = 500; 
+            $result->status = 500;
             Log::info('No response from API', ['data' => $data]);
-        }elseif ($response->status >= 200 && $response->status <= 490) {
+        } elseif ($response->status >= 200 && $response->status <= 490) {
             if ($content = $response->content) {
                 if (isset($content->statusCode)) {
                     if ($response->status == 200) {
@@ -451,22 +451,20 @@ class WorkOrder extends Controller
                         //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
 
                         $returnMessage = 'Unknown error';
-                        if($responseArray && is_array($responseArray)){
-                            if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+                        if ($responseArray && is_array($responseArray)) {
+                            if (isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])) {
                                 $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                            } else {
+                                Log::info("Cek Response Status Return Message (RELOAD) Mobile: " .
+                                    (isset($responseArray['content']['returnMessage'])
+                                        ? $responseArray['content']['returnMessage']
+                                        : 'returnMessage not found'));
+                                Log::info("Cek Response Status Status Code (RELOAD) Mobile: " .
+                                    (isset($responseArray['content']['statusCode'])
+                                        ? $responseArray['content']['statusCode']
+                                        : 'statusCode not found'));
                             }
-                            else {
-                                Log::info("Cek Response Status Return Message (RELOAD) Mobile: " . 
-                                (isset($responseArray['content']['returnMessage']) 
-                                    ? $responseArray['content']['returnMessage'] 
-                                    : 'returnMessage not found'));
-                                Log::info("Cek Response Status Status Code (RELOAD) Mobile: " . 
-                                (isset($responseArray['content']['statusCode']) 
-                                    ? $responseArray['content']['statusCode'] 
-                                    : 'statusCode not found'));
-                            }
-                        }
-                        else {
+                        } else {
                             Log::info("Cek Response RELOAD Mobile" . json_encode($responseArray));
                         }
 
@@ -483,22 +481,20 @@ class WorkOrder extends Controller
                 //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
 
                 $returnMessage = 'Unknown error';
-                if($responseArray && is_array($responseArray)){
-                    if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+                if ($responseArray && is_array($responseArray)) {
+                    if (isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])) {
                         $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                    } else {
+                        Log::info("Cek Response Status Return Message (RELOAD) Mobile : " .
+                            (isset($responseArray['content']['returnMessage'])
+                                ? $responseArray['content']['returnMessage']
+                                : 'returnMessage not found'));
+                        Log::info("Cek Response Status Status Code (RELOAD) Mobile : " .
+                            (isset($responseArray['content']['statusCode'])
+                                ? $responseArray['content']['statusCode']
+                                : 'statusCode not found'));
                     }
-                    else {
-                        Log::info("Cek Response Status Return Message (RELOAD) Mobile : " . 
-                        (isset($responseArray['content']['returnMessage']) 
-                            ? $responseArray['content']['returnMessage'] 
-                            : 'returnMessage not found'));
-                        Log::info("Cek Response Status Status Code (RELOAD) Mobile : " . 
-                        (isset($responseArray['content']['statusCode']) 
-                            ? $responseArray['content']['statusCode'] 
-                            : 'statusCode not found'));
-                    }
-                }
-                else {
+                } else {
                     Log::info("Cek Response RELOAD Mobile (Tidak ada response array)" . json_encode($responseArray));
                 }
 
@@ -515,26 +511,24 @@ class WorkOrder extends Controller
             //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
 
             $returnMessage = 'Unknown error';
-            if($responseArray && is_array($responseArray)){
-                if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+            if ($responseArray && is_array($responseArray)) {
+                if (isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])) {
                     $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                } else {
+                    Log::info("Cek Response Status Return Message (RELOAD) SELAIN STATUS 200-490 : " .
+                        (isset($responseArray['content']['returnMessage'])
+                            ? $responseArray['content']['returnMessage']
+                            : 'returnMessage not found'));
+                    Log::info("Cek Response Status Status Code (RELOAD) SELAIN STATUS 200-490 : " .
+                        (isset($responseArray['content']['statusCode'])
+                            ? $responseArray['content']['statusCode']
+                            : 'statusCode not found'));
                 }
-                else {
-                    Log::info("Cek Response Status Return Message (RELOAD) SELAIN STATUS 200-490 : " . 
-                    (isset($responseArray['content']['returnMessage']) 
-                        ? $responseArray['content']['returnMessage'] 
-                        : 'returnMessage not found'));
-                    Log::info("Cek Response Status Status Code (RELOAD) SELAIN STATUS 200-490 : " . 
-                    (isset($responseArray['content']['statusCode']) 
-                        ? $responseArray['content']['statusCode'] 
-                        : 'statusCode not found'));
-                }
-            }
-            else {
+            } else {
                 Log::info("Cek Response RELOAD (SELAIN STATUS 200-490 & TIDAK ADA RESPON ARRAY)" . json_encode($responseArray));
             }
-            
-            
+
+
             $result->message = $returnMessage;
             $result->status = $response->status ?? 500;
         }
@@ -752,10 +746,8 @@ class WorkOrder extends Controller
                 if ($id) {
                     if ($action = Action::find($id)) {
                         $action->update($input);
-                    } 
-                    else return "Undefined Action Id";
-                } 
-                else {
+                    } else return "Undefined Action Id";
+                } else {
                     $action = Action::create($input);
                     $wo->update(['last_action' => $action->id]);
                 }
@@ -764,7 +756,7 @@ class WorkOrder extends Controller
                     DB::rollback();
                     return $pushdetail;
                 }
-                
+
                 if ($wo->is_hold != 1) {
                     $wo->update(['is_hold' => 0]);
                 }
@@ -777,10 +769,10 @@ class WorkOrder extends Controller
 
                 if (strtoupper(substr($wo->no_wo, 0, 2)) == 'OH') {
                     if (in_array($wo->activity->name, ['INSTALLATION', 'SERVICE UPDATE', 'RELOCATION', 'DEVICE MOVING', 'TERMINATION'])) {
-                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION','ACTIVATION', 'POST ACTIVATION', 'TESTING', 'ADDITIONAL MATERIAL'])) {
+                        if (in_array($action->status->name, ['PREPARATION', 'IN PROGRESS', 'ARRIVED', 'INSTALLATION', 'ACTIVATION', 'POST ACTIVATION', 'TESTING', 'ADDITIONAL MATERIAL'])) {
                             if ($pushapi = $this->pushApi($wo, $action, $details)) {
-                                if($pushapi->success && ($pushapi->status == 200 || $pushapi->status == 206)){
-                                    if($pushapi->status == 206 && $action->status->name == 'ACTIVATION') $wo->update(['is_hold' => 1]);
+                                if ($pushapi->success && ($pushapi->status == 200 || $pushapi->status == 206)) {
+                                    if ($pushapi->status == 206 && $action->status->name == 'ACTIVATION') $wo->update(['is_hold' => 1]);
                                     else $wo->update(['is_hold' => 0]);
 
                                     DB::commit();
@@ -994,7 +986,7 @@ class WorkOrder extends Controller
                 // else if (strtoupper($act->status->name) == 'POST ACTIVATION') {
                 //     if (strtolower($extra->detail->name) == 'kelebihan kabel dw') $additionalDropCable = $extra->value;
                 //     else if (strtolower($extra->detail->name) == 'kelebihan kabel utp') $additionalUTP = $extra->value;
-                // } 
+                // }
             }
         }
 
@@ -1083,12 +1075,12 @@ class WorkOrder extends Controller
             ->returnResponseObject()
             ->post();
 
-        
+
         if ($response->status === 0) {
             $result->message = "Connection to the API timed out. Please try again";
-            $result->status = 500; 
+            $result->status = 500;
             Log::info('No response from API', ['data' => $data]);
-        }elseif ($response->status >= 200 && $response->status <= 490) {
+        } elseif ($response->status >= 200 && $response->status <= 490) {
             if ($content = $response->content) {
                 if (isset($content->statusCode)) {
                     if ($response->status == 200 || ($response->status == 206 && $action->status->name != "ACTIVATION")) {
@@ -1109,35 +1101,33 @@ class WorkOrder extends Controller
                         //     = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
 
                         $returnMessage = 'Unknown error';
-                        if($responseArray && is_array($responseArray)){
-                            if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+                        if ($responseArray && is_array($responseArray)) {
+                            if (isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])) {
                                 $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                            } else {
+                                Log::info("Cek Response Status Return Message FC PushApi: " .
+                                    (isset($responseArray['content']['returnMessage'])
+                                        ? $responseArray['content']['returnMessage']
+                                        : 'returnMessage not found'));
+                                Log::info("Cek Response Status Status Code FC PushApi: " .
+                                    (isset($responseArray['content']['statusCode'])
+                                        ? $responseArray['content']['statusCode']
+                                        : 'statusCode not found'));
                             }
-                            else {
-                                Log::info("Cek Response Status Return Message FC PushApi: " . 
-                                (isset($responseArray['content']['returnMessage']) 
-                                    ? $responseArray['content']['returnMessage'] 
-                                    : 'returnMessage not found'));
-                                Log::info("Cek Response Status Status Code FC PushApi: " . 
-                                (isset($responseArray['content']['statusCode']) 
-                                    ? $responseArray['content']['statusCode'] 
-                                    : 'statusCode not found'));
-                            }
-                        }
-                        else {
+                        } else {
                             Log::info("Cek Response FC PushApi tidak ada respon array" . json_encode($responseArray));
                         }
-                    
+
                         $result->message = 'Error API engineer status response failed: ' . $returnMessage;
 
-                        
+
                         $result->status = $response->status ?? 500;
                         $result->data = [
                             'url' => $urlPush,
                             'dataPush' => $data,
                             'response' => (array) $content,
                         ];
-                        
+
                         Log::info("Cek result Message: " . $result->message . ", Status: " . ($result->status ?? 'Unknown'));
                         Log::info("Cek Response Array : " . json_encode($responseArray));
                     }
@@ -1149,29 +1139,26 @@ class WorkOrder extends Controller
                 $result->message = "Error: API response is null";
                 $result->status = $response->status ?? 500;
             }
-        } 
-        else {
+        } else {
             // Only return the error message if available
             $responseContent = json_encode($response);
             $responseArray = json_decode($responseContent, true);
 
             $returnMessage = 'Unknown error';
-            if($responseArray && is_array($responseArray)){
-                if(isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])){
+            if ($responseArray && is_array($responseArray)) {
+                if (isset($responseArray['content']['returnMessage']) && isset($responseArray['content']['statusCode'])) {
                     $returnMessage = $responseArray['content']['returnMessage'] . ", Status Code: " . $responseArray['content']['statusCode'] ?? 'Unknown error';
+                } else {
+                    Log::info("Cek Response Status Return Message: " .
+                        (isset($responseArray['content']['returnMessage'])
+                            ? $responseArray['content']['returnMessage']
+                            : 'returnMessage not found'));
+                    Log::info("Cek Response Status Status Code: " .
+                        (isset($responseArray['content']['statusCode'])
+                            ? $responseArray['content']['statusCode']
+                            : 'statusCode not found'));
                 }
-                else {
-                    Log::info("Cek Response Status Return Message: " . 
-                    (isset($responseArray['content']['returnMessage']) 
-                        ? $responseArray['content']['returnMessage'] 
-                        : 'returnMessage not found'));
-                    Log::info("Cek Response Status Status Code: " . 
-                    (isset($responseArray['content']['statusCode']) 
-                        ? $responseArray['content']['statusCode'] 
-                        : 'statusCode not found'));
-                }
-            }
-            else {
+            } else {
                 Log::info("Cek Response" . json_encode($responseArray));
             }
             $result->message = $returnMessage;
@@ -1826,7 +1813,7 @@ class WorkOrder extends Controller
         if ($request->input('archive')) {
             $query[] = "(A.close_date IS NOT NULL)";
             array_push($titles, ['Archive Data', 'h4']);
-        }elseif ($request->input('filter-hold') === "2") {
+        } elseif ($request->input('filter-hold') === "2") {
             array_push($titles, ['Data Is Hold', 'h4']);
         } else {
             $mindate = date('Y-m-d', strtotime('-0 days'));
@@ -1952,38 +1939,18 @@ class WorkOrder extends Controller
             ["text" => "SERVICE", "dataIndex" => "service_name", "width" => 100, "align" => "center"],
             ["text" => "ACTIVITY", "dataIndex" => "activity_name", "width" => 150, "align" => "center"],
             ["text" => "CLIENT", "dataIndex" => "client_name", "width" => 150],
-            [
-                "text" => "SITE",
-                "columns" => [
-                    ["text" => "SITE", "dataIndex" => "site_name", "width" => 200],
-                    ["text" => "ADDRESS", "dataIndex" => "site_address", "width" => 250],
-                    ["text" => "PHONE", "dataIndex" => "site_phone", "width" => 150],
-                ]
-            ],
+            ["text" => "SITE", "dataIndex" => "site_name", "width" => 200],
+            ["text" => "SITE ADDRESS", "dataIndex" => "site_address", "width" => 250],
+            ["text" => "SITE PHONE", "dataIndex" => "site_phone", "width" => 150],
             ["text" => "AREA", "dataIndex" => "vendor_name", "width" => 200],
             ["text" => "TEAM", "dataIndex" => "fieldtech_name", "width" => 250],
             ["text" => "DURATION (DAY)", "dataIndex" => "duration", "align" => "center", "width" => 100, 'type' => 'int'],
-            [
-                "text" => "BOOKING",
-                "columns" => [
-                    ["text" => "DATE", "dataIndex" => "start_date", "type" => "date", "align" => "center", "width" => 100],
-                    ["text" => "SLOT", "dataIndex" => "slot", "align" => "center", "width" => 150],
-                ]
-            ],
-            [
-                "text" => "CREATED",
-                "columns" => [
-                    ["text" => "CREATED BY", "dataIndex" => "created_by_name", "width" => 200],
-                    ["text" => "DATE", "dataIndex" => "created_at", "type" => "date", "align" => "center", "width" => 100]
-                ]
-            ],
-            [
-                "text" => "LAST STATUS",
-                "columns" => [
-                    ["text" => "STATUS", "dataIndex" => "status_name", "width" => 200],
-                    ["text" => "DATE", "dataIndex" => "lastupdate_at", "type" => "date", "align" => "center", "width" => 100]
-                ]
-            ],
+            ["text" => "BOOKING DATE", "dataIndex" => "start_date", "type" => "date", "align" => "center", "width" => 100],
+            ["text" => "BOOKING SLOT", "dataIndex" => "slot", "align" => "center", "width" => 150],
+            ["text" => "CREATED BY", "dataIndex" => "created_by_name", "width" => 200],
+            ["text" => "CREATED DATE", "dataIndex" => "created_at", "type" => "date", "align" => "center", "width" => 100],
+            ["text" => "LAST STATUS", "dataIndex" => "status_name", "width" => 200],
+            ["text" => "LAST STATUS DATE", "dataIndex" => "lastupdate_at", "type" => "date", "align" => "center", "width" => 100],
             [
                 "text" => "TOTAL STB",
                 "dataIndex" => "total_stb",
@@ -2004,7 +1971,7 @@ class WorkOrder extends Controller
 
         $footers = ['Total Count: ' . count($data) . ' Row', ' ', 'Asianet', 'Downloaded (QFEST)` (' . date('d F Y H:i:s') . ')'];
         $params = array(
-            'title' => $titles,
+            // 'title' => $titles,
             'columns' => $columns,
             'filename' => 'WO ' . date("YmdHis"),
             'data' => $data,
@@ -2100,7 +2067,7 @@ class WorkOrder extends Controller
                                 $params['ispCustomerId'] = $detail->value;
                             }
                         }
-                    }else if (str_contains(strtoupper($action->status->name), 'DE-ACTIVATION')) {
+                    } else if (str_contains(strtoupper($action->status->name), 'DE-ACTIVATION')) {
                         foreach ($action->details as $detail) {
 
                             if (strtoupper($detail->detail->name) == 'ONT TYPE') {

@@ -105,7 +105,7 @@ class Service extends Controller
         ];
 
         $params = array(
-            'title' => $title,
+            // 'title' => $title,
             'columns' => $columns,
             'data' => $data,
             'filename' => 'Services' . '-' . date('YmdHi'),
