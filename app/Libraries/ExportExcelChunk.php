@@ -748,25 +748,30 @@ class ExportExcelChunk
         }
     }
 
-
     public function run()
     {
         header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
         header('Content-Disposition: inline; filename="' . $this->filename . '.xls"');
 
-        if (ob_get_length() > 0) ob_end_clean();
+        if (ob_get_length()) ob_end_clean();
+        ob_start();
 
         $this->startXML();
         $this->setColumnWidth();
         $this->showTitle();
         $this->showHeader();
+
         if (!empty($this->chunkSize) && is_numeric($this->chunkSize) && $this->chunkSize > 0) {
             $this->renderChunk($this->chunkSize);
         } else {
             $this->showData();
         }
+
         $this->showFooter();
         $this->endXML();
+
+        ob_end_flush();
+        flush();
 
         return $this->isUsingChunk;
     }
