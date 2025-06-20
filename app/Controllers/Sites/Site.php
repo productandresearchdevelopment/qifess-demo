@@ -106,8 +106,10 @@ class Site extends Controller
     {
         DB::beginTransaction();
         try {
-            if (!$request->input("name")) return ["success" => false, "message" => "name Is Null"];
-            if (!$request->input("client_id")) return ["success" => false, "message" => "client_id Is Null"];
+            if (!$request->input("name")) return ["success" => false, "message" => "Name is null"];
+            if (!$request->input("client_id")) return ["success" => false, "message" => "Client is null"];
+            if (!$request->input("vendor_id")) return ["success" => false, "message" => "Vendor is null"];
+            if (!$request->input("link_id")) return ["success" => false, "message" => "Link ID is null"];
 
             $input = [
                 "name" => $request->input("name"),
@@ -133,13 +135,19 @@ class Site extends Controller
                 "airmac" => $request->input("airmac"),
                 "serial_number" => $request->input("serial_number"),
                 "service_id" => $request->input("service_id"),
-
             ];
 
             if ($id) {
                 $data = Mod::find($id);
                 $data->update($input);
-            } else $data = Mod::create($input);
+            } else {
+                $existing = Mod::where('link_id', $request->input("link_id"))->first();
+                if ($existing) {
+                    return ["success" => false, "message" => "Link ID already exists"];
+                }
+
+                $data = Mod::create($input);
+            }
 
             DB::commit();
             return ['success' => true, 'message' => 'Success...', 'data' => $data];
