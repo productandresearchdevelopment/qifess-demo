@@ -56,7 +56,7 @@
                                 xtype: 'fieldcontainer', flex: 1,
                                 layout: {type: 'hbox', align: 'stretch'},
                                 items: [
-                                    {xtype: 'textfield',name: 'link_id', fieldLabel: 'Link ID',width: 265, margin:"0 5 5 0", allowBlank:false, flex:1},
+                                    {xtype: 'textfield',name: 'link_id', fieldLabel: 'Link ID',width: 265, margin:"0 5 5 0", allowBlank:true, flex:1},
                                     {xtype:'checkboxfield',boxLabel  : 'Active',name: 'is_active',id:'active', hidden: false},
                                 ]
                             },
