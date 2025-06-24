@@ -745,7 +745,7 @@ class WorkOrder extends Controller
 
             if (!is_array($actionResult) || !$actionResult['success']) {
                 DB::rollback();
-                return ['success' => false, 'message' => $actionResult];
+                return $actionResult;
             }
 
             WoOngoing::where('wo_id', $wo->id)->update([
