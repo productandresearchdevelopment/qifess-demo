@@ -618,6 +618,8 @@ class WorkOrder extends Controller
                 'updated_by' => auth()->user()->id
             ];
 
+            Log::info('Data Create from Asianet : ', $input);
+
             if ($id) {
                 if ($wo = Wo::find($id)) {
                     $input['is_hold'] = $wo->is_hold;
