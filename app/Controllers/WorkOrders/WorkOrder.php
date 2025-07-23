@@ -974,6 +974,8 @@ class WorkOrder extends Controller
 
         $ontSerialFromActivation = null;
         $ontSerialFromTesting = null;
+        $ontSerialFromSolving = null;
+        $ontSerialFromPreparation = null;
 
         $ont  = ["type" => 'ont', "serialNumber" => "", "macaddressont" => ""];
         $stb1 = ["type" => 'stb', "stbType" => "", "serialNumber" => "", "macAddressstb" => ""];
@@ -1002,14 +1004,21 @@ class WorkOrder extends Controller
                     else if (strtolower($extra->detail->name) == 'sn stb 3') $stb3['serialNumber'] = $extra->value;
                     else if (strtolower($extra->detail->name) == 'mac address stb 3') $stb3['macAddressstb'] = $extra->value;
                     else if (strtolower($extra->detail->name) == 'serial number registration') $serialNumber = $extra->value;
+                } else if (strtoupper($act->status->name) == 'PREPARATION') {
+                    if ((strtolower($extra->detail->name) == 'ont serial number') && ($extra->detail->type == "text")) {
+                        $ontSerialFromPreparation = $extra->value;
+                    }
                 } else if (strtoupper($act->status->name) == 'INSTALLATION') {
                     if (strtolower($extra->detail->name) == 'fat port') {
                         $fatPort = ($opt = StatusDetailOption::find($extra->value)) ? $opt->option : '';
                     }
+                } else if (strtoupper($act->status->name) == 'SOLVING') {
+                    if ((strtolower($extra->detail->name) == 'new ont serial number') && ($extra->detail->type == "text")) {
+                        $ontSerialFromSolving = $extra->value;
+                        $ont['serialNumber'] = $extra->value;
+                    }
                 } else if (strtoupper($act->status->name) == 'DE-ACTIVATION') {
                     if (strtolower($extra->detail->name) == 'serial number unregistration') $serialNumber = $extra->value;
-                } else if (strtoupper($act->status->name) == 'PREPARATION') {
-                    if (strtolower($extra->detail->name) == 'ont serial number') $serialNumber = $extra->value;
                 } else if (strtoupper($act->status->name) == 'ADDITIONAL MATERIAL') {
                     if (strtolower($extra->detail->name) == 'kelebihan kabel dw') $additionalDropCable = $extra->value;
                     else if (strtolower($extra->detail->name) == 'kelebihan kabel utp') $additionalUTP = $extra->value;
@@ -1025,13 +1034,27 @@ class WorkOrder extends Controller
             }
         }
 
-        if (!empty($ontSerialFromTesting)) {
-            $ont['serialNumber'] = $ontSerialFromTesting;
+        if (!empty($ontSerialFromSolving)) {
+            $serialNumber = $ontSerialFromSolving;
+            $ont['serialNumber'] = $ontSerialFromSolving;
+        } else if (!empty($ontSerialFromTesting)) {
             $serialNumber = $ontSerialFromTesting;
+            $ont['serialNumber'] = $ontSerialFromTesting;
         } else if (!empty($ontSerialFromActivation)) {
-            $ont['serialNumber'] = $ontSerialFromActivation;
             $serialNumber = $ontSerialFromActivation;
+            $ont['serialNumber'] = $ontSerialFromActivation;
+        } else if (!empty($ontSerialFromPreparation)) {
+            $serialNumber = $ontSerialFromPreparation;
+            $ont['serialNumber'] = $ontSerialFromPreparation;
         }
+
+        // if (!empty($ontSerialFromTesting)) {
+        //     $ont['serialNumber'] = $ontSerialFromTesting;
+        //     $serialNumber = $ontSerialFromTesting;
+        // } else if (!empty($ontSerialFromActivation)) {
+        //     $ont['serialNumber'] = $ontSerialFromActivation;
+        //     $serialNumber = $ontSerialFromActivation;
+        // }
 
         $cpe = [$ont, $stb1, $stb2, $stb3];
 
