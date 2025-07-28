@@ -1946,10 +1946,14 @@ class WorkOrder extends Controller
                     K.`name` AS slot,
                     DATEDIFF(DATE(NOW()), A.start_date) AS duration,
                     Y.total_stb,
-                    Z.alamat_instalasi,
                     SO.sn_ont_activation,
                     ST.sn_ont_testing,
-                    CC.input_kabel_kode
+                    CC.input_kabel_kode,
+                    ARR.nama_jalan,
+                    ARR.rt,
+                    ARR.rw,
+                    ARR.nomor_rumah,
+                    ARR.kontak_pelanggan
                 FROM po_wo A
                     LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
                     LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
@@ -1982,15 +1986,21 @@ class WorkOrder extends Controller
                         GROUP BY X2.wo_id
                     ) Y ON A.id = Y.wo_id
                     LEFT JOIN (
-                        SELECT X2.wo_id, MAX(X1.`value`) AS alamat_instalasi
+                        SELECT
+                            X2.wo_id,
+                            X2.id as action_id,
+                            MAX(CASE WHEN SD.name = 'Nama Jalan' THEN X1.value END) AS nama_jalan,
+                            MAX(CASE WHEN SD.name = 'RT' THEN X1.value END) AS rt,
+                            MAX(CASE WHEN SD.name = 'RW' THEN X1.value END) AS rw,
+                            MAX(CASE WHEN SD.name = 'Nomor Rumah' THEN X1.value END) AS nomor_rumah,
+                            MAX(CASE WHEN SD.name = 'Nomor Kontak Pelanggan' THEN X1.value END) AS kontak_pelanggan
                         FROM po_wo_action_detail X1
                         INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
                         INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
                         WHERE X2.status_id = 1330
-                        AND SD.`name` = 'Alamat Instalasi'
                         AND SD.status_id = 1330
-                        GROUP BY X2.wo_id
-                    ) Z ON A.id = Z.wo_id
+                        GROUP BY X2.wo_id, X2.id
+                    ) ARR ON A.id = ARR.wo_id AND ARR.action_id = A.last_action
                     LEFT JOIN (
                         SELECT X2.wo_id, MAX(X1.`value`) AS sn_ont_activation
                         FROM po_wo_action_detail X1
@@ -2055,7 +2065,11 @@ class WorkOrder extends Controller
             ],
             ["text" => "ONT SERIALNUMBER", "dataIndex" => "ont_serial", "width" => 200],
             ["text" => "DESCRIPTION", "dataIndex" => "description", "width" => 500],
-            ["text" => "ALAMAT INSTALASI", "dataIndex" => "alamat_instalasi", "width" => 500],
+            ["text" => "NAMA JALAN", "dataIndex" => "nama_jalan", "width" => 400],
+            ["text" => "RW", "dataIndex" => "rw", "width" => 100],
+            ["text" => "RT", "dataIndex" => "rt", "width" => 100],
+            ["text" => "NOMOR RUMAH", "dataIndex" => "nomor_rumah", "width" => 200],
+            ["text" => "NOMOR KONTAK PELANGGAN", "dataIndex" => "kontak_pelanggan", "width" => 200],
             ["text" => "HOLD", "dataIndex" => "is_hold", "width" => 100, "align" => "center", "renderer" => function ($value) {
                 return $value == 1 ? 'HOLD' : '-';
             }],
