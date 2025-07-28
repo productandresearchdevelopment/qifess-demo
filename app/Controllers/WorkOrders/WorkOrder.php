@@ -1996,10 +1996,14 @@ class WorkOrder extends Controller
                         FROM po_wo_action_detail X1
                         INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
                         INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
-                        WHERE X2.status_id = 1330
-                        AND SD.status_id = 1330
+                        WHERE X2.status_id = 1330 AND SD.status_id = 1330
+                        AND X2.created_at = (
+                            SELECT MAX(created_at)
+                            FROM po_wo_action A1
+                            WHERE A1.wo_id = X2.wo_id AND A1.status_id = 1330
+                        )
                         GROUP BY X2.wo_id
-                    ) ARR ON A.id = ARR.wo_id
+                    ) AS ARR ON A.id = ARR.wo_id
                     LEFT JOIN (
                         SELECT X2.wo_id, MAX(X1.`value`) AS sn_ont_activation
                         FROM po_wo_action_detail X1
