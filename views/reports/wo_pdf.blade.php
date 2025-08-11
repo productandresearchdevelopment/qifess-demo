@@ -24,7 +24,7 @@
 </style>
 
 <body>
-    <img src="{{ public_path('images/logo.png') }}" style="height: 40">
+    <img src="{{ public_path('images/logo.png') }}" style="height: 68px; width: auto;">
     <table style="border-bottom: 2px solid #ccc;">
         <tr>
             <td style="padding-bottom: 10px" valign="top">
