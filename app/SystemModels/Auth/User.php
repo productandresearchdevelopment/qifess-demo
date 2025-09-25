@@ -4,6 +4,7 @@ namespace App\SystemModels\Auth;
 
 use App\Models\Clients\Client;
 use App\Models\Fieldteches\Fieldtech;
+use App\Models\ListVendor\ListVendor;
 use App\Models\Vendors\Vendor;
 use App\SystemModels\Globals\Upload;
 use Illuminate\Foundation\Auth\User as Authenticatable;
