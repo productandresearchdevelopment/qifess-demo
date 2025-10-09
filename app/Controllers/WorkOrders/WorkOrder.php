@@ -2078,7 +2078,8 @@ class WorkOrder extends Controller
                     ARR.rt,
                     ARR.rw,
                     ARR.nomor_rumah,
-                    ARR.kontak_pelanggan
+                    ARR.kontak_pelanggan,
+                    TN.technician_name
                 FROM po_wo A
                     LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
                     LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
@@ -2155,6 +2156,18 @@ class WorkOrder extends Controller
                         AND SD.status_id = 1410
                         GROUP BY X2.wo_id
                     ) CC ON A.id = CC.wo_id
+                    LEFT JOIN (
+                        SELECT
+                            X2.wo_id,
+                            MAX(X1.`value`) AS technician_name
+                        FROM po_wo_action_detail X1
+                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
+                        INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
+                        WHERE X2.status_id IN (3610, 1610, 2610, 4610, 5610, 6610, 8610)
+                        AND SD.`name` = 'Technician Name'
+                        AND SD.status_id IN (3610, 1610, 2610, 4610, 5610, 6610, 8610)
+                        GROUP BY X2.wo_id
+                    ) TN ON A.id = TN.wo_id
                 WHERE A.deleted_at IS NULL
                 $where";
 
@@ -2200,6 +2213,7 @@ class WorkOrder extends Controller
             ["text" => "SN ACT", "dataIndex" => "sn_ont_activation", "width" => 200],
             ["text" => "SN TESTING", "dataIndex" => "sn_ont_testing", "width" => 200],
             ["text" => "BARCODE KABEL KODE", "dataIndex" => "input_kabel_kode", "width" => 300],
+            ["text" => "TECHNICIAN NAME", "dataIndex" => "technician_name", "width" => 200],
         ];
 
         $footers = ['Total Count: ' . count($data) . ' Row', ' ', 'Asianet', 'Downloaded (QFEST)` (' . date('d F Y H:i:s') . ')'];
