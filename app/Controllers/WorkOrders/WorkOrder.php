@@ -1999,11 +1999,12 @@ class WorkOrder extends Controller
         $user = $request->user();
 
         $titles = [["WORKORDER", 'h2'], ["Asianet", 'h3']];
-
         $query = [];
 
+        // ====== FILTER DASAR ======
         if ($search = $request->input('query')) {
-            $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%' OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
+            $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%'
+                    OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
         }
 
         if ($request->input('archive')) {
@@ -2012,167 +2013,191 @@ class WorkOrder extends Controller
         } elseif ($request->input('filter-hold') === "2") {
             array_push($titles, ['Data Is Hold', 'h4']);
         } else {
-            $mindate = date('Y-m-d', strtotime('-0 days'));
+            $mindate = date('Y-m-d');
             $query[] = "(A.close_date IS NULL OR A.close_date >= '$mindate')";
             array_push($titles, ['Data On Going', 'h4']);
         }
 
-        // FILTER ------------------------------------------------------------------------------------------------------
+        // ====== FILTER TAMBAHAN ======
         if (!$search && ($filter = $request->input('filterDate'))) {
-            $m = date('Y-m', strtotime("$filter 00:00:00")) . '%';
+            $m = date('Y-m', strtotime($filter)) . '%';
             $query[] = "(A.start_date LIKE '$m')";
-
-            $month = date('F Y', strtotime("$filter 00:00:00"));
+            $month = date('F Y', strtotime($filter));
             array_push($titles, [$month, 'h4']);
         }
-        if ($filter = $request->input('filter-status')) if ($filter != 'null') $query[] = "(B.status_id = '$filter')";
-        if ($filter = $request->input('filter-activity')) $query[] = "(A.activity_id = '$filter')";
-        if ($filter = $request->input('filter-service')) $query[] = "(A.service_id = '$filter')";
-        if ($filter = $request->input('filter-vendor')) $query[] = "(A.vendor_id = '$filter')";
-        if ($filter = $request->input('filter-client')) $query[] = "(A.client_id = '$filter')";
-        if ($filter = $request->input('filter-owner')) $query[] = "(A.owner_id = '$filter')";
-        if ($filter = $request->input('filter-hold')) {
-            if ($filter === "2") {
-                $query[] = "(A.is_hold = '1')";
-            } elseif ($filter === "1") {
-                $query[] = "(A.is_hold = '0')";
+
+        foreach (
+            [
+                'filter-status'   => 'B.status_id',
+                'filter-activity' => 'A.activity_id',
+                'filter-service'  => 'A.service_id',
+                'filter-vendor'   => 'A.vendor_id',
+                'filter-client'   => 'A.client_id',
+                'filter-owner'    => 'A.owner_id'
+            ] as $key => $col
+        ) {
+            if (($filter = $request->input($key)) && $filter != 'null') {
+                $query[] = "($col = '$filter')";
             }
         }
 
-        // FILTER BY USER AUTH -----------------------------------------------------------------------------------------
-        if ($ftr = $user->owners) $query[] = "(A.owner_id = '$ftr') ";
-        if ($ftr = $user->activities) $query[] = "(A.activity_id = '$ftr') ";
-        if ($ftr = $user->client_id) $query[] = "(A.client_id = '$ftr') ";
-        if ($ftr = $user->vendor_id) $query[] = "(A.vendor_id = '$ftr') ";
-        if ($ftr = $user->fieldtech_id) $query[] = "(A.fieldtech_id = '$ftr') ";
-
-        $where = '';
-        if (count($query)) {
-            $query = implode(" AND ", $query);
-            $where = " AND $query";
+        if ($filter = $request->input('filter-hold')) {
+            if ($filter === "2") $query[] = "(A.is_hold = '1')";
+            elseif ($filter === "1") $query[] = "(A.is_hold = '0')";
         }
 
-        // Query utama
-        $sql = "SELECT A.*,
-                    X.ont_serial,
-                    B.created_at AS lastupdate_at,
-                    B1.`name` AS status_name,
-                    C.`name` AS activity_name,
-                    D.`name` AS service_name,
-                    E.`name` AS owner_name,
-                    F.`name` AS client_name,
-                    G1.`name` AS site_name,
-                    G1.`address` AS site_address,
-                    G1.`pic_phone` AS site_phone,
-                    G2.`name` AS remove_site_name,
-                    H.`name` AS vendor_name,
-                    I.`name` AS fieldtech_name,
-                    J.`name` AS created_by_name,
-                    K.`name` AS slot,
-                    DATEDIFF(DATE(NOW()), A.start_date) AS duration,
-                    Y.total_stb,
-                    SO.sn_ont_activation,
-                    ST.sn_ont_testing,
-                    CC.input_kabel_kode,
-                    ARR.nama_jalan,
-                    ARR.rt,
-                    ARR.rw,
-                    ARR.nomor_rumah,
-                    ARR.kontak_pelanggan,
-                    TN.technician_name
-                FROM po_wo A
-                    LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
-                    LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
-                    LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
-                    LEFT JOIN po_m_owner E ON A.owner_id = E.id
-                    LEFT JOIN po_m_client F ON A.client_id = F.id
-                    LEFT JOIN po_m_site G1 ON A.site_id = G1.id
-                    LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
-                    LEFT JOIN po_wo_m_service D ON G1.service_id = D.id
-                    LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
-                    LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
-                    LEFT JOIN auth_user J ON A.created_by = J.id
-                    LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
-                    LEFT JOIN (
-                        SELECT X2.wo_id, MIN(REPLACE(X1.`value`, '\"', '')) AS ont_serial
-                        FROM po_wo_action_detail X1
-                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                        WHERE X1.detail_id IN (281010, 281011, 281166, 281167, 281168, 281169, 281272, 281273)
-                        AND X1.`value` IS NOT NULL
-                        GROUP BY X2.wo_id
-                    ) X ON A.id = X.wo_id
-                    LEFT JOIN (
-                        SELECT X2.wo_id, SUM(CAST(X1.`value` AS UNSIGNED)) AS total_stb
-                        FROM po_wo_action_detail X1
-                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                        INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
-                        WHERE X2.status_id = 1110
-                        AND SD.`name` = 'Total STB'
-                        AND SD.status_id = 1110
-                        GROUP BY X2.wo_id
-                    ) Y ON A.id = Y.wo_id
-                    LEFT JOIN (
-                        SELECT
-                            X2.wo_id,
-                            MAX(CASE WHEN SD.name = 'Nama Jalan' THEN X1.value END) AS nama_jalan,
-                            MAX(CASE WHEN SD.name = 'RT' THEN X1.value END) AS rt,
-                            MAX(CASE WHEN SD.name = 'RW' THEN X1.value END) AS rw,
-                            MAX(CASE WHEN SD.name = 'Nomor Rumah' THEN X1.value END) AS nomor_rumah,
-                            MAX(CASE WHEN SD.name = 'Nomor Kontak Pelanggan' THEN X1.value END) AS kontak_pelanggan
-                        FROM po_wo_action_detail X1
-                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                        INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
-                        WHERE X2.status_id = 1330
-                        AND SD.status_id = 1330
-                        GROUP BY X2.wo_id
-                    ) ARR ON A.id = ARR.wo_id
-                    LEFT JOIN (
-                        SELECT X2.wo_id, MAX(X1.`value`) AS sn_ont_activation
-                        FROM po_wo_action_detail X1
-                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                        INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
-                        WHERE X2.status_id = 1420
-                        AND SD.`name` = 'SN ONT'
-                        AND SD.status_id = 1420
-                        GROUP BY X2.wo_id
-                    ) SO ON A.id = SO.wo_id
-                    LEFT JOIN (
-                        SELECT X2.wo_id, MAX(X1.`value`) AS sn_ont_testing
-                        FROM po_wo_action_detail X1
-                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                        INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
-                        WHERE X2.status_id = 1430
-                        AND SD.`name` = 'SN ONT'
-                        AND SD.status_id = 1430
-                        GROUP BY X2.wo_id
-                    ) ST ON A.id = ST.wo_id
-                    LEFT JOIN (
-                        SELECT X2.wo_id, MAX(X1.`value`) AS input_kabel_kode
-                        FROM po_wo_action_detail X1
-                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                        INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
-                        WHERE X2.status_id = 1410
-                        AND SD.`name` = 'Input barcode kabel kode'
-                        AND SD.status_id = 1410
-                        GROUP BY X2.wo_id
-                    ) CC ON A.id = CC.wo_id
-                    LEFT JOIN (
-                        SELECT
-                            X2.wo_id,
-                            MAX(X1.`value`) AS technician_name
-                        FROM po_wo_action_detail X1
-                        INNER JOIN po_wo_action X2 ON X1.action_id = X2.id
-                        INNER JOIN po_wo_m_status_detail SD ON X1.detail_id = SD.id
-                        WHERE X2.status_id IN (3610, 1610, 2610, 4610, 5610, 6610, 8610)
-                        AND SD.`name` = 'Technician Name'
-                        AND SD.status_id IN (3610, 1610, 2610, 4610, 5610, 6610, 8610)
-                        GROUP BY X2.wo_id
-                    ) TN ON A.id = TN.wo_id
-                WHERE A.deleted_at IS NULL
-                $where";
+        // ====== FILTER USER AUTH ======
+        foreach (
+            [
+                'owners'      => 'A.owner_id',
+                'activities'  => 'A.activity_id',
+                'client_id'   => 'A.client_id',
+                'vendor_id'   => 'A.vendor_id',
+                'fieldtech_id' => 'A.fieldtech_id',
+            ] as $prop => $col
+        ) {
+            if ($val = $user->$prop) $query[] = "($col = '$val')";
+        }
 
+        $where = count($query) ? ' AND ' . implode(' AND ', $query) : '';
 
-        $data = DB::select(DB::raw($sql));
+        // ====== QUERY UTAMA TANPA SUBQUERY BERAT ======
+        $sqlMain = "
+        SELECT A.id, A.no_wo, A.description, A.is_hold, A.start_date, A.close_date, A.slot_id,
+               A.created_by, A.created_at, A.owner_id, A.activity_id, A.service_id,
+               A.vendor_id, A.client_id, A.fieldtech_id,
+               B.created_at AS lastupdate_at,
+               B1.name AS status_name,
+               C.name AS activity_name,
+               D.name AS service_name,
+               E.name AS owner_name,
+               F.name AS client_name,
+               G1.name AS site_name,
+               G1.address AS site_address,
+               G1.pic_phone AS site_phone,
+               G2.name AS remove_site_name,
+               H.name AS vendor_name,
+               I.name AS fieldtech_name,
+               J.name AS created_by_name,
+               K.name AS slot,
+               DATEDIFF(DATE(NOW()), A.start_date) AS duration
+        FROM po_wo A
+        LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
+        LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
+        LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
+        LEFT JOIN po_wo_m_service D ON A.service_id = D.id
+        LEFT JOIN po_m_owner E ON A.owner_id = E.id
+        LEFT JOIN po_m_client F ON A.client_id = F.id
+        LEFT JOIN po_m_site G1 ON A.site_id = G1.id
+        LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
+        LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
+        LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
+        LEFT JOIN auth_user J ON A.created_by = J.id
+        LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
+        WHERE A.deleted_at IS NULL
+        $where
+    ";
+
+        $mainData = collect(DB::select(DB::raw($sqlMain)));
+        if ($mainData->isEmpty()) {
+            return response()->json(['message' => 'No data found'], 404);
+        }
+
+        $woIds = $mainData->pluck('id');
+
+        // ====== SUBQUERY TERPISAH (LAGI-LAGI SAMA, CUMA DIPISAH) ======
+
+        // X: ONT Serial
+        $ontSerial = DB::table('po_wo_action_detail AS d')
+            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->whereIn('d.detail_id', [281010, 281011, 281166, 281167, 281168, 281169, 281272, 281273])
+            ->whereIn('a.wo_id', $woIds)
+            ->select('a.wo_id', DB::raw("MIN(REPLACE(d.value, '\"', '')) AS ont_serial"))
+            ->groupBy('a.wo_id')->pluck('ont_serial', 'wo_id');
+
+        // Y: Total STB
+        $totalStb = DB::table('po_wo_action_detail AS d')
+            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->where('a.status_id', 1110)
+            ->where('sd.name', 'Total STB')
+            ->whereIn('a.wo_id', $woIds)
+            ->select('a.wo_id', DB::raw('SUM(CAST(d.value AS UNSIGNED)) AS total_stb'))
+            ->groupBy('a.wo_id')->pluck('total_stb', 'wo_id');
+
+        // ARR: Alamat pelanggan
+        $arrData = DB::table('po_wo_action_detail AS d')
+            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->where('a.status_id', 1330)
+            ->whereIn('a.wo_id', $woIds)
+            ->select(
+                'a.wo_id',
+                DB::raw("MAX(CASE WHEN sd.name='Nama Jalan' THEN d.value END) AS nama_jalan"),
+                DB::raw("MAX(CASE WHEN sd.name='RT' THEN d.value END) AS rt"),
+                DB::raw("MAX(CASE WHEN sd.name='RW' THEN d.value END) AS rw"),
+                DB::raw("MAX(CASE WHEN sd.name='Nomor Rumah' THEN d.value END) AS nomor_rumah"),
+                DB::raw("MAX(CASE WHEN sd.name='Nomor Kontak Pelanggan' THEN d.value END) AS kontak_pelanggan")
+            )
+            ->groupBy('a.wo_id')->get()->keyBy('wo_id');
+
+        // SO: SN ONT Activation
+        $snAct = DB::table('po_wo_action_detail AS d')
+            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->where('a.status_id', 1420)
+            ->where('sd.name', 'SN ONT')
+            ->whereIn('a.wo_id', $woIds)
+            ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_activation'))
+            ->groupBy('a.wo_id')->pluck('sn_ont_activation', 'wo_id');
+
+        // ST: SN ONT Testing
+        $snTest = DB::table('po_wo_action_detail AS d')
+            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->where('a.status_id', 1430)
+            ->where('sd.name', 'SN ONT')
+            ->whereIn('a.wo_id', $woIds)
+            ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_testing'))
+            ->groupBy('a.wo_id')->pluck('sn_ont_testing', 'wo_id');
+
+        // CC: Barcode kabel
+        $barcode = DB::table('po_wo_action_detail AS d')
+            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->where('a.status_id', 1410)
+            ->where('sd.name', 'Input barcode kabel kode')
+            ->whereIn('a.wo_id', $woIds)
+            ->select('a.wo_id', DB::raw('MAX(d.value) AS input_kabel_kode'))
+            ->groupBy('a.wo_id')->pluck('input_kabel_kode', 'wo_id');
+
+        // TN: Technician Name
+        $techName = DB::table('po_wo_action_detail AS d')
+            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->whereIn('a.status_id', [3610, 1610, 2610, 4610, 5610, 6610, 8610])
+            ->where('sd.name', 'Technician Name')
+            ->whereIn('a.wo_id', $woIds)
+            ->select('a.wo_id', DB::raw('MAX(d.value) AS technician_name'))
+            ->groupBy('a.wo_id')->pluck('technician_name', 'wo_id');
+
+        // ====== GABUNGKAN HASILNYA ======
+        $data = $mainData->map(function ($row) use ($ontSerial, $totalStb, $arrData, $snAct, $snTest, $barcode, $techName) {
+            $row->ont_serial = $ontSerial[$row->id] ?? '-';
+            $row->total_stb = $totalStb[$row->id] ?? '-';
+            $row->nama_jalan = $arrData[$row->id]->nama_jalan ?? '-';
+            $row->rt = $arrData[$row->id]->rt ?? '-';
+            $row->rw = $arrData[$row->id]->rw ?? '-';
+            $row->nomor_rumah = $arrData[$row->id]->nomor_rumah ?? '-';
+            $row->kontak_pelanggan = $arrData[$row->id]->kontak_pelanggan ?? '-';
+            $row->sn_ont_activation = $snAct[$row->id] ?? '-';
+            $row->sn_ont_testing = $snTest[$row->id] ?? '-';
+            $row->input_kabel_kode = $barcode[$row->id] ?? '-';
+            $row->technician_name = $techName[$row->id] ?? '-';
+            return $row;
+        });
+
+        // ====== EXPORT EXCEL ======
         $columns = [
             ["text" => "ID", "dataIndex" => "id", "width" => 115],
             ["text" => "TICKET ID", "dataIndex" => "no_wo", "width" => 115],
@@ -2215,19 +2240,18 @@ class WorkOrder extends Controller
             ["text" => "BARCODE KABEL KODE", "dataIndex" => "input_kabel_kode", "width" => 300],
             ["text" => "TECHNICIAN NAME", "dataIndex" => "technician_name", "width" => 200],
         ];
-
-        $footers = ['Total Count: ' . count($data) . ' Row', ' ', 'Asianet', 'Downloaded (QFEST)` (' . date('d F Y H:i:s') . ')'];
-        $params = array(
-            // 'title' => $titles,
-            'columns' => $columns,
-            'filename' => 'WO ' . date("YmdHis"),
-            'data' => $data,
-            'footer' => $footers,
-        );
+        $footers = ['Total Count: ' . count($data) . ' Row', 'Downloaded ' . date('d F Y H:i:s')];
+        $params = [
+            'columns'  => $columns,
+            'filename' => 'WO_' . date('YmdHis'),
+            'data'     => $data,
+            'footer'   => $footers,
+        ];
 
         $excel = new ExportExcel($params);
         $excel->run($params);
     }
+
 
     public function exportPdf(Request $request, $id = null)
     {
