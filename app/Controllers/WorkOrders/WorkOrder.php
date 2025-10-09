@@ -2474,7 +2474,9 @@ class WorkOrder extends Controller
             ["text" => "RT", "dataIndex" => "rt", "width" => 100],
             ["text" => "NOMOR RUMAH", "dataIndex" => "nomor_rumah", "width" => 200],
             ["text" => "NOMOR KONTAK PELANGGAN", "dataIndex" => "kontak_pelanggan", "width" => 200],
-            ["text" => "HOLD", "dataIndex" => "is_hold", "width" => 100, "align" => "center"],
+            ["text" => "HOLD", "dataIndex" => "is_hold", "width" => 100, "align" => "center", "renderer" => function ($value) {
+                return $value == 1 ? 'HOLD' : '-';
+            }],
             ["text" => "SN ACT", "dataIndex" => "sn_ont_activation", "width" => 200],
             ["text" => "SN TESTING", "dataIndex" => "sn_ont_testing", "width" => 200],
             ["text" => "BARCODE KABEL KODE", "dataIndex" => "input_kabel_kode", "width" => 300],
