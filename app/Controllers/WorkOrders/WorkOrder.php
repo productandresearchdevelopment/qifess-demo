@@ -2875,7 +2875,7 @@ class WorkOrder extends Controller
         DB::statement('DROP TEMPORARY TABLE IF EXISTS tmp_wo_ids');
         DB::statement('CREATE TEMPORARY TABLE tmp_wo_ids (wo_id BIGINT PRIMARY KEY) ENGINE=Memory');
 
-        foreach (array_chunk($woIds, 5000) as $chunk) {
+        foreach (array_chunk($woIds, 10000) as $chunk) {
             $values = collect($chunk)->map(fn($id) => "($id)")->implode(',');
             DB::statement("INSERT IGNORE INTO tmp_wo_ids (wo_id) VALUES $values");
         }
