@@ -2498,6 +2498,269 @@ class WorkOrder extends Controller
     //     $excel->run();
     // }
 
+
+    // ===================== masih error=======================
+    // public function exportExcel(Request $request)
+    // {
+    //     $user = $request->user();
+
+    //     $titles = [["WORKORDER", 'h2'], ["Asianet", 'h3']];
+    //     $query = [];
+
+    //     // ===== FILTER DASAR =====
+    //     if ($search = $request->input('query')) {
+    //         $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%'
+    //                 OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
+    //     }
+
+    //     if ($request->input('archive')) {
+    //         $query[] = "(A.close_date IS NOT NULL)";
+    //         $titles[] = ['Archive Data', 'h4'];
+    //     } elseif ($request->input('filter-hold') === "2") {
+    //         $titles[] = ['Data Is Hold', 'h4'];
+    //     } else {
+    //         $mindate = now()->format('Y-m-d');
+    //         $query[] = "(A.close_date IS NULL OR A.close_date >= '$mindate')";
+    //         $titles[] = ['Data On Going', 'h4'];
+    //     }
+
+    //     // ===== FILTER TAMBAHAN =====
+    //     if (!$search && ($filter = $request->input('filterDate'))) {
+    //         $m = date('Y-m', strtotime($filter)) . '%';
+    //         $query[] = "(A.start_date LIKE '$m')";
+    //         $titles[] = [date('F Y', strtotime($filter)), 'h4'];
+    //     }
+
+    //     foreach (
+    //         [
+    //             'filter-status'   => 'B.status_id',
+    //             'filter-activity' => 'A.activity_id',
+    //             'filter-service'  => 'A.service_id',
+    //             'filter-vendor'   => 'A.vendor_id',
+    //             'filter-client'   => 'A.client_id',
+    //             'filter-owner'    => 'A.owner_id'
+    //         ] as $key => $col
+    //     ) {
+    //         if (($filter = $request->input($key)) && $filter != 'null') {
+    //             $query[] = "($col = '$filter')";
+    //         }
+    //     }
+
+    //     if ($filter = $request->input('filter-hold')) {
+    //         if ($filter === "2") $query[] = "(A.is_hold = '1')";
+    //         elseif ($filter === "1") $query[] = "(A.is_hold = '0')";
+    //     }
+
+    //     // ===== FILTER USER AUTH =====
+    //     foreach (
+    //         [
+    //             'owners'       => 'A.owner_id',
+    //             'activities'   => 'A.activity_id',
+    //             'client_id'    => 'A.client_id',
+    //             'vendor_id'    => 'A.vendor_id',
+    //             'fieldtech_id' => 'A.fieldtech_id',
+    //         ] as $prop => $col
+    //     ) {
+    //         if ($val = $user->$prop) $query[] = "($col = '$val')";
+    //     }
+
+    //     $where = count($query) ? ' AND ' . implode(' AND ', $query) : '';
+
+    //     // ===== QUERY UTAMA =====
+    //     $sqlMain = "
+    //         SELECT
+    //             A.id, A.no_wo, A.description, A.is_hold, A.start_date, A.close_date, A.slot_id,
+    //             A.created_by, A.created_at, A.owner_id, A.activity_id, A.service_id,
+    //             A.vendor_id, A.client_id, A.fieldtech_id,
+    //             B.created_at AS lastupdate_at,
+    //             B1.name AS status_name,
+    //             C.name AS activity_name,
+    //             D.name AS service_name,
+    //             E.name AS owner_name,
+    //             F.name AS client_name,
+    //             G1.name AS site_name,
+    //             G1.address AS site_address,
+    //             G1.pic_phone AS site_phone,
+    //             G2.name AS remove_site_name,
+    //             H.name AS vendor_name,
+    //             I.name AS fieldtech_name,
+    //             J.name AS created_by_name,
+    //             K.name AS slot,
+    //             DATEDIFF(DATE(NOW()), A.start_date) AS duration
+    //         FROM po_wo A
+    //             LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
+    //             LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
+    //             LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
+    //             LEFT JOIN po_wo_m_service D ON A.service_id = D.id
+    //             LEFT JOIN po_m_owner E ON A.owner_id = E.id
+    //             LEFT JOIN po_m_client F ON A.client_id = F.id
+    //             LEFT JOIN po_m_site G1 ON A.site_id = G1.id
+    //             LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
+    //             LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
+    //             LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
+    //             LEFT JOIN auth_user J ON A.created_by = J.id
+    //             LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
+    //         WHERE A.deleted_at IS NULL
+    //         $where";
+
+    //     $mainData = collect(DB::select(DB::raw($sqlMain)));
+    //     if ($mainData->isEmpty()) {
+    //         return response()->json(['message' => 'No data found'], 404);
+    //     }
+
+    //     $woIds = $mainData->pluck('id')->map(fn($id) => (string)$id)->toArray();
+
+    //     // ===== SUBQUERY =====
+    //     $ontSerial = DB::table('po_wo_action_detail AS d')
+    //         ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+    //         ->whereIn('d.detail_id', [281010, 281011, 281166, 281167, 281168, 281169, 281272, 281273])
+    //         ->whereIn('a.wo_id', $woIds)
+    //         ->select('a.wo_id', DB::raw("MIN(REPLACE(d.value, '\"', '')) AS ont_serial"))
+    //         ->groupBy('a.wo_id')
+    //         ->pluck('ont_serial', 'wo_id')
+    //         ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+
+    //     $totalStb = DB::table('po_wo_action_detail AS d')
+    //         ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+    //         ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+    //         ->where('a.status_id', 1110)
+    //         ->where('sd.name', 'Total STB')
+    //         ->whereIn('a.wo_id', $woIds)
+    //         ->select('a.wo_id', DB::raw('SUM(CAST(d.value AS UNSIGNED)) AS total_stb'))
+    //         ->groupBy('a.wo_id')
+    //         ->pluck('total_stb', 'wo_id')
+    //         ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+
+    //     $arrData = DB::table('po_wo_action_detail AS d')
+    //         ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+    //         ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+    //         ->where('a.status_id', 1330)
+    //         ->whereIn('a.wo_id', $woIds)
+    //         ->select(
+    //             'a.wo_id',
+    //             DB::raw("MAX(CASE WHEN sd.name='Nama Jalan' THEN d.value END) AS nama_jalan"),
+    //             DB::raw("MAX(CASE WHEN sd.name='RT' THEN d.value END) AS rt"),
+    //             DB::raw("MAX(CASE WHEN sd.name='RW' THEN d.value END) AS rw"),
+    //             DB::raw("MAX(CASE WHEN sd.name='Nomor Rumah' THEN d.value END) AS nomor_rumah"),
+    //             DB::raw("MAX(CASE WHEN sd.name='Nomor Kontak Pelanggan' THEN d.value END) AS kontak_pelanggan")
+    //         )
+    //         ->groupBy('a.wo_id')
+    //         ->get()
+    //         ->keyBy(fn($item) => (string)$item->wo_id);
+
+    //     $snAct = DB::table('po_wo_action_detail AS d')
+    //         ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+    //         ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+    //         ->where('a.status_id', 1420)
+    //         ->where('sd.name', 'SN ONT')
+    //         ->whereIn('a.wo_id', $woIds)
+    //         ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_activation'))
+    //         ->groupBy('a.wo_id')
+    //         ->pluck('sn_ont_activation', 'wo_id')
+    //         ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+
+    //     $snTest = DB::table('po_wo_action_detail AS d')
+    //         ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+    //         ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+    //         ->where('a.status_id', 1430)
+    //         ->where('sd.name', 'SN ONT')
+    //         ->whereIn('a.wo_id', $woIds)
+    //         ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_testing'))
+    //         ->groupBy('a.wo_id')
+    //         ->pluck('sn_ont_testing', 'wo_id')
+    //         ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+
+    //     $barcode = DB::table('po_wo_action_detail AS d')
+    //         ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+    //         ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+    //         ->where('a.status_id', 1410)
+    //         ->where('sd.name', 'Input barcode kabel kode')
+    //         ->whereIn('a.wo_id', $woIds)
+    //         ->select('a.wo_id', DB::raw('MAX(d.value) AS input_kabel_kode'))
+    //         ->groupBy('a.wo_id')
+    //         ->pluck('input_kabel_kode', 'wo_id')
+    //         ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+
+    //     $techName = DB::table('po_wo_action_detail AS d')
+    //         ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+    //         ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+    //         ->whereIn('a.status_id', [3610, 1610, 2610, 4610, 5610, 6610, 8610])
+    //         ->where('sd.name', 'Technician Name')
+    //         ->whereIn('a.wo_id', $woIds)
+    //         ->select('a.wo_id', DB::raw('MAX(d.value) AS technician_name'))
+    //         ->groupBy('a.wo_id')
+    //         ->pluck('technician_name', 'wo_id')
+    //         ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+
+    //     // ===== GABUNG DATA =====
+    //     $data = $mainData->map(function ($row) use ($ontSerial, $totalStb, $arrData, $snAct, $snTest, $barcode, $techName) {
+    //         $id = (string)$row->id;
+    //         $row->ont_serial = $ontSerial[$id] ?? '-';
+    //         $row->total_stb = $totalStb[$id] ?? '-';
+    //         $row->nama_jalan = $arrData[$id]->nama_jalan ?? '-';
+    //         $row->rt = $arrData[$id]->rt ?? '-';
+    //         $row->rw = $arrData[$id]->rw ?? '-';
+    //         $row->nomor_rumah = $arrData[$id]->nomor_rumah ?? '-';
+    //         $row->kontak_pelanggan = $arrData[$id]->kontak_pelanggan ?? '-';
+    //         $row->sn_ont_activation = $snAct[$id] ?? '-';
+    //         $row->sn_ont_testing = $snTest[$id] ?? '-';
+    //         $row->input_kabel_kode = $barcode[$id] ?? '-';
+    //         $row->technician_name = $techName[$id] ?? '-';
+    //         return $row;
+    //     });
+
+    //     // ===== EXPORT EXCEL =====
+    //     $columns = [
+    //         ["text" => "ID", "dataIndex" => "id", "width" => 115],
+    //         ["text" => "TICKET ID", "dataIndex" => "no_wo", "width" => 115],
+    //         ["text" => "SERVICE", "dataIndex" => "service_name", "width" => 100, "align" => "center"],
+    //         ["text" => "ACTIVITY", "dataIndex" => "activity_name", "width" => 150, "align" => "center"],
+    //         ["text" => "CLIENT", "dataIndex" => "client_name", "width" => 150],
+    //         ["text" => "SITE", "dataIndex" => "site_name", "width" => 200],
+    //         ["text" => "SITE ADDRESS", "dataIndex" => "site_address", "width" => 250],
+    //         ["text" => "SITE PHONE", "dataIndex" => "site_phone", "width" => 150],
+    //         ["text" => "AREA", "dataIndex" => "vendor_name", "width" => 200],
+    //         ["text" => "TEAM", "dataIndex" => "fieldtech_name", "width" => 250],
+    //         ["text" => "DURATION (DAY)", "dataIndex" => "duration", "align" => "center", "width" => 100, 'type' => 'int'],
+    //         ["text" => "BOOKING DATE", "dataIndex" => "start_date", "type" => "date", "align" => "center", "width" => 100],
+    //         ["text" => "BOOKING SLOT", "dataIndex" => "slot", "align" => "center", "width" => 150],
+    //         ["text" => "CREATED BY", "dataIndex" => "created_by_name", "width" => 200],
+    //         ["text" => "CREATED DATE", "dataIndex" => "created_at", "type" => "date", "align" => "center", "width" => 100],
+    //         ["text" => "LAST STATUS", "dataIndex" => "status_name", "width" => 200],
+    //         ["text" => "LAST STATUS DATE", "dataIndex" => "lastupdate_at", "type" => "date", "align" => "center", "width" => 100],
+    //         ["text" => "TOTAL STB", "dataIndex" => "total_stb", "width" => 100, "align" => "center"],
+    //         ["text" => "ONT SERIALNUMBER", "dataIndex" => "ont_serial", "width" => 200],
+    //         ["text" => "DESCRIPTION", "dataIndex" => "description", "width" => 500],
+    //         ["text" => "NAMA JALAN", "dataIndex" => "nama_jalan", "width" => 400],
+    //         ["text" => "RW", "dataIndex" => "rw", "width" => 100],
+    //         ["text" => "RT", "dataIndex" => "rt", "width" => 100],
+    //         ["text" => "NOMOR RUMAH", "dataIndex" => "nomor_rumah", "width" => 200],
+    //         ["text" => "NOMOR KONTAK PELANGGAN", "dataIndex" => "kontak_pelanggan", "width" => 200],
+    //         ["text" => "HOLD", "dataIndex" => "is_hold", "width" => 100, "align" => "center", "renderer" => function ($value) {
+    //             return $value == 1 ? 'HOLD' : '-';
+    //         }],
+    //         ["text" => "SN ACT", "dataIndex" => "sn_ont_activation", "width" => 200],
+    //         ["text" => "SN TESTING", "dataIndex" => "sn_ont_testing", "width" => 200],
+    //         ["text" => "BARCODE KABEL KODE", "dataIndex" => "input_kabel_kode", "width" => 300],
+    //         ["text" => "TECHNICIAN NAME", "dataIndex" => "technician_name", "width" => 200],
+    //     ];
+
+    //     $footers = ['Total Count: ' . count($data) . ' Row', 'Downloaded ' . now()->format('d F Y H:i:s')];
+
+    //     $excel = new ExportExcel([
+    //         'columns'  => $columns,
+    //         'filename' => 'WO_' . now()->format('YmdHis'),
+    //         'data'     => $data,
+    //         'footer'   => $footers,
+    //     ]);
+
+    //     $excel->run();
+    // }
+
+
+
+    // tes pakai temp table ======================================
+
     public function exportExcel(Request $request)
     {
         $user = $request->user();
@@ -2508,7 +2771,7 @@ class WorkOrder extends Controller
         // ===== FILTER DASAR =====
         if ($search = $request->input('query')) {
             $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%'
-                    OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
+                OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
         }
 
         if ($request->input('archive')) {
@@ -2566,74 +2829,81 @@ class WorkOrder extends Controller
 
         // ===== QUERY UTAMA =====
         $sqlMain = "
-            SELECT
-                A.id, A.no_wo, A.description, A.is_hold, A.start_date, A.close_date, A.slot_id,
-                A.created_by, A.created_at, A.owner_id, A.activity_id, A.service_id,
-                A.vendor_id, A.client_id, A.fieldtech_id,
-                B.created_at AS lastupdate_at,
-                B1.name AS status_name,
-                C.name AS activity_name,
-                D.name AS service_name,
-                E.name AS owner_name,
-                F.name AS client_name,
-                G1.name AS site_name,
-                G1.address AS site_address,
-                G1.pic_phone AS site_phone,
-                G2.name AS remove_site_name,
-                H.name AS vendor_name,
-                I.name AS fieldtech_name,
-                J.name AS created_by_name,
-                K.name AS slot,
-                DATEDIFF(DATE(NOW()), A.start_date) AS duration
-            FROM po_wo A
-                LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
-                LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
-                LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
-                LEFT JOIN po_wo_m_service D ON A.service_id = D.id
-                LEFT JOIN po_m_owner E ON A.owner_id = E.id
-                LEFT JOIN po_m_client F ON A.client_id = F.id
-                LEFT JOIN po_m_site G1 ON A.site_id = G1.id
-                LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
-                LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
-                LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
-                LEFT JOIN auth_user J ON A.created_by = J.id
-                LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
-            WHERE A.deleted_at IS NULL
-            $where";
+        SELECT
+            A.id, A.no_wo, A.description, A.is_hold, A.start_date, A.close_date, A.slot_id,
+            A.created_by, A.created_at, A.owner_id, A.activity_id, A.service_id,
+            A.vendor_id, A.client_id, A.fieldtech_id,
+            B.created_at AS lastupdate_at,
+            B1.name AS status_name,
+            C.name AS activity_name,
+            D.name AS service_name,
+            E.name AS owner_name,
+            F.name AS client_name,
+            G1.name AS site_name,
+            G1.address AS site_address,
+            G1.pic_phone AS site_phone,
+            G2.name AS remove_site_name,
+            H.name AS vendor_name,
+            I.name AS fieldtech_name,
+            J.name AS created_by_name,
+            K.name AS slot,
+            DATEDIFF(DATE(NOW()), A.start_date) AS duration
+        FROM po_wo A
+            LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
+            LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
+            LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
+            LEFT JOIN po_wo_m_service D ON A.service_id = D.id
+            LEFT JOIN po_m_owner E ON A.owner_id = E.id
+            LEFT JOIN po_m_client F ON A.client_id = F.id
+            LEFT JOIN po_m_site G1 ON A.site_id = G1.id
+            LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
+            LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
+            LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
+            LEFT JOIN auth_user J ON A.created_by = J.id
+            LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
+        WHERE A.deleted_at IS NULL
+        $where";
 
         $mainData = collect(DB::select(DB::raw($sqlMain)));
         if ($mainData->isEmpty()) {
             return response()->json(['message' => 'No data found'], 404);
         }
 
-        $woIds = $mainData->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        $woIds = $mainData->pluck('id')->toArray();
 
-        // ===== SUBQUERY =====
+        // ===== BUAT TEMPORARY TABLE =====
+        DB::statement('DROP TEMPORARY TABLE IF EXISTS tmp_wo_ids');
+        DB::statement('CREATE TEMPORARY TABLE tmp_wo_ids (wo_id BIGINT PRIMARY KEY) ENGINE=Memory');
+
+        foreach (array_chunk($woIds, 5000) as $chunk) {
+            $values = collect($chunk)->map(fn($id) => "($id)")->implode(',');
+            DB::statement("INSERT IGNORE INTO tmp_wo_ids (wo_id) VALUES $values");
+        }
+
+        // ===== SUBQUERY (PAKAI TEMP TABLE) =====
         $ontSerial = DB::table('po_wo_action_detail AS d')
             ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
+            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
             ->whereIn('d.detail_id', [281010, 281011, 281166, 281167, 281168, 281169, 281272, 281273])
-            ->whereIn('a.wo_id', $woIds)
             ->select('a.wo_id', DB::raw("MIN(REPLACE(d.value, '\"', '')) AS ont_serial"))
             ->groupBy('a.wo_id')
-            ->pluck('ont_serial', 'wo_id')
-            ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+            ->pluck('ont_serial', 'wo_id');
 
         $totalStb = DB::table('po_wo_action_detail AS d')
             ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
             ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
             ->where('a.status_id', 1110)
             ->where('sd.name', 'Total STB')
-            ->whereIn('a.wo_id', $woIds)
             ->select('a.wo_id', DB::raw('SUM(CAST(d.value AS UNSIGNED)) AS total_stb'))
             ->groupBy('a.wo_id')
-            ->pluck('total_stb', 'wo_id')
-            ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+            ->pluck('total_stb', 'wo_id');
 
         $arrData = DB::table('po_wo_action_detail AS d')
             ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
             ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
             ->where('a.status_id', 1330)
-            ->whereIn('a.wo_id', $woIds)
             ->select(
                 'a.wo_id',
                 DB::raw("MAX(CASE WHEN sd.name='Nama Jalan' THEN d.value END) AS nama_jalan"),
@@ -2644,55 +2914,51 @@ class WorkOrder extends Controller
             )
             ->groupBy('a.wo_id')
             ->get()
-            ->keyBy(fn($item) => (string)$item->wo_id);
+            ->keyBy('wo_id');
 
         $snAct = DB::table('po_wo_action_detail AS d')
             ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
             ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
             ->where('a.status_id', 1420)
             ->where('sd.name', 'SN ONT')
-            ->whereIn('a.wo_id', $woIds)
             ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_activation'))
             ->groupBy('a.wo_id')
-            ->pluck('sn_ont_activation', 'wo_id')
-            ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+            ->pluck('sn_ont_activation', 'wo_id');
 
         $snTest = DB::table('po_wo_action_detail AS d')
             ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
             ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
             ->where('a.status_id', 1430)
             ->where('sd.name', 'SN ONT')
-            ->whereIn('a.wo_id', $woIds)
             ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_testing'))
             ->groupBy('a.wo_id')
-            ->pluck('sn_ont_testing', 'wo_id')
-            ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+            ->pluck('sn_ont_testing', 'wo_id');
 
         $barcode = DB::table('po_wo_action_detail AS d')
             ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
             ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
             ->where('a.status_id', 1410)
             ->where('sd.name', 'Input barcode kabel kode')
-            ->whereIn('a.wo_id', $woIds)
             ->select('a.wo_id', DB::raw('MAX(d.value) AS input_kabel_kode'))
             ->groupBy('a.wo_id')
-            ->pluck('input_kabel_kode', 'wo_id')
-            ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+            ->pluck('input_kabel_kode', 'wo_id');
 
         $techName = DB::table('po_wo_action_detail AS d')
             ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
             ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
+            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
             ->whereIn('a.status_id', [3610, 1610, 2610, 4610, 5610, 6610, 8610])
             ->where('sd.name', 'Technician Name')
-            ->whereIn('a.wo_id', $woIds)
             ->select('a.wo_id', DB::raw('MAX(d.value) AS technician_name'))
             ->groupBy('a.wo_id')
-            ->pluck('technician_name', 'wo_id')
-            ->mapWithKeys(fn($v, $k) => [(string)$k => $v]);
+            ->pluck('technician_name', 'wo_id');
 
         // ===== GABUNG DATA =====
         $data = $mainData->map(function ($row) use ($ontSerial, $totalStb, $arrData, $snAct, $snTest, $barcode, $techName) {
-            $id = (string)$row->id;
+            $id = $row->id;
             $row->ont_serial = $ontSerial[$id] ?? '-';
             $row->total_stb = $totalStb[$id] ?? '-';
             $row->nama_jalan = $arrData[$id]->nama_jalan ?? '-';
@@ -2707,7 +2973,6 @@ class WorkOrder extends Controller
             return $row;
         });
 
-        // ===== EXPORT EXCEL =====
         $columns = [
             ["text" => "ID", "dataIndex" => "id", "width" => 115],
             ["text" => "TICKET ID", "dataIndex" => "no_wo", "width" => 115],
@@ -2726,7 +2991,15 @@ class WorkOrder extends Controller
             ["text" => "CREATED DATE", "dataIndex" => "created_at", "type" => "date", "align" => "center", "width" => 100],
             ["text" => "LAST STATUS", "dataIndex" => "status_name", "width" => 200],
             ["text" => "LAST STATUS DATE", "dataIndex" => "lastupdate_at", "type" => "date", "align" => "center", "width" => 100],
-            ["text" => "TOTAL STB", "dataIndex" => "total_stb", "width" => 100, "align" => "center"],
+            [
+                "text" => "TOTAL STB",
+                "dataIndex" => "total_stb",
+                "width" => 100,
+                "align" => "center",
+                "renderer" => function ($value) {
+                    return ($value === null || $value == 0) ? '-' : $value;
+                }
+            ],
             ["text" => "ONT SERIALNUMBER", "dataIndex" => "ont_serial", "width" => 200],
             ["text" => "DESCRIPTION", "dataIndex" => "description", "width" => 500],
             ["text" => "NAMA JALAN", "dataIndex" => "nama_jalan", "width" => 400],
@@ -2743,7 +3016,10 @@ class WorkOrder extends Controller
             ["text" => "TECHNICIAN NAME", "dataIndex" => "technician_name", "width" => 200],
         ];
 
-        $footers = ['Total Count: ' . count($data) . ' Row', 'Downloaded ' . now()->format('d F Y H:i:s')];
+        $footers = [
+            'Total Count: ' . count($data) . ' Row',
+            'Downloaded ' . now()->format('d F Y H:i:s')
+        ];
 
         $excel = new ExportExcel([
             'columns'  => $columns,
