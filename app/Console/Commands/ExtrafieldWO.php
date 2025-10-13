@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\ExtrafieldJob;
 use App\Jobs\NotifJob;
 use App\Libraries\BuildExtrafieldWo;
 use App\Mail\UpdateWoMail;
@@ -19,13 +20,19 @@ class ExtrafieldWO extends Command
     protected $signature = 'wo:extrafield';
     protected $description = 'Build Extrafield';
 
-    public function __construct(){
+    public function __construct()
+    {
         parent::__construct();
     }
 
-    public function handle(){
+    public function handle()
+    {
         $this->info('Running.....');
-        BuildExtrafieldWo::build();
+        $data = WorkOrder::all();
+        foreach ($data as $wo) {
+            // $extraWo->exec($wo);
+            ExtrafieldJob::dispatch($wo->id);
+        }
         $this->info('Finished.....');
     }
 }
