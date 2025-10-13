@@ -2761,218 +2761,100 @@ class WorkOrder extends Controller
 
     // tes pakai temp table ======================================
 
+
     public function exportExcel(Request $request)
     {
         $user = $request->user();
 
         $titles = [["WORKORDER", 'h2'], ["Asianet", 'h3']];
+
         $query = [];
 
-        // ===== FILTER DASAR =====
         if ($search = $request->input('query')) {
-            $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%'
-                OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
+            $query[] = "(A.id LIKE '%$search%' OR A.no_wo LIKE '%$search%' OR A.description LIKE '%$search%' OR G1.name LIKE '%$search%' OR G2.name LIKE '%$search%' OR I.name LIKE '%$search%')";
         }
 
         if ($request->input('archive')) {
             $query[] = "(A.close_date IS NOT NULL)";
-            $titles[] = ['Archive Data', 'h4'];
+            array_push($titles, ['Archive Data', 'h4']);
         } elseif ($request->input('filter-hold') === "2") {
-            $titles[] = ['Data Is Hold', 'h4'];
+            array_push($titles, ['Data Is Hold', 'h4']);
         } else {
-            $mindate = now()->format('Y-m-d');
+            $mindate = date('Y-m-d', strtotime('-0 days'));
             $query[] = "(A.close_date IS NULL OR A.close_date >= '$mindate')";
-            $titles[] = ['Data On Going', 'h4'];
+            array_push($titles, ['Data On Going', 'h4']);
         }
 
-        // ===== FILTER TAMBAHAN =====
+        // FILTER ------------------------------------------------------------------------------------------------------
         if (!$search && ($filter = $request->input('filterDate'))) {
-            $m = date('Y-m', strtotime($filter)) . '%';
+            $m = date('Y-m', strtotime("$filter 00:00:00")) . '%';
             $query[] = "(A.start_date LIKE '$m')";
-            $titles[] = [date('F Y', strtotime($filter)), 'h4'];
-        }
 
-        foreach (
-            [
-                'filter-status'   => 'B.status_id',
-                'filter-activity' => 'A.activity_id',
-                'filter-service'  => 'A.service_id',
-                'filter-vendor'   => 'A.vendor_id',
-                'filter-client'   => 'A.client_id',
-                'filter-owner'    => 'A.owner_id'
-            ] as $key => $col
-        ) {
-            if (($filter = $request->input($key)) && $filter != 'null') {
-                $query[] = "($col = '$filter')";
+            $month = date('F Y', strtotime("$filter 00:00:00"));
+            array_push($titles, [$month, 'h4']);
+        }
+        if ($filter = $request->input('filter-status')) if ($filter != 'null') $query[] = "(B.status_id = '$filter')";
+        if ($filter = $request->input('filter-activity')) $query[] = "(A.activity_id = '$filter')";
+        if ($filter = $request->input('filter-service')) $query[] = "(A.service_id = '$filter')";
+        if ($filter = $request->input('filter-vendor')) $query[] = "(A.vendor_id = '$filter')";
+        if ($filter = $request->input('filter-client')) $query[] = "(A.client_id = '$filter')";
+        if ($filter = $request->input('filter-owner')) $query[] = "(A.owner_id = '$filter')";
+        if ($filter = $request->input('filter-hold')) {
+            if ($filter === "2") {
+                $query[] = "(A.is_hold = '1')";
+            } elseif ($filter === "1") {
+                $query[] = "(A.is_hold = '0')";
             }
         }
 
-        if ($filter = $request->input('filter-hold')) {
-            if ($filter === "2") $query[] = "(A.is_hold = '1')";
-            elseif ($filter === "1") $query[] = "(A.is_hold = '0')";
+        // FILTER BY USER AUTH -----------------------------------------------------------------------------------------
+        if ($ftr = $user->owners) $query[] = "(A.owner_id = '$ftr') ";
+        if ($ftr = $user->activities) $query[] = "(A.activity_id = '$ftr') ";
+        if ($ftr = $user->client_id) $query[] = "(A.client_id = '$ftr') ";
+        if ($ftr = $user->vendor_id) $query[] = "(A.vendor_id = '$ftr') ";
+        if ($ftr = $user->fieldtech_id) $query[] = "(A.fieldtech_id = '$ftr') ";
+
+        $where = '';
+        if (count($query)) {
+            $query = implode(" AND ", $query);
+            $where = " AND $query";
         }
 
-        // ===== FILTER USER AUTH =====
-        foreach (
-            [
-                'owners'       => 'A.owner_id',
-                'activities'   => 'A.activity_id',
-                'client_id'    => 'A.client_id',
-                'vendor_id'    => 'A.vendor_id',
-                'fieldtech_id' => 'A.fieldtech_id',
-            ] as $prop => $col
-        ) {
-            if ($val = $user->$prop) $query[] = "($col = '$val')";
-        }
+        // Query utama
+        $sql = "SELECT A.*,
+                    B.created_at AS lastupdate_at,
+                    B1.`name` AS status_name,
+                    C.`name` AS activity_name,
+                    D.`name` AS service_name,
+                    E.`name` AS owner_name,
+                    F.`name` AS client_name,
+                    G1.`name` AS site_name,
+                    G1.`address` AS site_address,
+                    G1.`pic_phone` AS site_phone,
+                    G2.`name` AS remove_site_name,
+                    H.`name` AS vendor_name,
+                    I.`name` AS fieldtech_name,
+                    J.`name` AS created_by_name,
+                    K.`name` AS slot,
+                    DATEDIFF(DATE(NOW()), A.start_date) AS duration
+                FROM po_wo A
+                    LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
+                    LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
+                    LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
+                    LEFT JOIN po_m_owner E ON A.owner_id = E.id
+                    LEFT JOIN po_m_client F ON A.client_id = F.id
+                    LEFT JOIN po_m_site G1 ON A.site_id = G1.id
+                    LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
+                    LEFT JOIN po_wo_m_service D ON G1.service_id = D.id
+                    LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
+                    LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
+                    LEFT JOIN auth_user J ON A.created_by = J.id
+                    LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
+                WHERE A.deleted_at IS NULL
+                $where";
 
-        $where = count($query) ? ' AND ' . implode(' AND ', $query) : '';
 
-        // ===== QUERY UTAMA =====
-        $sqlMain = "
-        SELECT
-            A.id, A.no_wo, A.description, A.is_hold, A.start_date, A.close_date, A.slot_id,
-            A.created_by, A.created_at, A.owner_id, A.activity_id, A.service_id,
-            A.vendor_id, A.client_id, A.fieldtech_id,
-            B.created_at AS lastupdate_at,
-            B1.name AS status_name,
-            C.name AS activity_name,
-            D.name AS service_name,
-            E.name AS owner_name,
-            F.name AS client_name,
-            G1.name AS site_name,
-            G1.address AS site_address,
-            G1.pic_phone AS site_phone,
-            G2.name AS remove_site_name,
-            H.name AS vendor_name,
-            I.name AS fieldtech_name,
-            J.name AS created_by_name,
-            K.name AS slot,
-            DATEDIFF(DATE(NOW()), A.start_date) AS duration
-        FROM po_wo A
-            LEFT JOIN po_wo_action B ON A.last_action = B.id AND B.deleted_at IS NULL
-            LEFT JOIN po_wo_m_status B1 ON B.status_id = B1.id
-            LEFT JOIN po_wo_m_activity C ON A.activity_id = C.id
-            LEFT JOIN po_wo_m_service D ON A.service_id = D.id
-            LEFT JOIN po_m_owner E ON A.owner_id = E.id
-            LEFT JOIN po_m_client F ON A.client_id = F.id
-            LEFT JOIN po_m_site G1 ON A.site_id = G1.id
-            LEFT JOIN po_m_site G2 ON A.remove_site_id = G2.id
-            LEFT JOIN po_m_vendor H ON A.vendor_id = H.id
-            LEFT JOIN po_m_fieldtech I ON A.fieldtech_id = I.id
-            LEFT JOIN auth_user J ON A.created_by = J.id
-            LEFT JOIN po_wo_m_slot K ON A.slot_id = K.id
-        WHERE A.deleted_at IS NULL
-        $where";
-
-        $mainData = collect(DB::select(DB::raw($sqlMain)));
-        if ($mainData->isEmpty()) {
-            return response()->json(['message' => 'No data found'], 404);
-        }
-
-        $woIds = $mainData->pluck('id')->toArray();
-
-        // ===== BUAT TEMPORARY TABLE =====
-        DB::statement('DROP TEMPORARY TABLE IF EXISTS tmp_wo_ids');
-        DB::statement('CREATE TEMPORARY TABLE tmp_wo_ids (wo_id BIGINT PRIMARY KEY) ENGINE=Memory');
-
-        foreach (array_chunk($woIds, 10000) as $chunk) {
-            $values = collect($chunk)->map(fn($id) => "($id)")->implode(',');
-            DB::statement("INSERT IGNORE INTO tmp_wo_ids (wo_id) VALUES $values");
-        }
-
-        // ===== SUBQUERY (PAKAI TEMP TABLE) =====
-        $ontSerial = DB::table('po_wo_action_detail AS d')
-            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
-            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
-            ->whereIn('d.detail_id', [281010, 281011, 281166, 281167, 281168, 281169, 281272, 281273])
-            ->select('a.wo_id', DB::raw("MIN(REPLACE(d.value, '\"', '')) AS ont_serial"))
-            ->groupBy('a.wo_id')
-            ->pluck('ont_serial', 'wo_id');
-
-        $totalStb = DB::table('po_wo_action_detail AS d')
-            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
-            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
-            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
-            ->where('a.status_id', 1110)
-            ->where('sd.name', 'Total STB')
-            ->select('a.wo_id', DB::raw('SUM(CAST(d.value AS UNSIGNED)) AS total_stb'))
-            ->groupBy('a.wo_id')
-            ->pluck('total_stb', 'wo_id');
-
-        $arrData = DB::table('po_wo_action_detail AS d')
-            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
-            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
-            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
-            ->where('a.status_id', 1330)
-            ->select(
-                'a.wo_id',
-                DB::raw("MAX(CASE WHEN sd.name='Nama Jalan' THEN d.value END) AS nama_jalan"),
-                DB::raw("MAX(CASE WHEN sd.name='RT' THEN d.value END) AS rt"),
-                DB::raw("MAX(CASE WHEN sd.name='RW' THEN d.value END) AS rw"),
-                DB::raw("MAX(CASE WHEN sd.name='Nomor Rumah' THEN d.value END) AS nomor_rumah"),
-                DB::raw("MAX(CASE WHEN sd.name='Nomor Kontak Pelanggan' THEN d.value END) AS kontak_pelanggan")
-            )
-            ->groupBy('a.wo_id')
-            ->get()
-            ->keyBy('wo_id');
-
-        $snAct = DB::table('po_wo_action_detail AS d')
-            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
-            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
-            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
-            ->where('a.status_id', 1420)
-            ->where('sd.name', 'SN ONT')
-            ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_activation'))
-            ->groupBy('a.wo_id')
-            ->pluck('sn_ont_activation', 'wo_id');
-
-        $snTest = DB::table('po_wo_action_detail AS d')
-            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
-            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
-            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
-            ->where('a.status_id', 1430)
-            ->where('sd.name', 'SN ONT')
-            ->select('a.wo_id', DB::raw('MAX(d.value) AS sn_ont_testing'))
-            ->groupBy('a.wo_id')
-            ->pluck('sn_ont_testing', 'wo_id');
-
-        $barcode = DB::table('po_wo_action_detail AS d')
-            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
-            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
-            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
-            ->where('a.status_id', 1410)
-            ->where('sd.name', 'Input barcode kabel kode')
-            ->select('a.wo_id', DB::raw('MAX(d.value) AS input_kabel_kode'))
-            ->groupBy('a.wo_id')
-            ->pluck('input_kabel_kode', 'wo_id');
-
-        $techName = DB::table('po_wo_action_detail AS d')
-            ->join('po_wo_action AS a', 'd.action_id', '=', 'a.id')
-            ->join('po_wo_m_status_detail AS sd', 'd.detail_id', '=', 'sd.id')
-            ->join('tmp_wo_ids AS t', 'a.wo_id', '=', 't.wo_id')
-            ->whereIn('a.status_id', [3610, 1610, 2610, 4610, 5610, 6610, 8610])
-            ->where('sd.name', 'Technician Name')
-            ->select('a.wo_id', DB::raw('MAX(d.value) AS technician_name'))
-            ->groupBy('a.wo_id')
-            ->pluck('technician_name', 'wo_id');
-
-        // ===== GABUNG DATA =====
-        $data = $mainData->map(function ($row) use ($ontSerial, $totalStb, $arrData, $snAct, $snTest, $barcode, $techName) {
-            $id = $row->id;
-            $row->ont_serial = $ontSerial[$id] ?? '-';
-            $row->total_stb = $totalStb[$id] ?? '-';
-            $row->nama_jalan = $arrData[$id]->nama_jalan ?? '-';
-            $row->rt = $arrData[$id]->rt ?? '-';
-            $row->rw = $arrData[$id]->rw ?? '-';
-            $row->nomor_rumah = $arrData[$id]->nomor_rumah ?? '-';
-            $row->kontak_pelanggan = $arrData[$id]->kontak_pelanggan ?? '-';
-            $row->sn_ont_activation = $snAct[$id] ?? '-';
-            $row->sn_ont_testing = $snTest[$id] ?? '-';
-            $row->input_kabel_kode = $barcode[$id] ?? '-';
-            $row->technician_name = $techName[$id] ?? '-';
-            return $row;
-        });
-
+        $data = DB::select(DB::raw($sql));
         $columns = [
             ["text" => "ID", "dataIndex" => "id", "width" => 115],
             ["text" => "TICKET ID", "dataIndex" => "no_wo", "width" => 115],
@@ -2993,44 +2875,178 @@ class WorkOrder extends Controller
             ["text" => "LAST STATUS DATE", "dataIndex" => "lastupdate_at", "type" => "date", "align" => "center", "width" => 100],
             [
                 "text" => "TOTAL STB",
-                "dataIndex" => "total_stb",
+                "dataIndex" => "extrafield",
                 "width" => 100,
                 "align" => "center",
                 "renderer" => function ($value) {
+
+                    $data = json_decode($value);
+
+                    if (isset($data->total_stb)) {
+                        return $data->total_stb;
+                    }
+
                     return ($value === null || $value == 0) ? '-' : $value;
                 }
             ],
-            ["text" => "ONT SERIALNUMBER", "dataIndex" => "ont_serial", "width" => 200],
+            [
+                "text" => "ONT SERIALNUMBER",
+                "dataIndex" => "extrafield",
+                "width" => 200,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->ont_serial)) {
+                        return $data->ont_serial;
+                    }
+
+                    return "";
+                }
+            ],
             ["text" => "DESCRIPTION", "dataIndex" => "description", "width" => 500],
-            ["text" => "NAMA JALAN", "dataIndex" => "nama_jalan", "width" => 400],
-            ["text" => "RW", "dataIndex" => "rw", "width" => 100],
-            ["text" => "RT", "dataIndex" => "rt", "width" => 100],
-            ["text" => "NOMOR RUMAH", "dataIndex" => "nomor_rumah", "width" => 200],
-            ["text" => "NOMOR KONTAK PELANGGAN", "dataIndex" => "kontak_pelanggan", "width" => 200],
+            [
+                "text" => "NAMA JALAN",
+                "dataIndex" => "extrafield",
+                "width" => 400,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->contact_address)) {
+                        return $data->contact_address;
+                    }
+
+                    return "";
+                }
+            ],
+            [
+                "text" => "RW",
+                "dataIndex" => "extrafield",
+                "width" => 100,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->contact_rw)) {
+                        return $data->contact_rw;
+                    }
+
+                    return "";
+                }
+            ],
+            [
+                "text" => "RT",
+                "dataIndex" => "extrafield",
+                "width" => 100,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->contact_rt)) {
+                        return $data->contact_rt;
+                    }
+
+                    return "";
+                }
+            ],
+            [
+                "text" => "NOMOR RUMAH",
+                "dataIndex" => "extrafield",
+                "width" => 100,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->contact_no)) {
+                        return $data->contact_no;
+                    }
+
+                    return "";
+                }
+            ],
+            [
+                "text" => "NOMOR KONTAK PELANGGAN",
+                "dataIndex" => "extrafield",
+                "width" => 200,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->contact_phone)) {
+                        return $data->contact_phone;
+                    }
+
+                    return "";
+                }
+            ],
             ["text" => "HOLD", "dataIndex" => "is_hold", "width" => 100, "align" => "center", "renderer" => function ($value) {
                 return $value == 1 ? 'HOLD' : '-';
             }],
-            ["text" => "SN ACT", "dataIndex" => "sn_ont_activation", "width" => 200],
-            ["text" => "SN TESTING", "dataIndex" => "sn_ont_testing", "width" => 200],
-            ["text" => "BARCODE KABEL KODE", "dataIndex" => "input_kabel_kode", "width" => 300],
-            ["text" => "TECHNICIAN NAME", "dataIndex" => "technician_name", "width" => 200],
+            [
+                "text" => "SN ACT",
+                "dataIndex" => "extrafield",
+                "width" => 200,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->sn_ont_activation)) {
+                        return $data->sn_ont_activation;
+                    }
+
+                    return "";
+                }
+            ],
+            [
+                "text" => "SN TESTING",
+                "dataIndex" => "extrafield",
+                "width" => 200,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->sn_ont_testing)) {
+                        return $data->sn_ont_testing;
+                    }
+
+                    return "";
+                }
+            ],
+            [
+                "text" => "BARCODE KABEL KODE",
+                "dataIndex" => "extrafield",
+                "width" => 300,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->input_kabel_kode)) {
+                        return $data->input_kabel_kode;
+                    }
+
+                    return "";
+                }
+            ],
+            [
+                "text" => "TECHNICIAN NAME",
+                "dataIndex" => "extrafield",
+                "width" => 300,
+                "renderer" => function ($value) {
+                    $data = json_decode($value);
+
+                    if (isset($data->technician_name)) {
+                        return $data->technician_name;
+                    }
+
+                    return "";
+                }
+            ],
         ];
 
-        $footers = [
-            'Total Count: ' . count($data) . ' Row',
-            'Downloaded ' . now()->format('d F Y H:i:s')
-        ];
+        $footers = ['Total Count: ' . count($data) . ' Row', ' ', 'Asianet', 'Downloaded (QFEST)` (' . date('d F Y H:i:s') . ')'];
+        $params = array(
+            // 'title' => $titles,
+            'columns' => $columns,
+            'filename' => 'WO ' . date("YmdHis"),
+            'data' => $data,
+            'footer' => $footers,
+        );
 
-        $excel = new ExportExcel([
-            'columns'  => $columns,
-            'filename' => 'WO_' . now()->format('YmdHis'),
-            'data'     => $data,
-            'footer'   => $footers,
-        ]);
-
-        $excel->run();
+        $excel = new ExportExcel($params);
+        $excel->run($params);
     }
-
 
     public function exportPdf(Request $request, $id = null)
     {

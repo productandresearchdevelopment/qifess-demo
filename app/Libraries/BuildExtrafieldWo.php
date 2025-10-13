@@ -1,30 +1,38 @@
 <?php
+
 namespace App\Libraries;
 
 use App\Models\WorkOrders\ActionDetail;
 use App\Models\WorkOrders\WorkOrder;
+use Hamcrest\Type\IsObject;
 
-class BuildExtrafieldWo {
-    public static function build($id=null){
+class BuildExtrafieldWo
+{
+    public static function build($id = null)
+    {
         $extraWo = new BuildExtrafieldWo();
-        if($id) $extraWo->exec($id);
-        else{
+        if ($id) $extraWo->exec($id);
+        else {
             $data = WorkOrder::all();
-            foreach($data as $wo){
+            foreach ($data as $wo) {
                 $extraWo->exec($wo);
             }
         }
     }
 
-    public function exec($wo){
-        if(is_string($wo)) $wo = WorkOrder::find($wo);
-        if($wo){
-            $this->buildContact($wo);
+    public function exec($wo)
+    {
+
+        if (!is_object($wo)) {
+            $wo = WorkOrder::find($wo);
         }
+
+        $this->buildContact($wo);
     }
 
-    private function buildContact($wo){
-        if($action = $wo->actions()->where('status_id', 1330)->orderBy('created_at', 'desc')->first()) {
+    private function buildContact($wo)
+    {
+        if ($action = $wo->actions()->where('status_id', 1330)->orderBy('created_at', 'desc')->first()) {
             $details = ActionDetail::where('action_id', $action->id)->whereIn('detail_id', [281880, 281892, 281893, 281894, 281895])->get();
             foreach ($details as $detail) {
                 if ($detail->detail_id == '281880') $this->pushExtrafield($wo, 'contact_address', $detail->value);
@@ -34,20 +42,70 @@ class BuildExtrafieldWo {
                 if ($detail->detail_id == '281895') $this->pushExtrafield($wo, 'contact_phone', $detail->value);
             }
         }
-    }
-
-    private function pushExtrafield($wo, $index, $value) {
-        $extrafield = (array) $wo->extrafield ?: [];
-        $exsist = false;
-        foreach ($extrafield AS $key => $value) {
-            if($key == $index){
-                $extra[$key] = $value;
-                $exsist = true;
-                break;
+        if ($action = $wo->actions()->where('status_id', 1110)->orderBy('created_at', 'desc')->first()) {
+            $details = ActionDetail::where('action_id', $action->id)->whereIn('detail_id', [281827])->get();
+            foreach ($details as $detail) {
+                if ($detail->detail_id == '281827') $this->pushExtrafield($wo, 'total_stb', $detail->value);
             }
         }
-        if(!$exsist) $extrafield[$index] = $value;
+        if ($action = $wo->actions()->where('status_id', 1420)->orderBy('created_at', 'desc')->first()) {
+            $details = ActionDetail::where('action_id', $action->id)->whereIn('detail_id', [281805])->get();
+            foreach ($details as $detail) {
+                if ($detail->detail_id == '281805') $this->pushExtrafield($wo, 'sn_ont_activation', $detail->value);
+            }
+        }
+        if ($action = $wo->actions()->where('status_id', 1430)->orderBy('created_at', 'desc')->first()) {
+            $details = ActionDetail::where('action_id', $action->id)->whereIn('detail_id', [281891])->get();
+            foreach ($details as $detail) {
+                if ($detail->detail_id == '281891') $this->pushExtrafield($wo, 'sn_ont_testing', $detail->value);
+            }
+        }
+        if ($action = $wo->actions()->where('status_id', 1410)->orderBy('created_at', 'desc')->first()) {
+            $details = ActionDetail::where('action_id', $action->id)->whereIn('detail_id', [281890])->get();
+            foreach ($details as $detail) {
+                if ($detail->detail_id == '281890') $this->pushExtrafield($wo, 'input_kabel_kode', $detail->value);
+            }
+        }
+        if ($action = $wo->actions()->whereIn('status_id', [3610, 1610, 2610, 4610, 5610, 6610, 8610])->orderBy('created_at', 'desc')->first()) {
+            $details = ActionDetail::where('action_id', $action->id)
+                ->whereIn('detail_id', [281783, 281785, 281787, 281789, 281791, 281793, 281908])
+                ->get();
+            foreach ($details as $detail) {
+                $this->pushExtrafield($wo, 'technician_name', $detail->value);
+            }
+        }
+
+        if ($action = $wo->actions()->whereIn('status_id', [1310, 2310, 3310, 4310, 7310])->orderBy('created_at', 'desc')->first()) {
+            $details = ActionDetail::where('action_id', $action->id)
+                ->whereIn('detail_id', [281011, 281168, 281169, 281273, 281462])
+                ->get();
+            foreach ($details as $detail) {
+                $this->pushExtrafield($wo, 'ont_serial', $detail->value);
+            }
+        }
+    }
+
+
+
+    // private function pushExtrafield($wo, $index, $value)
+    // {
+    //     $extrafield = (array) $wo->extrafield ?: [];
+    //     $exsist = false;
+    //     foreach ($extrafield as $key => $value) {
+    //         if ($key == $index) {
+    //             $extra[$key] = $value;
+    //             $exsist = true;
+    //             break;
+    //         }
+    //     }
+    //     if (!$exsist) $extrafield[$index] = $value;
+    //     $wo->update(['extrafield' => $extrafield]);
+    // }
+
+    private function pushExtrafield($wo, $index, $value)
+    {
+        $extrafield = (array) $wo->extrafield ?: [];
+        $extrafield[$index] = $value;
         $wo->update(['extrafield' => $extrafield]);
     }
 }
-
