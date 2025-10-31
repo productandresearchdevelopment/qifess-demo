@@ -24,7 +24,6 @@
         var slots = @json($slots);
         var statusAction = @json($status);
         var user = @json($user);
-        var technicianvendor = @json($technicianvendors);
 
         var grids = new Grids();
         var forms = new Forms();
