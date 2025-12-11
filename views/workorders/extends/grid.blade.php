@@ -675,11 +675,34 @@
             }
           }
         }
+        else if (item.text === 'Edit') {
+
+          if ( user.role_id === 1115) {
+
+            const allowedStatuses = [8110];
+
+            if (recs.length === 1 && allowedStatuses.includes(recs[0].last_action.status_id)) {
+              resultShow = true;
+              item.show();
+            } else {
+              item.hide();
+            }
+          } else {
+            resultShow = true;
+            item.show();
+          }
+
+        } else {
+          item.show();
+        }
+
       });
 
-      @if (!$user->hasRoute(['wo.create', 'wo.edit', 'wo.delete']))
-        return resultShow;
-      @endif
+      if (user.role_id === 1115 && !resultShow) {
+        obj.hide();
+      }
+
+      return resultShow;
     }
   }
 </script>
