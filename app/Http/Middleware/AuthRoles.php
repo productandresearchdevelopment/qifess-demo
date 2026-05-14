@@ -28,9 +28,17 @@ class AuthRoles
     }
 
     private function kusdlYslkefdl(){
-        $sdklfsdlUyud = 'WyJsb2NhbGhvc3QiLCIxMjcuMC4wLjEiLCAiMTkyLjE2OCIsInF1YWxpdGEiLCJhc2lhbmV0Il0=';
-        $wealkjfdsawe = base64_decode($sdklfsdlUyud); $k739sklfdfkl=Request::url(); $klsdsdlfowe9=json_decode($wealkjfdsawe);
-        foreach ($klsdsdlfowe9 AS $uewodfkmdDss){ if(strpos($k739sklfdfkl, $uewodfkmdDss)) return true; null; }
-        return false;
+    $sdklfsdlUyud = 'WyJsb2NhbGhvc3QiLCIxMjcuMC4wLjEiLCAiMTkyLjE2OCIsInF1YWxpdGEiLCJhc2lhbmV0IiwicWlmZXNzIl0=';
+
+    $wealkjfdsawe = base64_decode($sdklfsdlUyud);
+    $k739sklfdfkl = Request::url();
+    $klsdsdlfowe9 = json_decode($wealkjfdsawe);
+
+    foreach ($klsdsdlfowe9 as $uewodfkmdDss){
+        if(strpos($k739sklfdfkl, $uewodfkmdDss))
+            return true;
     }
+
+    return false;
+}
 }
