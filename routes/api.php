@@ -44,12 +44,12 @@ Route::group(['middleware' => ['auth.api']], function () {
             $password = $request->input('password');
 
             if ($username && $password) {
-                if ($user = User::where('username', $username)->whereIn('role_id', [10, 20])->first()) {
+                if ($user = User::where('username', $username)->whereIn('role_id', [10, 20,100,210,220,1100,1110])->first()) {
                     if (Hash::check($password, $user->password)) {
                         if ($user->token_api && ($user->token_api_expired_at > date('Y-m-d H:i:s'))) {
                             $token = $user->token_api;
                         } else $token = \Illuminate\Support\Str::uuid();
-                        $expired = 120;
+                        $expired = 1440; // 1 hari
                         $expiredAt = date('Y-m-d H:i:s', strtotime("+$expired minutes"));
                         $user->update([
                             'token_api' => $token,
